@@ -9,7 +9,7 @@
 const int ledPin = 2; // GPIO2
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
 #define ONE_WIRE_BUS_PIN 13 // используется номер GPIO
-
+uint8_t numberOfDevices;
 // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 OneWire oneWire(ONE_WIRE_BUS_PIN);
 // Передаем ссылку на объект oneWire в конструктор DallasTemperature
@@ -28,7 +28,7 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 long lastMsg = 0, number = 0;
 int16_t t1 = 375, t2 = 302;
 byte data[] = {
-  0b01011011, // 2
+  0b00111111, // 0
   0b01011110, // d
   0b00000110, // 1
   0b11101101, // 5.
@@ -87,7 +87,8 @@ void setup() {
   Serial.println("DallasTemperature Library Initialized.");
 
   // Поиск устройств на шине 1-Wire
-  int numberOfDevices = sensors.getDeviceCount();
+  numberOfDevices = sensors.getDeviceCount();
+  data[0] = NUMBER_FONT[numberOfDevices];
   Serial.print("Found ");
   Serial.print(numberOfDevices, DEC);
   Serial.println(" devices.");
@@ -99,7 +100,7 @@ void setup() {
   } else {
     Serial.println("Sensor addresses:");
     // Выводим адрес каждого найденного устройства
-    for (int i = 0; i < numberOfDevices; i++) {
+    for (uint8_t i = 0; i < numberOfDevices; i++) {
       if (sensors.getAddress(sensorAddress, i)) {
         Serial.print("  Sensor ");
         Serial.print(i);
@@ -139,7 +140,7 @@ void loop() {
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //===================
-  if (sensors.getDeviceCount()) {
+  if (numberOfDevices) {
     // Запрос на измерение температуры у всех датчиков на шине
     Serial.print("Requesting temperatures...");
     sensors.requestTemperatures(); // Отправляем команду на измерение
@@ -148,17 +149,19 @@ void loop() {
     // Получаем температуру с первого найденного датчика (индекс 0)
     // Если у вас несколько датчиков, вы можете получать температуру по адресу:
     // sensors.getTempC(sensorAddress)
-    float tempC = sensors.getTempCByIndex(0); // Температура в градусах Цельсия
-    t1 = tempC*10;
-    // Проверка на корректность чтения
-    if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
-      Serial.println("Error: Could not read temperature data for sensor 0.");
-    } else {
-      Serial.print("Temperature (Sensor 0): ");
-      Serial.print(tempC);
-      Serial.print(" °C");
+    for (size_t i = 0; i < numberOfDevices; i++)
+    {
+      float tempC = sensors.getTempCByIndex(i); // Температура в градусах Цельсия
+      // Проверка на корректность чтения
+      if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
+        Serial.println("Error: Could not read temperature data for sensor 0.");
+      } else {
+        if(i==0) t1 = tempC*10;
+        Serial.print("Temperature (Sensor 0): ");
+        Serial.print(tempC);
+        Serial.println(" °C");
+      }
     }
-    Serial.println("------------------------------------");
   } else {
       // Serial.println("No sensors to read from.");
       if(t1>400) t1 = 375;
