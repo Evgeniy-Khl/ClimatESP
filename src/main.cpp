@@ -49,6 +49,25 @@ RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
   //------------------------------------------------------------------------------
+  Serial.println("\n");
+  uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
+  uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
+  FlashMode_t ideMode = ESP.getFlashChipMode();
+
+  Serial.printf("Flash real id:   %08X\n", ESP.getFlashChipId());
+  Serial.printf("Flash real size: %u bytes\n\n", realSize);
+
+  Serial.printf("Flash ide  size: %u bytes\n", ideSize);
+  Serial.printf("Flash ide speed: %u Hz\n", ESP.getFlashChipSpeed());
+  Serial.printf("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
+
+  if (ideSize != realSize) {
+    Serial.println("Внимание! Размер Flash, установленный в IDE, не совпадает с реальным!");
+  } else {
+    Serial.println("Размер Flash в IDE совпадает с реальным.");
+  }
+  Serial.println();
+  //------------------------------------------------------------------------------
   pinMode(ledPin, OUTPUT);    // Устанавливаем пин светодиода как выход
   // Можно установить желаемую частоту ШИМ (опционально)
   // analogWriteFreq(1000);   // По умолчанию и так 1000 Гц
