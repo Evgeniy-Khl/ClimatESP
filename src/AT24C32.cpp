@@ -50,6 +50,7 @@ uint8_t eepromReadByte(uint16_t memoryAddress) {
  * следует учитывать границы страниц, эта функция делает явно.
  * Однако, последовательная запись через Wire.write() для AT24C32 обычно работает корректно
  * в пределах страницы. Для записи через границы страниц может потребоваться несколько транзакций.
+ * AT24C32 адреса страниц: 0-31, 32-63, ...
  */
 void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length) {
   uint16_t currentBufferIndex = 0;

@@ -9,7 +9,8 @@
 const int ledPin = 2; // GPIO2
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
 #define ONE_WIRE_BUS_PIN 13 // используется номер GPIO
-uint8_t numberOfDevices;
+#define MAX_DEVICE 4        // ограничение количества датчиков
+uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 OneWire oneWire(ONE_WIRE_BUS_PIN);
 // Передаем ссылку на объект oneWire в конструктор DallasTemperature
@@ -49,7 +50,7 @@ RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
   //------------------------------------------------------------------------------
-  Serial.println("\n");
+  /* Serial.println("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
   uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
   FlashMode_t ideMode = ESP.getFlashChipMode();
@@ -66,7 +67,7 @@ void setup() {
   } else {
     Serial.println("Размер Flash в IDE совпадает с реальным.");
   }
-  Serial.println();
+  Serial.println(); */
   //------------------------------------------------------------------------------
   pinMode(ledPin, OUTPUT);    // Устанавливаем пин светодиода как выход
   // Можно установить желаемую частоту ШИМ (опционально)
@@ -95,7 +96,7 @@ void setup() {
   //------------------------------------------------------------------------------
   testAT24C32();              // тест
   //==============================================================================
-  Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor Test----------------");
+  Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
 
   // Инициализация библиотеки DallasTemperature
   sensors.begin();
@@ -103,11 +104,11 @@ void setup() {
   sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
   sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
   sensors.setResolution(12);
-  Serial.println("DallasTemperature Library Initialized.");
 
   // Поиск устройств на шине 1-Wire
   numberOfDevices = sensors.getDeviceCount();
-  data[0] = NUMBER_FONT[numberOfDevices];
+  if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
+  data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
   Serial.print("Found ");
   Serial.print(numberOfDevices, DEC);
   Serial.println(" devices.");
@@ -117,6 +118,7 @@ void setup() {
     // Можно остановить выполнение, если датчики не найдены
     // while(true) delay(100);
   } else {
+    sensors.requestTemperatures(); // Отправляем команду на измерение
     Serial.println("Sensor addresses:");
     // Выводим адрес каждого найденного устройства
     for (uint8_t i = 0; i < numberOfDevices; i++) {
@@ -160,27 +162,22 @@ void loop() {
     lastMsg = now;
     //===================
   if (numberOfDevices) {
-    // Запрос на измерение температуры у всех датчиков на шине
-    Serial.print("Requesting temperatures...");
-    sensors.requestTemperatures(); // Отправляем команду на измерение
-    Serial.println(" DONE");
-
-    // Получаем температуру с первого найденного датчика (индекс 0)
-    // Если у вас несколько датчиков, вы можете получать температуру по адресу:
-    // sensors.getTempC(sensorAddress)
-    for (size_t i = 0; i < numberOfDevices; i++)
+    // Получаем температуру
+    for (byte i = 0; i < numberOfDevices; i++)
     {
       float tempC = sensors.getTempCByIndex(i); // Температура в градусах Цельсия
       // Проверка на корректность чтения
       if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
-        Serial.println("Error: Could not read temperature data for sensor 0.");
+        Serial.printf("Error%d= %.2f °C\n", i, tempC);
+        errDevice[i]++;
       } else {
         if(i==0) t1 = tempC*10;
-        Serial.print("Temperature (Sensor 0): ");
-        Serial.print(tempC);
-        Serial.println(" °C");
+        Serial.printf("T%d= %.2f °C\n", i, tempC);
+        errDevice[i] = 0;
       }
     }
+    Serial.println();
+    sensors.requestTemperatures(); // Отправляем команду на измерение
   } else {
       // Serial.println("No sensors to read from.");
       if(t1>400) t1 = 375;
@@ -202,7 +199,7 @@ void loop() {
     module.setDisplay(data, 8);
     //-----------------------------------------------------------------------------
     // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
-    if(writePCF8574(data[5]%10)) data[7] = NUMBER_FONT[14];  // "E"
+    if(writePCF8574(now.second()%10)) data[7] = NUMBER_FONT[14];  // "E"
     else data[7] = 0;
     /* -- Пример 2: Чтение входов PCF8574 ---
           Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
