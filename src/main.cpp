@@ -8,7 +8,7 @@
 // Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
 const int ledPin = 2; // GPIO2
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-#define ONE_WIRE_BUS_PIN 13 // используется номер GPIO
+#define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
 #define MAX_DEVICE 4        // ограничение количества датчиков
 uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
@@ -44,7 +44,7 @@ byte readPCF8574();
 void testAT24C32();
 void printAddress(DeviceAddress deviceAddress);
 // NodeMcu    DIO CLK STB            
-TM1638 module(16, 14, 12);    // Создаем объект module для TM1638
+TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
 RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
 
 void setup() {
