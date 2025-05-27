@@ -1,6 +1,7 @@
 #include "ili9341.h"
 
 void initTFT(void){
+  Serial.println();
   Serial.println("ILI9341 & XPT2046 Touch Test");
 
   // Инициализация SPI (не нужна явно, т.к. tft.begin() и ts.begin() сделают это)
@@ -14,8 +15,7 @@ void initTFT(void){
   tft.setCursor(10, 10);
   tft.println("Touch Screen Test");
   tft.setTextSize(1);
-  tft.println("Натиснiть на екран!"); // Press the screen! (Ukrainian)
-
+  tft.println("Touch Screen Test"); // Press the screen! (Ukrainian)
   // Инициализация тачскрина
   if (!ts.begin()) {
     Serial.println("Couldn't start touchscreen controller");

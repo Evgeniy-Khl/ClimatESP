@@ -92,7 +92,7 @@ void setup() {
   initTFT();
 
   //==============================================================================
-  Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
+  // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
 
   // Инициализация библиотеки DallasTemperature
   // sensors.begin();
@@ -149,8 +149,8 @@ void loop() {
   //-------------------------------------------------------------------------------
   // Проверяем, есть ли нажатие
   if (ts.touched()) touchTest();
+
   long now = millis();
-  
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //===================
