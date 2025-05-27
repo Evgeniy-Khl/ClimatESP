@@ -1,34 +1,49 @@
-#include "ili9341.h"
+// #include "my_TFT_eSPI.h"
+#include "TFT_eSPI.h"
+extern TFT_eSPI tft;
+// extern XPT2046_Touchscreen ts;
 
 void initTFT(void){
   Serial.println();
-  Serial.println("ILI9341 & XPT2046 Touch Test");
+  Serial.println("TFT_eSPI Test!");
 
-  // Инициализация SPI (не нужна явно, т.к. tft.begin() и ts.begin() сделают это)
+  tft.init(); // Инициализация дисплея
+  tft.setRotation(0); // Устанавливаем поворот (0-3)
 
-  // Инициализация дисплея
-  tft.begin();
-  tft.setRotation(SCREEN_ROTATION);
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setTextSize(2);
-  tft.setTextColor(ILI9341_WHITE);
+  tft.fillScreen(TFT_BLACK); // Заливаем экран черным
+
+  tft.setTextColor(TFT_WHITE, TFT_BLACK); // Белый текст на черном фоне
   tft.setCursor(10, 10);
-  tft.println("Touch Screen Test");
-  tft.setTextSize(1);
-  tft.println("Touch Screen Test"); // Press the screen! (Ukrainian)
-  // Инициализация тачскрина
-  if (!ts.begin()) {
-    Serial.println("Couldn't start touchscreen controller");
-    tft.setTextColor(ILI9341_RED);
-    tft.println("Touchscreen FAILED!");
-    while (1) delay(10); // Остановка, если тач не работает
+  tft.setTextSize(3); // Устанавливаем размер текста
+
+  // TFT_eSPI может работать с UTF-8, если шрифт содержит символы!
+  // Для растровых шрифтов GFX это не сработает так просто.
+  // Для Smooth Fonts (vlw) с кириллицей - должно работать.
+  tft.println("Hello World!");
+  tft.setTextSize(2); // Устанавливаем размер текста
+  tft.println("Hello World!");
+  tft.setTextSize(1); // Устанавливаем размер текста
+  tft.println("Hello World!");
+
+  // --- Для кириллицы (если у вас есть шрифт .vlw с кириллицей) ---
+  // 1. Поместите .vlw файл в папку 'data' проекта
+  // 2. Настройте SPIFFS/LittleFS в platformio.ini и загрузите файловую систему
+  // 3. Используйте tft.loadFont("MyCyrillicFontName") и tft.drawString()
+  // Пример (псевдокод, требует настройки FS и шрифта):
+  /*
+  if (SPIFFS.begin()) {
+      if (tft.loadFont("CyrillicFont-24", SPIFFS)) { // Имя файла шрифта
+          tft.drawString("Привет, Мир!", 10, 50);
+          tft.unloadFont();
+      } else {
+          tft.drawString("Font Error", 10, 50);
+      }
+      SPIFFS.end();
   }
-  ts.setRotation(SCREEN_ROTATION); // Устанавливаем ту же ориентацию!
-  Serial.println("Touchscreen started.");
-  tft.println("Touchscreen OK.");
+  */
 }
 
-void touchTest(){
+/* void touchTest(){
     TS_Point p = ts.getPoint(); // Получаем точку касания
 
     // Выводим "сырые" координаты в Serial порт
@@ -52,4 +67,4 @@ void touchTest(){
 
     // Рисуем точку (маленький круг) на экране в месте касания
     tft.fillCircle(screenX, screenY, 3, ILI9341_RED);
-}
+} */

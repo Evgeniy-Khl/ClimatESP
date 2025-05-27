@@ -1,6 +1,6 @@
 // #include <Arduino.h>
 #include <SPI.h>
-#include "ili9341.h"
+#include "TFT_eSPI.h"
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 // #include <OneWire.h>
@@ -37,8 +37,9 @@ void testAT24C32();
 RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
 
 // Создаем объекты TFT
-Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
-XPT2046_Touchscreen ts(TOUCH_CS); // Используем только CS
+TFT_eSPI tft = TFT_eSPI(); // Создаем экземпляр библиотеки
+void initTFT(void);
+// XPT2046_Touchscreen ts(TOUCH_CS); // Используем только CS
 //XPT2046_Touchscreen ts(TOUCH_CS, TIRQ_PIN); // Если используете T_IRQ
 
 void setup() {
@@ -148,7 +149,7 @@ void loop() {
   delay(30);                            // Небольшая задержка для плавности эффекта
   //-------------------------------------------------------------------------------
   // Проверяем, есть ли нажатие
-  if (ts.touched()) touchTest();
+  // if (ts.touched()) touchTest();
 
   long now = millis();
   if (now - lastMsg > 1000) {
