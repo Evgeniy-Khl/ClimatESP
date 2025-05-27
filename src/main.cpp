@@ -1,22 +1,23 @@
 // #include <Arduino.h>
-#include <TM1638.h>
+#include <SPI.h>
+#include "ili9341.h"
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
-#include <OneWire.h>
-#include <DallasTemperature.h>
-//#include "AT24C32.h"
+// #include <OneWire.h>
+// #include <DallasTemperature.h>
+#include "AT24C32.h"
 // Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
 const int ledPin = 2; // GPIO2
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-#define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
-#define MAX_DEVICE 4        // ограничение количества датчиков
-uint8_t numberOfDevices, errDevice[MAX_DEVICE];
+// #define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
+// #define MAX_DEVICE 4        // ограничение количества датчиков
+// uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
-OneWire oneWire(ONE_WIRE_BUS_PIN);
+// OneWire oneWire(ONE_WIRE_BUS_PIN);
 // Передаем ссылку на объект oneWire в конструктор DallasTemperature
-DallasTemperature sensors(&oneWire);
+// DallasTemperature sensors(&oneWire);
 // Переменная для хранения адреса датчика (если их несколько)
-DeviceAddress sensorAddress;
+// DeviceAddress sensorAddress;
 
 // Переменные для управления яркостью
 int brightness = 0;    // Текущая яркость
@@ -28,24 +29,17 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 int16_t t1 = 375, t2 = 302;
-byte data[] = {
-  0b00111111, // 0
-  0b01011110, // d
-  0b00000110, // 1
-  0b11101101, // 5.
-  0b01011011, // 2
-  0b01101101, // 5
-  0,
-  0
-};
 
 byte writePCF8574(byte data);
 byte readPCF8574();
 void testAT24C32();
-void printAddress(DeviceAddress deviceAddress);
-// NodeMcu    DIO CLK STB            
-TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+// void printAddress(DeviceAddress deviceAddress);
 RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
+
+// Создаем объекты TFT
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
+XPT2046_Touchscreen ts(TOUCH_CS); // Используем только CS
+//XPT2046_Touchscreen ts(TOUCH_CS, TIRQ_PIN); // Если используете T_IRQ
 
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
@@ -90,62 +84,60 @@ void setup() {
     // Serial.println("Couldn't find RTC! Check wiring or I2C address.");
     // Serial.flush();       // гарантированно вывелось в монитор порта
     // while (1) delay(10);  // Остановка, если RTC не найден
-    data[6] = NUMBER_FONT[14];  // "E"
   }
   Serial.println("RTC found!");
   //------------------------------------------------------------------------------
   testAT24C32();              // тест
   //==============================================================================
+  initTFT();
+
+  //==============================================================================
   Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
 
   // Инициализация библиотеки DallasTemperature
-  sensors.begin();
-  sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
-  sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
-  sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
-  sensors.setResolution(12);
+  // sensors.begin();
+  // sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
+  // sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
+  // sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
+  // sensors.setResolution(12);
 
   // Поиск устройств на шине 1-Wire
-  numberOfDevices = sensors.getDeviceCount();
-  if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
-  data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
-  Serial.print("Found ");
-  Serial.print(numberOfDevices, DEC);
-  Serial.println(" devices.");
+  // numberOfDevices = sensors.getDeviceCount();
+  // if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
+  // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
+  // Serial.print("Found ");
+  // Serial.print(numberOfDevices, DEC);
+  // Serial.println(" devices.");
 
-  if (numberOfDevices == 0) {
-    Serial.println("No DS18B20 sensors found! Check wiring and pull-up resistor.");
-    // Можно остановить выполнение, если датчики не найдены
-    // while(true) delay(100);
-  } else {
-    sensors.requestTemperatures(); // Отправляем команду на измерение
-    Serial.println("Sensor addresses:");
-    // Выводим адрес каждого найденного устройства
-    for (uint8_t i = 0; i < numberOfDevices; i++) {
-      if (sensors.getAddress(sensorAddress, i)) {
-        Serial.print("  Sensor ");
-        Serial.print(i);
-        Serial.print(": ");
-        printAddress(sensorAddress);
-        Serial.println();
-      } else {
-        Serial.print("Could not get address for sensor ");
-        Serial.println(i);
-      }
-    }
+  // if (numberOfDevices == 0) {
+  //   Serial.println("No DS18B20 sensors found! Check wiring and pull-up resistor.");
+  //   // Можно остановить выполнение, если датчики не найдены
+  //   // while(true) delay(100);
+  // } else {
+  //   sensors.requestTemperatures(); // Отправляем команду на измерение
+  //   Serial.println("Sensor addresses:");
+  //   // Выводим адрес каждого найденного устройства
+  //   for (uint8_t i = 0; i < numberOfDevices; i++) {
+  //     if (sensors.getAddress(sensorAddress, i)) {
+  //       Serial.print("  Sensor ");
+  //       Serial.print(i);
+  //       Serial.print(": ");
+  //       printAddress(sensorAddress);
+  //       Serial.println();
+  //     } else {
+  //       Serial.print("Could not get address for sensor ");
+  //       Serial.println(i);
+  //     }
+  //   }
     // Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
     // 12 бит дает наибольшую точность, но и наибольшее время преобразования (~750ms)
     // sensors.setResolution(12); // Уже по умолчанию 12 бит при инициализации
-  }
+//}
   //==================================================================================
-  module.setDisplay(data, 8); // Вывод на дисплей "2d1 | 5.12"
   delay(2000);
 }
 
 void loop() {
-  byte keys = module.getButtons();
-  // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
-  module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
   //-------------------------------------------------------------------------------
   analogWrite(ledPin, brightness);      // Устанавливаем яркость светодиода
   brightness = brightness + fadeAmount; // Изменяем яркость для следующего шага
@@ -155,52 +147,40 @@ void loop() {
   }
   delay(30);                            // Небольшая задержка для плавности эффекта
   //-------------------------------------------------------------------------------
-
+  // Проверяем, есть ли нажатие
+  if (ts.touched()) touchTest();
   long now = millis();
   
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //===================
-  if (numberOfDevices) {
-    // Получаем температуру
-    for (byte i = 0; i < numberOfDevices; i++)
-    {
-      float tempC = sensors.getTempCByIndex(i); // Температура в градусах Цельсия
-      // Проверка на корректность чтения
-      if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
-        Serial.printf("Error%d= %.2f °C\n", i, tempC);
-        errDevice[i]++;
-      } else {
-        if(i==0) t1 = tempC*10;
-        Serial.printf("T%d= %.2f °C\n", i, tempC);
-        errDevice[i] = 0;
-      }
-    }
-    Serial.println();
-    sensors.requestTemperatures(); // Отправляем команду на измерение
-  } else {
-      // Serial.println("No sensors to read from.");
-      if(t1>400) t1 = 375;
-      else t1++;
-  }
-
-    data[0] = NUMBER_FONT[t1/100];
-    data[1] = NUMBER_FONT[(t1%100)/10] | 0b10000000;
-    data[2] = NUMBER_FONT[t1%10];
-    // data[3] = NUMBER_FONT[t2/100];
-    // data[4] = NUMBER_FONT[(t2%100)/10] | 0b10000000;
-    // data[5] = NUMBER_FONT[t2%10];
+  // if (numberOfDevices) {
+  //   // Получаем температуру
+  //   for (byte i = 0; i < numberOfDevices; i++)
+  //   {
+  //     float tempC = sensors.getTempCByIndex(i); // Температура в градусах Цельсия
+  //     // Проверка на корректность чтения
+  //     if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
+  //       Serial.printf("Error%d= %.2f °C\n", i, tempC);
+  //       errDevice[i]++;
+  //     } else {
+  //       if(i==0) t1 = tempC*10;
+  //       Serial.printf("T%d= %.2f °C\n", i, tempC);
+  //       errDevice[i] = 0;
+  //     }
+  //   }
+  //   Serial.println();
+  //   sensors.requestTemperatures(); // Отправляем команду на измерение
+  // } else {
+  //     // Serial.println("No sensors to read from.");
+  //     if(t1>400) t1 = 375;
+  //     else t1++;
+  // }
     //-------------------------
     DateTime now = rtc.now();
-    data[3] = 0;
-    data[4] = NUMBER_FONT[now.second()/10];
-    data[5] = NUMBER_FONT[now.second()%10];
-    //-------------------------
-    module.setDisplay(data, 8);
     //-----------------------------------------------------------------------------
     // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
-    if(writePCF8574(now.second()%10)) data[7] = NUMBER_FONT[14];  // "E"
-    else data[7] = 0;
+    writePCF8574(now.second()%10);
     /* -- Пример 2: Чтение входов PCF8574 ---
           Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
           чтобы перевести их в режим "квази-входа" с высоким импедансом.
@@ -256,10 +236,10 @@ void printBinary(byte inByte) {
 }
 
 // Вспомогательная функция для вывода адреса датчика
-void printAddress(DeviceAddress deviceAddress) {
-  for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-    if (i < 7) Serial.print(":");
-  }
-}
+// void printAddress(DeviceAddress deviceAddress) {
+//   for (uint8_t i = 0; i < 8; i++) {
+//     if (deviceAddress[i] < 16) Serial.print("0");
+//     Serial.print(deviceAddress[i], HEX);
+//     if (i < 7) Serial.print(":");
+//   }
+// }
