@@ -1,7 +1,8 @@
 // #include <Arduino.h>
 #include <SPI.h>
 #include "TFT_eSPI.h"
-#include "Keypad_240x320.h"
+// #include "Keypad_240x320.h"
+#include "Free_Font_Demo.h"
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 // #include <OneWire.h>
@@ -30,7 +31,7 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 int16_t t1 = 375, t2 = 302;
-
+uint16_t txt_width, x_pos, y_pos;
 byte writePCF8574(byte data);
 byte readPCF8574();
 void testAT24C32();
@@ -91,7 +92,44 @@ void setup() {
   //------------------------------------------------------------------------------
   testAT24C32();              // тест
   //==============================================================================
-  initKeypad();
+  //initKeypad();
+  //initFreeFont();
+    tft.init();
+    tft.setRotation(0);
+    tft.fillScreen(TFT_BLACK);
+
+    x_pos = 5;
+    // инициализация SPIFFS
+    if (!SPIFFS.begin()) {
+        Serial.println("ERROR file system!");
+    }
+
+    tft.loadFont("Calibri28"); // загрузка в память шрифта
+    tft.setCursor(x_pos, 10);
+    tft.setTextColor(TFT_YELLOW, TFT_RED, true);
+    tft.println("ОТКЛ");
+    txt_width = tft.textWidth("ОТКЛ");
+    x_pos += txt_width+20;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    tft.loadFont("Calibri14"); // загрузка в память шрифта
+    tft.setCursor(x_pos, 10);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("РЕЖИМ:");
+    txt_width = tft.textWidth("РЕЖИМ:");
+    x_pos += txt_width+20;
+    tft.setCursor(x_pos, 10);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("ВАРІННЯ");
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    // tft.loadFont("Calibri78"); // загрузка в память шрифта
+    // tft.setCursor(20, 100);
+    // tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    // tft.println("67%");
+    // tft.setCursor(2, 155);
+    // tft.println("999999");
+    // tft.unloadFont(); // выгрузка шрифта из памяти
 
   //==============================================================================
   // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
@@ -148,9 +186,10 @@ void loop() {
     fadeAmount = -fadeAmount;
   }
   delay(30);                            // Небольшая задержка для плавности эффекта
-  //-------------------------------------------------------------------------------
-  loopKeypad();
-
+  //========================================================================================================
+  //loopKeypad();
+  //loopFreeFont();
+  //========================================================================================================
   long now = millis();
   if (now - lastMsg > 1000) {
     lastMsg = now;
