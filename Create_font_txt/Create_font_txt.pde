@@ -166,8 +166,8 @@ static final int[] unicodeBlocks = {
   //0x02B0, 0x02FF, //Spacing Modifier Letters, 80, 80, Bopomofo (2 characters), Latin (14 characters), Common (64 characters)
   //0x0300, 0x036F, //Combining Diacritical Marks, 112, 112, Inherited
   //0x0370, 0x03FF, //Greek and Coptic, 144, 135, Coptic (14 characters), Greek (117 characters), Common (4 characters)
-  //0x0021, 0x003F, // 30 characters
-  //0x0400, 0x04FF, //Cyrillic, 256, 256, Cyrillic (254 characters), Inherited (2 characters)
+  0x0021, 0x003F, // 30 characters
+  //0x0406, 0x0457, //Cyrillic, 256, 256, Cyrillic (254 characters), Inherited (2 characters)
   //0x0500, 0x052F, //Cyrillic Supplement, 48, 48, Cyrillic
   //0x0530, 0x058F, //Armenian, 96, 89, Armenian (88 characters), Common (1 character)
   //0x0590, 0x05FF, //Hebrew, 112, 87, Hebrew
