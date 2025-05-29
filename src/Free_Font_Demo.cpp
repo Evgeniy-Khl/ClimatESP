@@ -27,7 +27,7 @@ void drawDatumMarker(int x, int y)
 
 void initFreeFont(){
   Serial.println();
-  Serial.println("initKeypad!");
+  Serial.println("init Free Font!");
 
   // Initialise the TFT screen
   tft.init();

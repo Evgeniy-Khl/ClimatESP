@@ -3,7 +3,7 @@
 extern TFT_eSPI tft;
 // extern XPT2046_Touchscreen ts;
 
-void initTFT(void){
+void initTFT0(void){
   Serial.println();
   Serial.println("TFT_eSPI Test!");
 

@@ -1,0 +1,63 @@
+#include "tftProcessing.h"
+
+void initMyFont(void){
+    uint16_t h;
+    tft.init();
+    tft.setRotation(0);
+    tft.fillScreen(TFT_BLACK);
+
+    // инициализация SPIFFS
+    if (!SPIFFS.begin()) {
+        Serial.println("ERROR file system!");
+    }
+    x_pos = 0; y_pos = 0;
+    /* tft.loadFont("Arial14"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє");
+    h = (tft.fontHeight()+5);
+    y_pos += 2*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти */
+    //---------------------------------------------------------
+    /* tft.loadFont("Arial18"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє");
+    h = (tft.fontHeight()+5);
+    y_pos += 3*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти */
+    //---------------------------------------------------------
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє");
+    h = (tft.fontHeight()+5);
+    y_pos += 3*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    //---------------------------------------------------------
+    tft.loadFont("Arial24"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє");
+    h = (tft.fontHeight()+5);
+    y_pos += 4*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    //---------------------------------------------------------
+    tft.loadFont("Arial28"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє28%");
+    y_pos += tft.fontHeight();
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    //---------------------------------------------------------
+    // x_pos = tft.width() / 2; // Half the screen width
+    // tft.loadFont("Calibri78"); // загрузка в память шрифта
+    // tft.setCursor(x_pos, y_pos);
+    // tft.setTextColor(TFT_ORANGE);
+    // tft.println("67%");
+    // y_pos += tft.fontHeight();
+    // tft.setCursor(x_pos, y_pos);
+    // tft.println("999999");
+    // tft.unloadFont(); // выгрузка шрифта из памяти
+    //==============================================
+}
