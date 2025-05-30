@@ -32,7 +32,15 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 // Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
-int16_t t1 = 25, t2 = 20, t3 = 15, t4 = 10;
+int16_t t[4] = {25, 20, 15, 10};
+uint8_t seconds=0;
+GrafDispl grafDispl[4] = {
+    {0, 60, 20, 700, 800, 850},    // Инициализация grafDispl[0]
+    {1, 60, 20, 650, 750, 800},    // Инициализация grafDispl[1]
+    {2, 60, 20, 600, 700, 750},    // Инициализация grafDispl[2]
+    {3, 60, 20, 550, 650, 700}     // Инициализация grafDispl[3]
+};
+
 uint16_t txt_width, x_pos, y_pos;
 byte writePCF8574(byte data);
 byte readPCF8574();
@@ -42,7 +50,7 @@ RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
 
 // Создаем объекты TFT
 TFT_eSPI tft = TFT_eSPI(); // Создаем экземпляр библиотеки
-void initTFT(void);
+// void initTFT(void);
 // XPT2046_Touchscreen ts(TOUCH_CS); // Используем только CS
 //XPT2046_Touchscreen ts(TOUCH_CS, TIRQ_PIN); // Если используете T_IRQ
 
@@ -162,11 +170,17 @@ void loop() {
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //=====================
-    diagram(0, 60, t1, 700, 800, 850);
-    diagram(1, 60, t2, 650, 750, 800);
-    diagram(2, 60, t3, 600, 700, 750);
-    diagram(3, 60, t4, 550, 650, 700);
+    uint8_t temp = seconds&3;
+    if(grafDispl[temp].value != t[temp]) {
+      grafDispl[temp].value = t[temp];
+      diagram(grafDispl[temp]);
+    }
+    // diagram(0, 60, t1, 700, 800, 850);
+    // diagram(1, 60, t2, 650, 750, 800);
+    // diagram(2, 60, t3, 600, 700, 750);
+    // diagram(3, 60, t4, 550, 650, 700);
     //===================
+    seconds++;
   // if (numberOfDevices) {
   //   // Получаем температуру
   //   for (byte i = 0; i < numberOfDevices; i++)
@@ -188,7 +202,7 @@ void loop() {
   //     // Serial.println("No sensors to read from.");
       // if(t1>900) {t1 = 255; t2 = 240; t3 = 250; t4 = 220;}
       // else {t1+=15; t2+=15; t3+=15; t4+=15;}
-      if(t1<72) {t1+=1; t2+=1; t3+=1; t4+=1;}
+      if(t[0]<72) {t[0]+=1; t[1]+=1; t[2]+=1; t[3]+=1;}
   // }
     //-------------------------
     DateTime now = rtc.now();
