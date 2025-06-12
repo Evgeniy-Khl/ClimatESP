@@ -24,25 +24,6 @@ void initArcFill(){
 
 }
 
-/* void loopArcFill(){
-
-  // Continuous elliptical arc drawing
-  fillArc(xpos, ypos, inc * 6, 1, 140, 100, 10, rainbow(col));
-
-  // Continuous segmented (inc*2) elliptical arc drawing
-  fillArc(xpos, ypos, ((inc * 2) % 60) * 6, 1, ypos, 80, 30, rainbow(col));
-
-  // Circle drawing using arc with arc width = radius
-  fillArc(xpos, ypos, inc * 6, 1, 42, 42, 42, rainbow(col));
-
-  inc++;
-  col += 1;
-  if (col > 191) col = 0;
-  if (inc > 59) inc = 0;
-
-  delay(LOOP_DELAY);
-} */
-
 // #########################################################################
 // Draw a circular or elliptical arc with a defined thickness
 // #########################################################################
