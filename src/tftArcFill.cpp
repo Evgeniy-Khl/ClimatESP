@@ -1,6 +1,6 @@
 #include <tftArcFill.h>
 
-extern GrafDispl grafDispl[4];
+extern GrafDispl grafDispl[2];
 extern int16_t t[4];
 byte inc = 0;
 unsigned int col = 0;
@@ -15,64 +15,10 @@ void initArcFill(){
     tft.begin();
     tft.setRotation(3);
     tft.fillScreen(TFT_BLACK);
-
-    /* xpos = radius+5; ypos = radius+5; 
-    fillArc(xpos, ypos, 240, 10, radius, radius, seg_w, TFT_BLUE);
-    fillArc(xpos, ypos, 300, 10, radius, radius, seg_w, TFT_GREEN);
-    fillArc(xpos, ypos, 0,   10, radius, radius, seg_w, TFT_YELLOW);
-    fillArc(xpos, ypos, 60,  10, radius, radius, seg_w, TFT_RED);
-
-    fillArc(xpos, ypos, 358, 1, radius-10, radius-10, radius-20, TFT_WHITE);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE);
-    // tft.fillRect(0, 0, 320, 30, TFT_BLUE);
-    tft.setTextDatum(MC_DATUM);
-    tft.drawString("67C", xpos, ypos+10, 4);
-    //------------------------------------------------------------------------
-    xpos = tft.width()-radius-5; ypos = radius+5; 
-    fillArc(xpos, ypos, 240, 10, radius, radius, seg_w, TFT_BLUE);
-    fillArc(xpos, ypos, 300, 10, radius, radius, seg_w, TFT_GREEN);
-    fillArc(xpos, ypos, 0,   10, radius, radius, seg_w, TFT_YELLOW);
-    fillArc(xpos, ypos, 60,  10, radius, radius, seg_w, TFT_RED);
-
-    fillArc(xpos, ypos, 348, 1, radius-10, radius-10, radius-20, TFT_WHITE);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE);
-    // tft.fillRect(0, 0, 320, 30, TFT_BLUE);
-    tft.setTextDatum(MC_DATUM);
-    tft.drawString("57C", xpos, ypos+10, 4);
-    //------------------------------------------------------------------------
-    xpos = radius+5; ypos = tft.height()-radius-5; 
-    fillArc(xpos, ypos, 240, 10, radius, radius, seg_w, TFT_BLUE);
-    fillArc(xpos, ypos, 300, 10, radius, radius, seg_w, TFT_GREEN);
-    fillArc(xpos, ypos, 0,   10, radius, radius, seg_w, TFT_YELLOW);
-    fillArc(xpos, ypos, 60,  10, radius, radius, seg_w, TFT_RED);
-
-    fillArc(xpos, ypos, 358, 1, radius-10, radius-10, radius-20, TFT_WHITE);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE);
-    // tft.fillRect(0, 0, 320, 30, TFT_BLUE);
-    tft.setTextDatum(MC_DATUM);
-    tft.drawString("67%", xpos, ypos+10, 4);
-    //------------------------------------------------------------------------
-    xpos = tft.width()-radius-5; ypos = tft.height()-radius-5; 
-    fillArc(xpos, ypos, 240, 10, radius, radius, seg_w, TFT_BLUE);
-    fillArc(xpos, ypos, 300, 10, radius, radius, seg_w, TFT_GREEN);
-    fillArc(xpos, ypos, 0,   10, radius, radius, seg_w, TFT_YELLOW);
-    fillArc(xpos, ypos, 60,  10, radius, radius, seg_w, TFT_RED);
-
-    fillArc(xpos, ypos, 28, 1, radius-10, radius-10, radius-20, TFT_WHITE);
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_WHITE);
-    // tft.fillRect(0, 0, 320, 30, TFT_BLUE);
-    tft.setTextDatum(MC_DATUM);
-    tft.drawString("77%", xpos, ypos+10, 4); */
-    //------------------------------------------------------------------------
-    //diagram(byte sector, byte radius, int value, int greenValue, int yeeloValue, int redValue)
-    diagram(grafDispl[0]);
-    diagram(grafDispl[1]);
-    diagram(grafDispl[2]);
-    diagram(grafDispl[3]);
+    grafDispl[0].value = ds[0].pvT;
+    // diagram(grafDispl[0], TFT_WHITE);
+    grafDispl[1].value = ds[1].pvT;
+    // diagram(grafDispl[1], TFT_WHITE);
 
 }
 
@@ -145,116 +91,55 @@ void fillArc(int x, int y, int start_angle, int seg_count, int rx, int ry, int w
 }
 
 //#########################################################################
-void diagram(GrafDispl grafDispl){
-    char tempStr[10]; // Буфер для строки температуры
-    byte seg_w = 20;
-    long tmpval0,tmpval1, maxtemp, mintemp;
-    switch (grafDispl.sector)
-    {
-    case 0: xpos = grafDispl.radius+5; ypos = grafDispl.radius+5; break;
-    case 1: xpos = tft.width()-grafDispl.radius-5; ypos = grafDispl.radius+5; break;
-    case 2: xpos = grafDispl.radius+5; ypos = tft.height()-grafDispl.radius-5; break;
-    case 3: xpos = tft.width()-grafDispl.radius-5; ypos = tft.height()-grafDispl.radius-5; break;
-    default: xpos = grafDispl.radius+5; ypos = grafDispl.radius+5; break;
-    }
-    maxtemp = grafDispl.redValue + grafDispl.redValue/5;
-    mintemp = grafDispl.greenValue - grafDispl.greenValue/2;
-    tmpval1 = map(grafDispl.greenValue, mintemp,maxtemp,0,240);
-    tmpval0 = tmpval1-5;
-    fillArc(xpos, ypos, 0, tmpval1/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_BLUE);
-    tmpval1 = map(grafDispl.yellowValue, mintemp,maxtemp,0,240);
-    fillArc(xpos, ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_GREEN);
-    tmpval0 = tmpval1-5;
-    tmpval1 = map(grafDispl.redValue, mintemp,maxtemp,0,240);
-    fillArc(xpos, ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_YELLOW);
-    tmpval0 = tmpval1-5;
-    tmpval1 = map(maxtemp, mintemp,maxtemp,0,240);
-    fillArc(xpos, ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_RED);
+void diagram(GrafDispl grafDispl, uint16_t color){
+  char tempStr[10]; // Буфер для строки температуры
+  uint8_t seg_w = 20;
+  uint16_t tmpval0,tmpval1, maxtemp, mintemp, greenValue, yellowValue, redValue;
+  if(grafDispl.xpos - grafDispl.radius < 0) grafDispl.xpos = grafDispl.radius;
+  if(grafDispl.xpos + grafDispl.radius > tft.width()) grafDispl.xpos = tft.width() - grafDispl.radius;
+  if(grafDispl.ypos - grafDispl.radius < 0) grafDispl.ypos  = grafDispl.radius;
+  if(grafDispl.ypos + grafDispl.radius > tft.height()) grafDispl.ypos = tft.height() - grafDispl.radius;
+  if(grafDispl.radius < 60) grafDispl.radius = 60;
+  
+  greenValue = (grafDispl.sp - 1)*1; 
+  yellowValue = (grafDispl.sp + 5)*1; 
+  redValue = (grafDispl.sp + 5 + 5)*1;
+  maxtemp = redValue + redValue/5;
+  mintemp = greenValue/2;
+  tmpval1 = map(greenValue, mintemp, maxtemp, 0, 240);
+  tmpval0 = tmpval1-5;
+  fillArc(grafDispl.xpos, grafDispl.ypos, 0, tmpval1/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_BLUE);
+  tmpval1 = map(yellowValue, mintemp, maxtemp, 0, 240);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_GREEN);
+  tmpval0 = tmpval1-5;
+  tmpval1 = map(redValue, mintemp, maxtemp, 0, 240);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_ORANGE);
+  tmpval0 = tmpval1-5;
+  tmpval1 = map(maxtemp, mintemp, maxtemp, 0, 240);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_RED);
 
-    fillArc(xpos, ypos, 0, 40, grafDispl.radius-20, grafDispl.radius-20, grafDispl.radius/2, TFT_BLACK);
-    tmpval0 = grafDispl.value*10;
-    if(tmpval0 < mintemp) tmpval0 = mintemp;
-    else if(tmpval0 > maxtemp) tmpval0 = maxtemp;
-    tmpval1 = map(tmpval0, mintemp,maxtemp,0,240);
-    fillArc(xpos, ypos, tmpval1, 1, grafDispl.radius-10, grafDispl.radius-10, grafDispl.radius/2, TFT_WHITE);
-    
-    tft.setTextSize(1);
+  fillArc(grafDispl.xpos, grafDispl.ypos, 0, 40, grafDispl.radius-20, grafDispl.radius-20, seg_w, TFT_BLACK);
+  tmpval0 = grafDispl.value;
+  if(tmpval0 < mintemp) tmpval0 = mintemp;
+  else if(tmpval0 > (maxtemp-30)) tmpval0 = (maxtemp-30);
+  tmpval1 = map(tmpval0, mintemp, maxtemp, 0, 240);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval1, 1, grafDispl.radius-10, grafDispl.radius-10, seg_w+8, TFT_WHITE);
+
+    /* tft.setTextSize(1);
     tft.fillRect(xpos-25, ypos-2, 50, 25, TFT_BLACK);
     tft.setTextDatum(MC_DATUM);
     // dtostrf(grafDispl.value, 3, 0, tempStr);
-    itoa(grafDispl.value, tempStr, 10); // Преобразовать в десятичную строку
-    strcat(tempStr, " C");
+    // itoa(grafDispl.value, tempStr, 10); // Преобразовать в десятичную строку
+    // strcat(tempStr, " C");
+    //-----------------------
+    if(grafDispl.value<1000) sprintf(tempStr,"%2.1f$",(float)grafDispl.value/10);
+    else if(grafDispl.value<1270) sprintf(tempStr,"%5d$", grafDispl.value/10);
+    else sprintf(tempStr," ---  ");
+    //-----------------------
     tft.setTextColor(TFT_WHITE);
     tft.drawString(tempStr, xpos, ypos+10, 4);
-}
-
-// #########################################################################
-// Return the 16-bit colour with brightness 0-100%
-// #########################################################################
-unsigned int brightness(unsigned int colour, int brightness)
-{
-  byte red   = colour >> 11;
-  byte green = (colour & 0x7E0) >> 5;
-  byte blue  = colour & 0x1F;
-
-  blue =  (blue * brightness) / 100;
-  green = (green * brightness) / 100;
-  red =   (red * brightness) / 100;
-
-  return (red << 11) + (green << 5) + blue;
-}
-
-// #########################################################################
-// Return a 16-bit rainbow colour
-// #########################################################################
-unsigned int rainbow(byte value)
-{
-  // Value is expected to be in range 0-127
-  // The value is converted to a spectrum colour from 0 = blue through to 127 = red
-
-  switch (state) {
-    case 0:
-      green ++;
-      if (green == 64) {
-        green = 63;
-        state = 1;
-      }
-      break;
-    case 1:
-      red--;
-      if (red == 255) {
-        red = 0;
-        state = 2;
-      }
-      break;
-    case 2:
-      blue ++;
-      if (blue == 32) {
-        blue = 31;
-        state = 3;
-      }
-      break;
-    case 3:
-      green --;
-      if (green == 255) {
-        green = 0;
-        state = 4;
-      }
-      break;
-    case 4:
-      red ++;
-      if (red == 32) {
-        red = 31;
-        state = 5;
-      }
-      break;
-    case 5:
-      blue --;
-      if (blue == 255) {
-        blue = 0;
-        state = 0;
-      }
-      break;
-  }
-  return red << 11 | green << 5 | blue;
+    sprintf(tempStr,"%3i.0$ ", grafDispl.sp);
+    tft.fillRect(xpos, ypos+30, 20, 25, TFT_WHITE);
+    tft.setTextColor(TFT_BLACK);
+    tft.drawString(tempStr, xpos, ypos+30, 4); */
 }

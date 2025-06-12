@@ -5,6 +5,7 @@
 // #include "Free_Font_Demo.h"
 // #include "tftProcessing.h"
 #include "tftArcFill.h"
+#include "procedure.h"
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 // #include <OneWire.h>
@@ -12,6 +13,7 @@
 #include "AT24C32.h"
 // Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
 const int ledPin = 2; // GPIO2
+
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
 // #define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
 // #define MAX_DEVICE 4        // ограничение количества датчиков
@@ -32,15 +34,18 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 // Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
-int16_t t[4] = {25, 20, 15, 10};
-uint8_t seconds=0;
-GrafDispl grafDispl[4] = {
-    {0, 60, 20, 700, 800, 850},    // Инициализация grafDispl[0]
-    {1, 60, 20, 650, 750, 800},    // Инициализация grafDispl[1]
-    {2, 60, 20, 600, 700, 750},    // Инициализация grafDispl[2]
-    {3, 60, 20, 550, 650, 700}     // Инициализация grafDispl[3]
-};
 
+PIDController pid;
+
+Ds ds[2] = {220,150};
+uint16_t set[2] = {385, 305};
+int8_t dpv1 = 2, count;
+float flT0=220, dpv0;
+uint8_t seconds=0, pwTriac;
+GrafDispl grafDispl[2] = {
+    { 80,160,80, 0, 0},    // Инициализация grafDispl[0]
+    {240,160,80, 0, 0},    // Инициализация grafDispl[1]
+};
 uint16_t txt_width, x_pos, y_pos;
 byte writePCF8574(byte data);
 byte readPCF8574();
@@ -170,17 +175,33 @@ void loop() {
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //=====================
-    uint8_t temp = seconds&3;
-    if(grafDispl[temp].value != t[temp]) {
-      grafDispl[temp].value = t[temp];
-      diagram(grafDispl[temp]);
+    /* if(grafDispl[0].value != ds[0].pvT) {
+      grafDispl[0].value = ds[0].pvT;
+      diagram(grafDispl[0], TFT_WHITE);
     }
-    // diagram(0, 60, t1, 700, 800, 850);
-    // diagram(1, 60, t2, 650, 750, 800);
-    // diagram(2, 60, t3, 600, 700, 750);
-    // diagram(3, 60, t4, 550, 650, 700);
+    if(grafDispl[1].value != ds[1].pvT) {
+      grafDispl[1].value = ds[1].pvT;
+      diagram(grafDispl[1], TFT_WHITE);
+    } */
     //===================
     seconds++;
+    /* count++;
+    pwTriac = UpdatePID(&pid,0);            // ПИД нагреватель
+    //-----температура воздуха------
+    dpv0 = (float)pid.pPart/500 + (float)(pid.output-5)/100;
+    flT0+=dpv0;
+    ds[0].pvT = flT0;
+    int16_t pverr = set[0] - ds[0].pvT;
+    //----температура среды------
+    if(count>3){ count=0;
+      pverr = set[1] - ds[1].pvT;
+      dpv1 =-1;
+      if(pverr>200) dpv1 = 6;
+      else if(pverr>100) dpv1 = 4;
+      else if(pverr>50) dpv1 = 2;
+      else if(pverr>10) dpv1 = 1;
+      ds[1].pvT+=dpv1;
+    } */
   // if (numberOfDevices) {
   //   // Получаем температуру
   //   for (byte i = 0; i < numberOfDevices; i++)
@@ -199,10 +220,7 @@ void loop() {
   //   Serial.println();
   //   sensors.requestTemperatures(); // Отправляем команду на измерение
   // } else {
-  //     // Serial.println("No sensors to read from.");
-      // if(t1>900) {t1 = 255; t2 = 240; t3 = 250; t4 = 220;}
-      // else {t1+=15; t2+=15; t3+=15; t4+=15;}
-      if(t[0]<72) {t[0]+=1; t[1]+=1; t[2]+=1; t[3]+=1;}
+  //   Serial.println("No sensors to read from.");
   // }
     //-------------------------
     DateTime now = rtc.now();
