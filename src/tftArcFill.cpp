@@ -77,21 +77,25 @@ void fillArc(int x, int y, int start_angle, int seg_count, int rx, int ry, int w
 void diagram(GrafDispl grafDispl, uint16_t color){
   char tempStr[10]; // Буфер для строки температуры
   uint8_t seg_w = 20;
-  uint16_t tmpval0,tmpval1, maxtemp, mintemp, greenValue, yellowValue, redValue;
+  uint16_t tmpval0,tmpval1, maxtemp, mintemp, lightBlue, greenValue, yellowValue, redValue;
   if(grafDispl.xpos - grafDispl.radius < 0) grafDispl.xpos = grafDispl.radius;
   if(grafDispl.xpos + grafDispl.radius > tft.width()) grafDispl.xpos = tft.width() - grafDispl.radius;
   if(grafDispl.ypos - grafDispl.radius < 0) grafDispl.ypos  = grafDispl.radius;
   if(grafDispl.ypos + grafDispl.radius > tft.height()) grafDispl.ypos = tft.height() - grafDispl.radius;
   if(grafDispl.radius < 60) grafDispl.radius = 60;
   
-  greenValue = (grafDispl.sp/10 - 1)*10; 
-  yellowValue = (grafDispl.sp/10 + 5)*10; 
-  redValue = (grafDispl.sp/10 + 5 + 5)*10;
-  maxtemp = redValue + redValue/5;
-  mintemp = greenValue/2;
-  tmpval1 = map(greenValue, mintemp, maxtemp, 0, 240);
-  tmpval0 = tmpval1-5;
+  lightBlue = grafDispl.sp - 8;
+  greenValue = grafDispl.sp - 0; 
+  yellowValue = grafDispl.sp + 4; 
+  redValue = grafDispl.sp + 4 + 8;
+  maxtemp = redValue + 10;
+  mintemp = lightBlue - 10;
+  tmpval1 = map(lightBlue, mintemp, maxtemp, 0, 240);
   fillArc(grafDispl.xpos, grafDispl.ypos, 0, tmpval1/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_BLUE);
+  tmpval0 = tmpval1-5;
+  tmpval1 = map(greenValue, mintemp, maxtemp, 0, 240);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_CYAN);
+  tmpval0 = tmpval1-5;
   tmpval1 = map(yellowValue, mintemp, maxtemp, 0, 240);
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_GREEN);
   tmpval0 = tmpval1-5;
@@ -104,7 +108,7 @@ void diagram(GrafDispl grafDispl, uint16_t color){
   fillArc(grafDispl.xpos, grafDispl.ypos, 0, 40, grafDispl.radius-20, grafDispl.radius-20, seg_w, TFT_BLACK);
   tmpval0 = grafDispl.value;
   if(tmpval0 < mintemp) tmpval0 = mintemp;
-  else if(tmpval0 > (maxtemp-30)) tmpval0 = (maxtemp-30);
+  else if(tmpval0 > (maxtemp-5)) tmpval0 = (maxtemp-5);
   tmpval1 = map(tmpval0, mintemp, maxtemp, 0, 240);
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval1, 1, grafDispl.radius-10, grafDispl.radius-10, seg_w+8, TFT_WHITE);
 

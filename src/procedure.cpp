@@ -3,7 +3,7 @@
 
 void PID_Init(PIDController *pid) { // , uint16_t Kp, uint16_t Ki, uint16_t Kd
     pid->Kp = 10;//(float)Kp/10;
-    pid->Ki = 1;//(float)Ki/10000;
+    pid->Ki = 50;//(float)Ki/10000;
     pid->Kd = 1;//Kd;
 }
 

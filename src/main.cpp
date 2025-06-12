@@ -38,10 +38,10 @@ char displStr[200];
 uint16_t xpos=0, ypos=0;
 PIDController pid;
 
-Ds ds[2] = {{220,0},{150,0}};
+Ds ds[2] = {{350,0},{280,0}};
 uint16_t set[2] = {385, 305};
 int8_t dpv1 = 2, count;
-float flT0=220, dpv0;
+float flT0=350, dpv0;
 uint8_t seconds=0, pwTriac;
 GrafDispl grafDispl[2] = {
     { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
@@ -194,22 +194,26 @@ void loop() {
     ds[0].pvT = flT0;
     int16_t pverr = set[0] - ds[0].pvT;
     //----температура среды------
-    if(count>3){ count=0;
+    // if(count>1){ count=0;
       pverr = set[1] - ds[1].pvT;
-      dpv1 =-1;
       if(pverr>200) dpv1 = 6;
-      else if(pverr>100) dpv1 = 4;
-      else if(pverr>50) dpv1 = 2;
-      else if(pverr>10) dpv1 = 1;
+      else if(pverr>100) dpv1 = 5;
+      else if(pverr>50) dpv1 = 3;
+      else if(pverr>10) dpv1 = 2;
+      else if(pverr>0) dpv1 = 1;
+      else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
-    }
+    // }
     xpos=tft.width()/2, ypos=150;
     tft.setTextColor(TFT_BLACK,TFT_WHITE,true);
-    sprintf(displStr,"dpv0 = %3.2f",dpv0/10);
-    tft.drawString(displStr, xpos, ypos, 4);
+    // sprintf(displStr,"dpv0 = %3.2f",dpv0/10);
+    // tft.drawString(displStr, xpos, ypos, 4);
+    tft.drawString("1234567890123456789012", xpos, ypos, 4);
     ypos += 25;
-    sprintf(displStr,"dpv1 = %3.2f",(float)dpv1/10);
-    tft.drawString(displStr, xpos, ypos, 4);
+    // sprintf(displStr,"dpv1 = %3.2f",(float)dpv1/10);
+    // tft.drawString(displStr, xpos, ypos, 4);
+    tft.drawString("abcdefghijklmnopqrstuwxvz", xpos, ypos, 4);
+
   // if (numberOfDevices) {
   //   // Получаем температуру
   //   for (byte i = 0; i < numberOfDevices; i++)
