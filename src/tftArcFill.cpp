@@ -1,7 +1,7 @@
 #include <tftArcFill.h>
 
 extern GrafDispl grafDispl[2];
-extern int16_t t[4];
+extern uint16_t set[2];
 byte inc = 0;
 unsigned int col = 0;
 
@@ -9,20 +9,22 @@ byte red = 31; // Red is the top 5 bits of a 16-bit colour value
 byte green = 0;// Green is the middle 6 bits
 byte blue = 0; // Blue is the bottom 5 bits
 byte state = 0;
-uint16_t xpos, ypos;
+
 
 void initArcFill(){
     tft.begin();
     tft.setRotation(3);
     tft.fillScreen(TFT_BLACK);
     grafDispl[0].value = ds[0].pvT;
-    // diagram(grafDispl[0], TFT_WHITE);
+    grafDispl[0].sp = set[0];
+    diagram(grafDispl[0], TFT_WHITE);
     grafDispl[1].value = ds[1].pvT;
-    // diagram(grafDispl[1], TFT_WHITE);
+    grafDispl[1].sp = set[1];
+    diagram(grafDispl[1], TFT_WHITE);
 
 }
 
-void loopArcFill(){
+/* void loopArcFill(){
 
   // Continuous elliptical arc drawing
   fillArc(xpos, ypos, inc * 6, 1, 140, 100, 10, rainbow(col));
@@ -39,7 +41,7 @@ void loopArcFill(){
   if (inc > 59) inc = 0;
 
   delay(LOOP_DELAY);
-}
+} */
 
 // #########################################################################
 // Draw a circular or elliptical arc with a defined thickness
@@ -101,9 +103,9 @@ void diagram(GrafDispl grafDispl, uint16_t color){
   if(grafDispl.ypos + grafDispl.radius > tft.height()) grafDispl.ypos = tft.height() - grafDispl.radius;
   if(grafDispl.radius < 60) grafDispl.radius = 60;
   
-  greenValue = (grafDispl.sp - 1)*1; 
-  yellowValue = (grafDispl.sp + 5)*1; 
-  redValue = (grafDispl.sp + 5 + 5)*1;
+  greenValue = (grafDispl.sp/10 - 1)*10; 
+  yellowValue = (grafDispl.sp/10 + 5)*10; 
+  redValue = (grafDispl.sp/10 + 5 + 5)*10;
   maxtemp = redValue + redValue/5;
   mintemp = greenValue/2;
   tmpval1 = map(greenValue, mintemp, maxtemp, 0, 240);
@@ -125,21 +127,21 @@ void diagram(GrafDispl grafDispl, uint16_t color){
   tmpval1 = map(tmpval0, mintemp, maxtemp, 0, 240);
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval1, 1, grafDispl.radius-10, grafDispl.radius-10, seg_w+8, TFT_WHITE);
 
-    /* tft.setTextSize(1);
-    tft.fillRect(xpos-25, ypos-2, 50, 25, TFT_BLACK);
+    tft.setTextSize(1);
+    // tft.fillRect(xpos-25, ypos-2, 50, 25, TFT_BLACK);
     tft.setTextDatum(MC_DATUM);
-    // dtostrf(grafDispl.value, 3, 0, tempStr);
-    // itoa(grafDispl.value, tempStr, 10); // Преобразовать в десятичную строку
-    // strcat(tempStr, " C");
     //-----------------------
-    if(grafDispl.value<1000) sprintf(tempStr,"%2.1f$",(float)grafDispl.value/10);
-    else if(grafDispl.value<1270) sprintf(tempStr,"%5d$", grafDispl.value/10);
+    if(grafDispl.value<1000) sprintf(tempStr,"%2.1fC",(float)grafDispl.value/10);
+    else if(grafDispl.value<1270) sprintf(tempStr,"%5dC", grafDispl.value/10);
     else sprintf(tempStr," ---  ");
+    // tft.fillRect(grafDispl.xpos-40, grafDispl.ypos-15, 80, 25, TFT_BLACK);
+    // tft.setTextColor(TFT_WHITE);
+    tft.setTextColor(TFT_WHITE,TFT_BLUE,true);
+    tft.drawString(tempStr, grafDispl.xpos, grafDispl.ypos, 4);
     //-----------------------
-    tft.setTextColor(TFT_WHITE);
-    tft.drawString(tempStr, xpos, ypos+10, 4);
-    sprintf(tempStr,"%3i.0$ ", grafDispl.sp);
-    tft.fillRect(xpos, ypos+30, 20, 25, TFT_WHITE);
-    tft.setTextColor(TFT_BLACK);
-    tft.drawString(tempStr, xpos, ypos+30, 4); */
+    sprintf(tempStr,"%2.1fC",(float)grafDispl.sp/10);
+    // tft.fillRect(grafDispl.xpos-40, grafDispl.ypos+10, 80, 25, TFT_WHITE);
+    // tft.setTextColor(TFT_BLACK);
+    tft.setTextColor(TFT_BLACK,TFT_WHITE,true);
+    tft.drawString(tempStr, grafDispl.xpos, grafDispl.ypos+25, 4);
 }

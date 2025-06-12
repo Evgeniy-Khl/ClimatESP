@@ -34,17 +34,18 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 // Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
-
+char displStr[200];
+uint16_t xpos=0, ypos=0;
 PIDController pid;
 
-Ds ds[2] = {220,150};
+Ds ds[2] = {{220,0},{150,0}};
 uint16_t set[2] = {385, 305};
 int8_t dpv1 = 2, count;
 float flT0=220, dpv0;
 uint8_t seconds=0, pwTriac;
 GrafDispl grafDispl[2] = {
-    { 80,160,80, 0, 0},    // Инициализация grafDispl[0]
-    {240,160,80, 0, 0},    // Инициализация grafDispl[1]
+    { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
+    {240,80,80, 0, 0},    // Инициализация grafDispl[1]
 };
 uint16_t txt_width, x_pos, y_pos;
 byte writePCF8574(byte data);
@@ -61,6 +62,7 @@ TFT_eSPI tft = TFT_eSPI(); // Создаем экземпляр библиоте
 
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
+  PID_Init(&pid);
   //------------------------------------------------------------------------------
   /* Serial.println("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
@@ -175,17 +177,17 @@ void loop() {
   if (now - lastMsg > 1000) {
     lastMsg = now;
     //=====================
-    /* if(grafDispl[0].value != ds[0].pvT) {
+    if(grafDispl[0].value != ds[0].pvT) {
       grafDispl[0].value = ds[0].pvT;
       diagram(grafDispl[0], TFT_WHITE);
     }
     if(grafDispl[1].value != ds[1].pvT) {
       grafDispl[1].value = ds[1].pvT;
       diagram(grafDispl[1], TFT_WHITE);
-    } */
+    }
     //===================
     seconds++;
-    /* count++;
+    count++;
     pwTriac = UpdatePID(&pid,0);            // ПИД нагреватель
     //-----температура воздуха------
     dpv0 = (float)pid.pPart/500 + (float)(pid.output-5)/100;
@@ -201,7 +203,14 @@ void loop() {
       else if(pverr>50) dpv1 = 2;
       else if(pverr>10) dpv1 = 1;
       ds[1].pvT+=dpv1;
-    } */
+    }
+    xpos=tft.width()/2, ypos=150;
+    tft.setTextColor(TFT_BLACK,TFT_WHITE,true);
+    sprintf(displStr,"dpv0 = %3.2f",dpv0/10);
+    tft.drawString(displStr, xpos, ypos, 4);
+    ypos += 25;
+    sprintf(displStr,"dpv1 = %3.2f",(float)dpv1/10);
+    tft.drawString(displStr, xpos, ypos, 4);
   // if (numberOfDevices) {
   //   // Получаем температуру
   //   for (byte i = 0; i < numberOfDevices; i++)
