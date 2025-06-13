@@ -76,7 +76,7 @@ void setup() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   xpos = 0; ypos += 30;
   PID_Init(&pid);
-  sprintf(displStr,"pPart=%5.1f  iPart=%5.1f", pid.pPart,pid.iPart);
+  sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid.Kp,pid.Ki,pid.Kd);
   tft.setTextDatum(TL_DATUM);
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 20;

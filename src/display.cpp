@@ -15,11 +15,11 @@ void displ_0(void)
     diagram(grafDispl[1], TFT_WHITE);
   }
 //-----------
-  txt_height = lampUpdate(30, 130);
+  txt_height = lampUpdate(20, 130);
 //-----------
   xpos = 0; ypos = txt_height+5;
   strUpdate("РЕЖИМ", &xpos, ypos, &txt_height);
-  sprintf(displStr,"Pw=%3d %%", pwTriac);
+  sprintf(displStr,"P=%g  I=%g          ", pid.pPart, pid.iPart);
   tft.setTextDatum(TL_DATUM);
   tft.drawString(displStr, xpos, ypos-5, 4);
 
