@@ -1,7 +1,6 @@
 #ifndef _PROCEDURE_H
 #define _PROCEDURE_H
-
-#include <Arduino.h>
+#include "main.h"
 
 typedef struct {
     float Ki, iPart, Kp, pPart;
@@ -11,10 +10,11 @@ typedef struct {
 
 extern PIDController pid;
 extern uint16_t set[];
+extern uint8_t seconds;
 
 void PID_Init(PIDController *pid);
 uint8_t UpdatePID(PIDController *pid, uint8_t cn);
-void permutation (char a, char b);
+uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
 uint8_t sendToI2c(uint16_t val);
 
 #endif /* _PROCEDURE_H */

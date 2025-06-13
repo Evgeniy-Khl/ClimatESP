@@ -12,16 +12,13 @@ byte state = 0;
 
 
 void initArcFill(){
-    tft.begin();
-    tft.setRotation(3);
-    tft.fillScreen(TFT_BLACK);
-    grafDispl[0].value = ds[0].pvT;
-    grafDispl[0].sp = set[0];
-    diagram(grafDispl[0], TFT_WHITE);
-    grafDispl[1].value = ds[1].pvT;
-    grafDispl[1].sp = set[1];
-    diagram(grafDispl[1], TFT_WHITE);
-
+  tft.begin();
+  tft.setRotation(3);
+  tft.fillScreen(TFT_BLACK);
+  grafDispl[0].value = ds[0].pvT;
+  grafDispl[0].sp = set[0];
+  grafDispl[1].value = ds[1].pvT;
+  grafDispl[1].sp = set[1];
 }
 
 // #########################################################################
