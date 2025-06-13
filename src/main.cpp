@@ -35,7 +35,6 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 char displStr[200];
-uint16_t xpos=0, ypos=0;
 PIDController pid;
 
 Ds ds[2] = {{350,0},{280,0}};
@@ -47,7 +46,7 @@ GrafDispl grafDispl[2] = {
     { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
     {240,80,80, 0, 0},    // Инициализация grafDispl[1]
 };
-uint16_t txt_width, x_pos, y_pos;
+uint16_t txt_height, txt_width, xpos=0, ypos=0;;
 byte writePCF8574(byte data);
 byte readPCF8574();
 void testAT24C32();
@@ -113,7 +112,41 @@ void setup() {
   // initFreeFont();
   
   initArcFill();
-  initMyFont();
+  // initMyFont();
+      xpos = 0; ypos = 130;
+    // инициализация SPIFFS
+    if (!SPIFFS.begin()) {
+        Serial.println("ERROR file system!");
+    }
+
+    tft.loadFont("Calibri28"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_RED, true);
+    tft.println("ОТКЛ");
+    txt_width = tft.textWidth("ОТКЛ");
+    xpos += txt_width+20;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    tft.loadFont("Calibri14"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("РЕЖИМ:");
+    txt_width = tft.textWidth("РЕЖИМ:");
+    xpos += txt_width+20;
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("ВАРІННЯ");
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    // tft.loadFont("Arial20"); // загрузка в память шрифта
+    // tft.loadFont("Calibri78"); // загрузка в память шрифта
+    // tft.setCursor(20, 100);
+    // tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    // tft.println("67%");
+    // tft.setCursor(2, 155);
+    // tft.println("999999");
+    // tft.unloadFont(); // выгрузка шрифта из памяти
+
 
   //==============================================================================
   // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
@@ -206,22 +239,62 @@ void loop() {
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
     // }
-    tft.loadFont("Arial20"); // загрузка в память шрифта
-    x_pos=0; y_pos=150;
-    tft.setCursor(x_pos, y_pos);
-    tft.setTextColor(TFT_YELLOW);
-    tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
-    uint16_t h = (tft.fontHeight()+5);
-    y_pos += 1*h;
+    xpos = 0; ypos = 130;
+    tft.loadFont("Calibri28"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_RED, true);
+    tft.println("ОТКЛ");
+    // txt_width = tft.textWidth("ОТКЛ");
+    // xpos += txt_width+20;
+    txt_height = tft.fontHeight()+5;
+    ypos += txt_height;
     tft.unloadFont(); // выгрузка шрифта из памяти
-    //-------
+
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("РЕЖИМ");
+    // txt_width = tft.textWidth("РЕЖИМ");
+    // xpos += txt_width+20;
+    txt_height = tft.fontHeight()+5;
+    ypos += txt_height;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    sprintf(displStr,"%2.1fC",(float)grafDispl[0].value/10);
+    tft.drawString(displStr, 120, 167, 4);
+    xpos = 0;
     tft.loadFont("Arial24"); // загрузка в память шрифта
-    tft.setCursor(x_pos, y_pos);
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("АаБбВвГгДдЖжІЇіїЄє");
+    txt_height = tft.fontHeight()+5;
+    ypos += txt_height;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    tft.loadFont("Calibri14"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println("АаБбВвГгДдЖжІЇіїЄє");
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+
+    // tft.fillRect(0,150,250,50,TFT_BLACK);
+    // // tft.loadFont("Arial20"); // загрузка в память шрифта
+    // xpos=0; ypos=150;
+    // tft.setCursor(xpos, ypos);
+    // tft.setTextColor(TFT_YELLOW);
+    // tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
+    // uint16_t h = (tft.fontHeight()+5);
+    // ypos += 1*h;
+    // tft.unloadFont(); // выгрузка шрифта из памяти
+    //-------
+    /* tft.loadFont("Arial24"); // загрузка в память шрифта
+    tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE);
     tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
     h = (tft.fontHeight()+5);
-    y_pos += 2*h;
-    tft.unloadFont(); // выгрузка шрифта из памяти
+    ypos += 2*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти */
 
     /* xpos=tft.width()/2, ypos=150;
     tft.setTextColor(TFT_BLACK,TFT_WHITE,true);

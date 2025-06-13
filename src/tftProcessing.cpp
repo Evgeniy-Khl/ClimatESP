@@ -10,7 +10,7 @@ void initMyFont(void){
     if (!SPIFFS.begin()) {
         Serial.println("ERROR file system!");
     }
-    x_pos = 0; y_pos = 150;
+    xpos = 0; ypos = 150;
     /* tft.loadFont("Arial14"); // загрузка в память шрифта
     tft.setCursor(x_pos, y_pos);
     tft.setTextColor(TFT_YELLOW);
@@ -28,19 +28,19 @@ void initMyFont(void){
     tft.unloadFont(); // выгрузка шрифта из памяти */
     //---------------------------------------------------------
     tft.loadFont("Arial20"); // загрузка в память шрифта
-    tft.setCursor(x_pos, y_pos);
+    tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_YELLOW);
     tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
     h = (tft.fontHeight()+5);
-    y_pos += 1*h;
+    ypos += 1*h;
     tft.unloadFont(); // выгрузка шрифта из памяти
     //---------------------------------------------------------
     tft.loadFont("Arial24"); // загрузка в память шрифта
-    tft.setCursor(x_pos, y_pos);
+    tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_YELLOW);
     tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
     h = (tft.fontHeight()+5);
-    y_pos += 2*h;
+    ypos += 2*h;
     tft.unloadFont(); // выгрузка шрифта из памяти
     //---------------------------------------------------------
     // tft.loadFont("Arial28"); // загрузка в память шрифта
