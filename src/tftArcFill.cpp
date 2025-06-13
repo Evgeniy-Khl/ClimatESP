@@ -97,7 +97,7 @@ void diagram(GrafDispl grafDispl, uint16_t color){
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_CYAN);
   tmpval0 = tmpval1-5;
   tmpval1 = map(yellowValue, mintemp, maxtemp, 0, 240);
-  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_GREEN);
+  fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_DARKGREEN);
   tmpval0 = tmpval1-5;
   tmpval1 = map(redValue, mintemp, maxtemp, 0, 240);
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval0, (tmpval1-tmpval0)/6, grafDispl.radius, grafDispl.radius, seg_w, TFT_ORANGE);

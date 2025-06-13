@@ -3,7 +3,7 @@
 #include "TFT_eSPI.h"
 // #include "Keypad_240x320.h"
 // #include "Free_Font_Demo.h"
-// #include "tftProcessing.h"
+#include "tftProcessing.h"
 #include "tftArcFill.h"
 #include "procedure.h"
 #include <Wire.h>     // Библиотека для I2C связи
@@ -111,8 +111,10 @@ void setup() {
   //==============================================================================
   // initKeypad();
   // initFreeFont();
-  // initMyFont();
+  
   initArcFill();
+  initMyFont();
+
   //==============================================================================
   // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
 
@@ -204,7 +206,24 @@ void loop() {
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
     // }
-    xpos=tft.width()/2, ypos=150;
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    x_pos=0; y_pos=150;
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_YELLOW);
+    tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
+    uint16_t h = (tft.fontHeight()+5);
+    y_pos += 1*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    //-------
+    tft.loadFont("Arial24"); // загрузка в память шрифта
+    tft.setCursor(x_pos, y_pos);
+    tft.setTextColor(TFT_WHITE);
+    tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
+    h = (tft.fontHeight()+5);
+    y_pos += 2*h;
+    tft.unloadFont(); // выгрузка шрифта из памяти
+
+    /* xpos=tft.width()/2, ypos=150;
     tft.setTextColor(TFT_BLACK,TFT_WHITE,true);
     // sprintf(displStr,"dpv0 = %3.2f",dpv0/10);
     // tft.drawString(displStr, xpos, ypos, 4);
@@ -212,7 +231,7 @@ void loop() {
     ypos += 25;
     // sprintf(displStr,"dpv1 = %3.2f",(float)dpv1/10);
     // tft.drawString(displStr, xpos, ypos, 4);
-    tft.drawString("abcdefghijklmnopqrstuwxvz", xpos, ypos, 4);
+    tft.drawString("abcdefghijklmnopqrstuwxvz", xpos, ypos, 4); */
 
   // if (numberOfDevices) {
   //   // Получаем температуру
