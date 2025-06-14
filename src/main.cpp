@@ -44,8 +44,8 @@ uint8_t diplNum=0, seconds=0, pwTriac;
 #define FLPOPEN 255
 PIDController pid[2];
 
-Sp sp[2] = {{350,   0, 60, 10, 5, 2, 10, FLPCLOSE, 0, 10, 100, 0,   0, 20, 1, 1}, 
-            {300, 650,  0, 15, 5, 2,  0,  FLPOPEN, 0,  5,2000, 0,3000, 20, 1, 1}};
+Sp sp[2] = {{350,   0, 60, 10, 5, 2, 10, FLPCLOSE, 0, 10, 100, 0,   0, 200, 100, 1}, 
+            {300, 650,  0, 15, 5, 2,  0,  FLPOPEN, 0,  5,2000, 0,3000, 200, 100, 1}};
 //---------------------------------
 Ds ds[2] = {{350,0},{280,0}};
 uint16_t set[2] = {385, 305};
@@ -96,7 +96,14 @@ void setup() {
       }
       xpos = 0; ypos += 20;
   }
-  else saveConfig();  // Сохраним эти значения в файл
+  else {
+    saveConfig();  // Сохраним эти значения в файл
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.drawString("NEW Configuration save!", xpos, ypos, 2);
+    xpos = 0; ypos += 20;
+
+  }
+
     /* // 3. Для демонстрации, очищаем структуру в памяти
     Serial.println("\n>> Очищаем структуру в ОЗУ для проверки загрузки...");
     memset(sp, 0, sizeof(sp)); // Заполняем массив нулями
@@ -156,12 +163,12 @@ void setup() {
     tft.drawString("RTC found!", xpos, ypos, 2);
     xpos = 0; ypos += 20;
   }
-  
   //------------------------------------------------------------------------------
   // testAT24C32();              // тест
   // tft.drawString("AT24C32 test complete.", xpos, ypos, 2);
   // xpos = 0; ypos += 20;
   //==============================================================================
+  
   // initKeypad();
   // initFreeFont();
 
