@@ -1,3 +1,4 @@
+#include "main.h"
 #include <tftArcFill.h>
 
 extern GrafDispl grafDispl[2];

@@ -9,13 +9,15 @@ typedef struct {
 } PIDController;
 
 
-extern PIDController pid;
+extern PIDController pid[];
 extern uint16_t set[];
 extern uint8_t seconds;
 
-void PID_Init(PIDController *pid);
+void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki, uint16_t Kd);
 uint8_t UpdatePID(PIDController *pid, uint8_t cn);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
-uint8_t sendToI2c(uint16_t val);
+void printConfig();
+void saveConfig();
+void loadConfig();
 
 #endif /* _PROCEDURE_H */

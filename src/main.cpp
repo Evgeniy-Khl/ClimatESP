@@ -3,7 +3,7 @@
 #include "TFT_eSPI.h"
 // #include "Keypad_240x320.h"
 // #include "Free_Font_Demo.h"
-#include "tftProcessing.h"
+// #include "tftProcessing.h"
 #include "tftArcFill.h"
 #include "display.h"
 #include "procedure.h"
@@ -39,8 +39,13 @@ long lastMsg = 0, number = 0;
 char displStr[50];
 uint16_t xpos, ypos, txt_height;
 uint8_t diplNum=0, seconds=0, pwTriac;
-//---------------------------------
-PIDController pid;
+// spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
+#define FLPCLOSE 0
+#define FLPOPEN 255
+PIDController pid[2];
+
+Sp sp[2] = {{350,   0, 60, 10, 5, 2, 10, FLPCLOSE, 0, 10, 100, 0,   0, 20, 1, 1}, 
+            {300, 650,  0, 15, 5, 2,  0,  FLPOPEN, 0,  5,2000, 0,3000, 20, 1, 1}};
 //---------------------------------
 Ds ds[2] = {{350,0},{280,0}};
 uint16_t set[2] = {385, 305};
@@ -65,18 +70,48 @@ TFT_eSPI tft = TFT_eSPI(); // Создаем экземпляр библиоте
 
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
+  //--------- инициализация SPIFFS -------------
+  /* if (!LittleFS.begin()) {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  } */
+  if (!SPIFFS.begin()) {
+      Serial.println("ERROR file system!");
+      tft.setTextColor(TFT_RED, TFT_YELLOW);
+      tft.drawString("ERROR file system!", xpos, ypos, 4);
+      delay(10000);
+      xpos = 0; ypos += 30;
+  }
   initArcFill();
-
   xpos = tft.width()/2; ypos = 10;
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
-  // strUpdate("КЛІМАТ", &xpos, ypos, &txt_height);
-  tft.drawString("CLIMAT-5.25", xpos, ypos, 4);
+  tft.loadFont("Arial28"); // загрузка в память шрифта
+  tft.drawString("КЛІМАТ-5.25", xpos, ypos);
+  tft.unloadFont(); // выгрузка шрифта из памяти
+  //===========================================
+  // 1. Показываем начальные значения, заданные в коде
+    // Serial.println(">> Начальные значения из кода:");
+    // printConfig();
+    if(SPIFFS.exists("/setpoint.json")) loadConfig();
+    else saveConfig();  // Сохраним эти значения в файл
+    /* // 3. Для демонстрации, очищаем структуру в памяти
+    Serial.println("\n>> Очищаем структуру в ОЗУ для проверки загрузки...");
+    memset(sp, 0, sizeof(sp)); // Заполняем массив нулями
+    printConfig(); */
+    /* // 4. Загружаем значения из файла обратно в структуру
+    Serial.println("\n>> Загружаем данные из файла...");
+    loadConfig(); */
+    // 5. Показываем результат после загрузки
+    Serial.println("\n>> Итоговые значения после загрузки из FS:");
+    printConfig();
+  //===========================================
 
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   xpos = 0; ypos += 30;
-  PID_Init(&pid);
-  sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid.Kp,pid.Ki,pid.Kd);
+
+  PID_Init(&pid[0], sp[0].Kp, sp[0].Ki, sp[0].Kd);
+  sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid[0].Kp,pid[0].Ki,pid[0].Kd);
   tft.setTextDatum(TL_DATUM);
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 20;
@@ -132,18 +167,6 @@ void setup() {
   //==============================================================================
   // initKeypad();
   // initFreeFont();
-  
-  //--------- инициализация SPIFFS -------------
-    if (!SPIFFS.begin()) {
-        Serial.println("ERROR file system!");
-        tft.setTextColor(TFT_RED, TFT_YELLOW);
-        tft.drawString("ERROR file system!", xpos, ypos, 4);
-        delay(10000);
-    }
-    else {
-      tft.drawString("File system OK!", xpos, ypos, 2);
-    }
-    xpos = 0; ypos += 30;
 
   //==============================================================================
   // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
@@ -211,9 +234,9 @@ void loop() {
   if (now - lastMsg > 1000) {
     seconds++;
     lastMsg = now;
-    pwTriac = UpdatePID(&pid,0);            // ПИД нагреватель
+    pwTriac = UpdatePID(&pid[0],0);            // ПИД нагреватель
     //-----температура воздуха------
-    dpv0 = (float)pid.pPart/500 + (float)(pid.output-5)/100;
+    dpv0 = (float)pid[0].pPart/500 + (float)(pid[0].output-5)/100;
     flT0+=dpv0;
     ds[0].pvT = flT0;
     int16_t pverr = set[0] - ds[0].pvT;

@@ -16,14 +16,7 @@ typedef struct
   int16_t sp;
 } GrafDispl;
 
-extern GrafDispl grafDispl[MAX_SENSOR];
-
-typedef struct {
-  int16_t pvT;
-  uint8_t err;
-} Ds;
-
-extern Ds ds[MAX_SENSOR];
+extern GrafDispl grafDispl[];
 
 void initArcFill(void);
 void fillArc(int x, int y, int start_angle, int seg_count, int rx, int ry, int w, unsigned int colour);
