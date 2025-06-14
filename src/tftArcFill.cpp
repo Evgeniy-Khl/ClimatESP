@@ -12,7 +12,7 @@ byte blue = 0; // Blue is the bottom 5 bits
 byte state = 0;
 
 
-void initArcFill(){
+void initMyTFT(){
   tft.begin();
   tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
@@ -20,6 +20,13 @@ void initArcFill(){
   grafDispl[0].sp = set[0];
   grafDispl[1].value = ds[1].pvT;
   grafDispl[1].sp = set[1];
+  xpos = tft.width()/2; ypos = 10;
+  tft.setTextDatum(TC_DATUM);
+  tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+  tft.loadFont("Arial28"); // загрузка в память шрифта
+  tft.drawString("КЛІМАТ-5.25", xpos, ypos);
+  xpos = 0; ypos += 30;
+  tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
 // #########################################################################

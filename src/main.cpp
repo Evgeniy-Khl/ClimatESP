@@ -70,11 +70,7 @@ TFT_eSPI tft = TFT_eSPI(); // Создаем экземпляр библиоте
 
 void setup() {
   Serial.begin(115200);       // Инициализация последовательного порта для отладки
-  //--------- инициализация SPIFFS -------------
-  /* if (!LittleFS.begin()) {
-    Serial.println("An Error has occurred while mounting LittleFS");
-    return;
-  } */
+  //--------- инициализация SPIFFS -----------------------------------------
   if (!SPIFFS.begin()) {
       Serial.println("ERROR file system!");
       tft.setTextColor(TFT_RED, TFT_YELLOW);
@@ -82,19 +78,25 @@ void setup() {
       delay(10000);
       xpos = 0; ypos += 30;
   }
-  initArcFill();
-  xpos = tft.width()/2; ypos = 10;
-  tft.setTextDatum(TC_DATUM);
-  tft.setTextColor(TFT_ORANGE, TFT_BLACK);
-  tft.loadFont("Arial28"); // загрузка в память шрифта
-  tft.drawString("КЛІМАТ-5.25", xpos, ypos);
-  tft.unloadFont(); // выгрузка шрифта из памяти
-  //===========================================
+  //--------- инициализация TFT --------------------------------------------
+  initMyTFT();
+  tft.setTextDatum(TL_DATUM);
+  //--------- инициализация Configuration ----------------------------------
   // 1. Показываем начальные значения, заданные в коде
     // Serial.println(">> Начальные значения из кода:");
     // printConfig();
-    if(SPIFFS.exists("/setpoint.json")) loadConfig();
-    else saveConfig();  // Сохраним эти значения в файл
+  if(SPIFFS.exists("/setpoint.json")){
+      if(loadConfig()){
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString("Configuration loaded successfully.", xpos, ypos, 2);
+      }
+      else {
+        tft.setTextColor(TFT_YELLOW, TFT_RED);
+        tft.drawString("Configuration not loaded!", xpos, ypos, 2);
+      }
+      xpos = 0; ypos += 20;
+  }
+  else saveConfig();  // Сохраним эти значения в файл
     /* // 3. Для демонстрации, очищаем структуру в памяти
     Serial.println("\n>> Очищаем структуру в ОЗУ для проверки загрузки...");
     memset(sp, 0, sizeof(sp)); // Заполняем массив нулями
@@ -103,19 +105,16 @@ void setup() {
     Serial.println("\n>> Загружаем данные из файла...");
     loadConfig(); */
     // 5. Показываем результат после загрузки
-    Serial.println("\n>> Итоговые значения после загрузки из FS:");
-    printConfig();
+  Serial.println("\n>> Итоговые значения после загрузки из FS:");
+  printConfig();
   //===========================================
-
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  xpos = 0; ypos += 30;
-
+  //--------- инициализация PID --------------------------------------------
   PID_Init(&pid[0], sp[0].Kp, sp[0].Ki, sp[0].Kd);
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid[0].Kp,pid[0].Ki,pid[0].Kd);
-  tft.setTextDatum(TL_DATUM);
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 20;
-  //------------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   /* Serial.println("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
   uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
@@ -151,19 +150,17 @@ void setup() {
   */
   writePCF8574(0x00);         // Установить все пины в LOW (если они используются как выходы)
 
-  //---------------------------------------  Инициализация DS3231 ----------------------------------------
+  //---------- Инициализация DS3231 ----------------------------------------
   if (!rtc.begin()) {
-    // Serial.println("Couldn't find RTC! Check wiring or I2C address.");
-    // Serial.flush();       // гарантированно вывелось в монитор порта
-    // while (1) delay(10);  // Остановка, если RTC не найден
+    Serial.println("RTC found!");
+    tft.drawString("RTC found!", xpos, ypos, 2);
+    xpos = 0; ypos += 20;
   }
-  Serial.println("RTC found!");
-  tft.drawString("RTC found!", xpos, ypos, 2);
-  xpos = 0; ypos += 20;
+  
   //------------------------------------------------------------------------------
-  testAT24C32();              // тест
-  tft.drawString("AT24C32 test complete.", xpos, ypos, 2);
-  xpos = 0; ypos += 20;
+  // testAT24C32();              // тест
+  // tft.drawString("AT24C32 test complete.", xpos, ypos, 2);
+  // xpos = 0; ypos += 20;
   //==============================================================================
   // initKeypad();
   // initFreeFont();

@@ -22,7 +22,7 @@ void displ_0(void){
   tft.setTextDatum(TL_DATUM);
   h = tft.fontHeight();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  sprintf(displStr,"РЕЖИМ: Р=%g  І=%g", pid.pPart, pid.iPart);
+  sprintf(displStr,"РЕЖИМ: Р=%g  І=%g", pid[0].pPart, pid[0].iPart);
   w = tft.textWidth("РЕЖИМ:");
   tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);

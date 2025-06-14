@@ -107,14 +107,14 @@ void saveConfig() {
 }
 
 // Функция загрузки конфигурации из JSON файла
-void loadConfig() {
+bool loadConfig() {
     Serial.println("Загрузка конфигурации...");
 
     // Открываем файл для чтения
     File configFile = SPIFFS.open("/setpoint.json", "r");
     if (!configFile) {
         Serial.println("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
-        return;
+        return false;
     }
 
     // Создаем JSON документ для десериализации
@@ -126,7 +126,7 @@ void loadConfig() {
         Serial.print("Ошибка десериализации JSON: ");
         Serial.println(error.c_str());
         configFile.close();
-        return;
+        return false;
     }
 // Закрываем файл после чтения
     configFile.close();
@@ -159,4 +159,5 @@ void loadConfig() {
         }
     }
     Serial.println("Конфигурация успешно загружена.");
+    return true;
 }

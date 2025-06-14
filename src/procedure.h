@@ -18,6 +18,6 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
 void printConfig();
 void saveConfig();
-void loadConfig();
+bool loadConfig();
 
 #endif /* _PROCEDURE_H */
