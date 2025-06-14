@@ -1,55 +1,41 @@
-#include "FS.h"
+#include "main.h"
 #include "TFT_eSPI.h"
-#include "Keypad_240x320.h"
 
 char numberBuffer[NUM_LEN + 1] = "";
 uint8_t numberIndex = 0;
 
 // Create 15 keys for the keypad
-char keyLabel[15][5] = {"New", "Del", "Send", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "#" };
-uint16_t keyColor[15] = {TFT_RED, TFT_DARKGREY, TFT_DARKGREEN,
-                         TFT_BLUE, TFT_BLUE, TFT_BLUE,
-                         TFT_BLUE, TFT_BLUE, TFT_BLUE,
-                         TFT_BLUE, TFT_BLUE, TFT_BLUE,
+char keyLabel[15][5] = {"#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","#13","#14","#15"};
+uint16_t keyColor[15] = {TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
+                         TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
+                         TFT_CYAN, TFT_CYAN, TFT_GREEN, TFT_GREEN,
                          TFT_BLUE, TFT_BLUE, TFT_BLUE
                         };
 
 // Invoke the TFT_eSPI button class and create all the button objects
-TFT_eSPI_Button key[15];
+TFT_eSPI_Button key[16];
 
 extern TFT_eSPI tft;
 
 void initKeypad(void)
 {
-  Serial.println();
-  Serial.println("initKeypad!");
-
-  // Initialise the TFT screen
-  tft.init();
-
-  // Set the rotation before we calibrate
-  tft.setRotation(0);
-
-  // Calibrate the touch screen and retrieve the scaling factors
-  touch_calibrate();
-
-  // Clear the screen
-  tft.fillScreen(TFT_BLACK);
-
-  // Draw keypad background
+  if(newDispl){
+    tft.fillScreen(TFT_BLACK);
+    drawKeypad();
+    newDispl = false;
+  }
+  /* // Draw keypad background
   tft.fillRect(0, 0, 240, 320, TFT_DARKGREY);
 
   // Draw number display area and frame
   tft.fillRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_BLACK);
   tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
-
-  // Draw keypad
-  drawKeypad();
+ */
 }
 
 void loopKeypad(void)
 {
-    uint16_t t_x = 0, t_y = 0; // To store the touch coordinates
+    
 
   // Pressed will be set true is there is a valid touch on the screen
   bool pressed = tft.getTouch(&t_x, &t_y);
@@ -123,24 +109,7 @@ void loopKeypad(void)
   }
 }
 
-void drawKeypad()
-{
-  // Draw the keys
-  for (uint8_t row = 0; row < 5; row++) {
-    for (uint8_t col = 0; col < 3; col++) {
-      uint8_t b = col + row * 3;
 
-      if (b < 3) tft.setFreeFont(LABEL1_FONT);
-      else tft.setFreeFont(LABEL2_FONT);
-
-      key[b].initButton(&tft, KEY_X + col * (KEY_W + KEY_SPACING_X),
-                        KEY_Y + row * (KEY_H + KEY_SPACING_Y), // x, y, w, h, outline, fill, text
-                        KEY_W, KEY_H, TFT_WHITE, keyColor[b], TFT_WHITE,
-                        keyLabel[b], KEY_TEXTSIZE);
-      key[b].drawButton();
-    }
-  }
-}
 
 void touch_calibrate()
 {

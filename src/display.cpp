@@ -43,10 +43,49 @@ void displ_0(void){
   tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
-void display(uint8_t){
-  switch (displ_num){
+void displ_1(void){
+  // Create 15 keys for the keypad
+  const char* keyLabel[15] = {"#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","#13","#14","#15"};
+  uint16_t keyColor[15] = {TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
+                          TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
+                          TFT_CYAN, TFT_CYAN, TFT_GREEN, TFT_GREEN,
+                          TFT_BLUE, TFT_BLUE, TFT_WHITE
+                          };
+  if(newDispl){
+    uint16_t h;
+    tft.fillScreen(TFT_BLACK);
+    xpos = 0; ypos = 0;
+    tft.loadFont("Calibri14"); // загрузка в память шрифта
+    h = tft.fontHeight();
+    tft.setTextDatum(TL_DATUM);
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
+    tft.drawString("#1-завдання нагрівача;     #2-завдання зволожувача;", xpos, ypos);
+    ypos += h+0;
+    tft.drawString("#3-лотки вгору;                     #4-лотки униз;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#5-авар. відхилення Т1;    #6-авар. відхилення Т2;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#7-охолодж. увімкнено;    #8-охолодж. вимкнено;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#9-провітр. увімкнено;       #10-провітр. вимкнено;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#11-заслінка закрита;         #12-заслінка відкрита;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#13-положення заслінки;   #14-програма інкубації;", xpos, ypos);
+    ypos += h+1;
+    tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
+    tft.drawString("#15-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    drawKeypad(keyLabel, keyColor);
+    newDispl = false;
+  }
+}
+
+void display(void){
+  switch (diplNum){
   	case 0: displ_0(); break;//- СТАН КАМЕРИ --
-  	// case 1: displ_1(); break;//- СТАН ВЫХОДІВ -
+  	case 1: displ_1(); break;//- НАЛАШТУВАННЯ -
     // case 2: displ_2(); break;//- НАЛАШТУВАННЯ -
     // case 3: displ_3(); break;//- ЗМІНА ТЕМПЕРАТУР -
     // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
@@ -55,6 +94,22 @@ void display(uint8_t){
     // case 7: displ_7(); break;//- вибір ШВИДКІСТІ обертання -
     // case 8: displ_8(); break;//- ЗМІНА ЗНАЧЕННЯ ШВИДКІСТІ обертання -
   	default: displ_0();	break;//- СТАН КАМЕРИ -
+  }
+}
+
+void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
+  TFT_eSPI_Button key[16];
+  tft.setFreeFont(LABEL2_FONT);
+  for (uint8_t row = 0; row < 3; row++) {
+    for (uint8_t col = 0; col < 5; col++) {
+      uint8_t b = col + row * 5;
+// TFT_eSPI *gfx, int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t outline, uint16_t fill, uint16_t textcolor, char *label, uint8_t textsize
+      key[b].initButton(&tft, KEY_X + col * (KEY_W + KEY_SPACING_X),
+                        KEY_Y + row * (KEY_H + KEY_SPACING_Y), // x, y, w, h, outline, fill, text
+                        KEY_W, KEY_H, TFT_WHITE, keyColor[b], TFT_BLACK,
+                        (char*)keyLabel[b], KEY_TEXTSIZE);
+      key[b].drawButton();
+    }
   }
 }
 

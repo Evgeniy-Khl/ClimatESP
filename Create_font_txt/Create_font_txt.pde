@@ -170,7 +170,7 @@ static final int[] unicodeBlocks = {
   //0x0030, 0x0039, // (numbers 0-9)
   //0x0041, 0x005A, // (Upper case A-Z)
   //0x0061, 0x007A, // (Lower case a-z)
-  //0x0021, 0x003F, // 30 characters
+  0x0021, 0x003F, // 30 characters
   //==================================================
   0x0404, 0x0407, // 2 characters
   0x0410, 0x044F, //Cyrillic, 256, 256, Cyrillic (254 characters), Inherited (2 characters)
@@ -342,7 +342,7 @@ static final int[] unicodeBlocks = {
 static final int[] specificUnicodes = {
 
   // Commonly used codes, add or remove // in next line
-  // 0x00A3, 0x00B0, 0x00B5, 0x03A9, 0x20AC, // £ ° µ Ω €
+  //0x00A3, 0x00B0, 0x00B5, 0x03A9, 0x20AC, // £ ° µ Ω €
 
   // Numbers and characters for showing time, change next line to //* to use
 /*

@@ -3,8 +3,9 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-// #include <LittleFS.h>
 #include <FS.h>
+#include "Keypad_240x320.h"
+
 #include "procedure.h"
 
 typedef struct {
@@ -22,7 +23,7 @@ struct Sp{
     int16_t coolOn;     // включение охлаждения
     int16_t coolOff;    // выключение охлаждения
     int16_t aeration;   // [0]-ПАУЗА ПРОВЕТРИВАНИЯ (минут); [1]-ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
-    int16_t flapLimit;  // [0]-закрата; [1]-открыта
+    int16_t flapLimit;  // [0]-закрыта; [1]-открыта
     int16_t state;      // [0]-заслонка текущее; [1]-программа текущая
     int16_t service;    // [0]-включение форсированного; [1]-выключение форсированного
     int16_t pulse;      // [0]-MIN; [1]-MAX
@@ -34,8 +35,9 @@ struct Sp{
 };
 
 extern char displStr[];
-extern uint8_t seconds, displ_num, pwTriac;
-extern uint16_t xpos, ypos, txt_height;
+extern bool newDispl;
+extern uint8_t seconds, diplNum, pwTriac;
+extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern Sp sp[];
 
 #endif /* __MAIN_H */

@@ -37,7 +37,8 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 long lastMsg = 0, number = 0;
 //---------------------------------
 char displStr[50];
-uint16_t xpos, ypos, txt_height;
+bool newDispl = true;
+uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
 uint8_t diplNum=0, seconds=0, pwTriac;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 #define FLPCLOSE 0
@@ -81,7 +82,7 @@ void setup() {
   //--------- инициализация TFT --------------------------------------------
   initMyTFT();
   tft.setTextDatum(TL_DATUM);
-  //--------- инициализация Configuration ----------------------------------
+  //--------- инициализация SET POINT --------------------------------------
   // 1. Показываем начальные значения, заданные в коде
     // Serial.println(">> Начальные значения из кода:");
     // printConfig();
@@ -168,9 +169,8 @@ void setup() {
   // tft.drawString("AT24C32 test complete.", xpos, ypos, 2);
   // xpos = 0; ypos += 20;
   //==============================================================================
-  
+
   // initKeypad();
-  // initFreeFont();
 
   //==============================================================================
   // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
@@ -215,7 +215,10 @@ void setup() {
     // sensors.setResolution(12); // Уже по умолчанию 12 бит при инициализации
 //}
   //==================================================================================
-  delay(5000);
+  delay(1000);
+  // Calibrate the touch screen and retrieve the scaling factors
+  touch_calibrate();
+
   tft.fillScreen(TFT_BLACK);
   diagram(grafDispl[0], TFT_WHITE);
   diagram(grafDispl[1], TFT_WHITE);
@@ -231,8 +234,12 @@ void loop() {
   }
   delay(30);                            // Небольшая задержка для плавности эффекта
   //========================================================================================================
-  // loopKeypad();
-  // loopFreeFont();
+  // Pressed will be set true is there is a valid touch on the screen
+  bool pressed = tft.getTouch(&t_x, &t_y);
+  if(pressed && diplNum==0){
+    newDispl = true;
+    diplNum = 1;  
+  } 
   //========================================================================================================
   long now = millis();
   if (now - lastMsg > 1000) {
@@ -254,7 +261,7 @@ void loop() {
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
   //================================================================
-    displ_0();
+    display();
 
   // if (numberOfDevices) {
   //   // Получаем температуру
