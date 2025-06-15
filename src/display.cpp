@@ -5,6 +5,10 @@
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
 void displ_0(void){
   uint16_t h,w;
+  if(newDispl){
+    newDispl = false;
+    tft.fillScreen(TFT_BLACK);
+  }
 //-----------
   if(grafDispl[0].value != ds[0].pvT) {
     grafDispl[0].value = ds[0].pvT;
@@ -45,11 +49,11 @@ void displ_0(void){
 
 void displ_1(void){
   // Create 15 keys for the keypad
-  const char* keyLabel[15] = {"#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","#13","#14","#15"};
+  const char* keyLabel[15] = {"#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","","#14","#15"};
   uint16_t keyColor[15] = {TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
                           TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
                           TFT_CYAN, TFT_CYAN, TFT_GREEN, TFT_GREEN,
-                          TFT_BLUE, TFT_BLUE, TFT_WHITE
+                          TFT_BLACK, TFT_YELLOW, TFT_WHITE
                           };
   if(newDispl){
     uint16_t h;
@@ -70,9 +74,10 @@ void displ_1(void){
     ypos += h+1;
     tft.drawString("#9-провітр. увімкнено;       #10-провітр. вимкнено;", xpos, ypos);
     ypos += h+1;
-    tft.drawString("#11-заслінка закрита;         #12-заслінка відкрита;", xpos, ypos);
+    tft.drawString("#11-положення заслінки;   #12-програма інкубації;", xpos, ypos);
     ypos += h+1;
-    tft.drawString("#13-положення заслінки;   #14-програма інкубації;", xpos, ypos);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK, true);
+    tft.drawString("#14-ТЕХНІЧНІ ПАРАМЕТРИ ДЛЯ ФАХІВЦІВ!", xpos, ypos);
     ypos += h+1;
     tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
     tft.drawString("#15-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
@@ -82,11 +87,49 @@ void displ_1(void){
   }
 }
 
+void displ_2(void){
+  // Create 15 keys for the keypad
+  const char* keyLabel[15] = {"#11","#12","#13","#14","#15","#16","#17","#18","#19","#20","","","","#24","#25"};
+  uint16_t keyColor[15] = {TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
+                          TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
+                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
+                          TFT_BLACK, TFT_YELLOW, TFT_WHITE
+                          };
+  if(newDispl){
+    uint16_t h;
+    tft.fillScreen(TFT_BLACK);
+    xpos = 0; ypos = 0;
+    tft.loadFont("Calibri14"); // загрузка в память шрифта
+    h = tft.fontHeight();
+    tft.setTextDatum(TL_DATUM);
+    tft.setCursor(xpos, ypos);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
+    tft.drawString("#11-заслінка закрита;         #12-заслінка відкрита;", xpos, ypos);
+    ypos += h+0;
+    tft.drawString("#13-мінімальний імпульс;   #14-максимальний імпульс;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#15-період імпульсів;          #16-аварійний режим;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#17-режим роботи реле;   #18-пропорційний коефіціент;", xpos, ypos);
+    ypos += h+1;
+    tft.drawString("#19-ітегральний коефіціент; #20-диференц. коефіціент;", xpos, ypos);
+    ypos += h+1;
+    tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);
+    tft.drawString("#24-ПОВЕРНЕННЯ ДО ПОПЕРЕДНЬОГО ЕКРАНУ!", xpos, ypos);
+    ypos += h+1;
+    tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
+    tft.drawString("#25-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    drawKeypad(keyLabel, keyColor);
+    newDispl = false;
+  }
+}
+
 void display(void){
-  switch (diplNum){
+  switch (displNum){
   	case 0: displ_0(); break;//- СТАН КАМЕРИ --
   	case 1: displ_1(); break;//- НАЛАШТУВАННЯ -
-    // case 2: displ_2(); break;//- НАЛАШТУВАННЯ -
+    case 2: displ_2(); break;//- НАЛАШТУВАННЯ -
     // case 3: displ_3(); break;//- ЗМІНА ТЕМПЕРАТУР -
     // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
     // case 5: displ_5(); break;//- ІНШЕ -

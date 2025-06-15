@@ -15,6 +15,7 @@
 void display(void);
 void displ_0(void);
 void displ_1(void);
+void displ_2(void);
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]);
 
 

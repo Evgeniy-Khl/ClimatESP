@@ -36,7 +36,7 @@ struct Sp{
 
 extern char displStr[];
 extern bool newDispl;
-extern uint8_t seconds, diplNum, pwTriac;
+extern uint8_t seconds, displNum, pwTriac;
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern Sp sp[];
 

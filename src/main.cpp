@@ -39,7 +39,7 @@ long lastMsg = 0, number = 0;
 char displStr[50];
 bool newDispl = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t diplNum=0, seconds=0, pwTriac;
+uint8_t displNum=0, seconds=0, pwTriac;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 #define FLPCLOSE 0
 #define FLPOPEN 255
@@ -236,9 +236,9 @@ void loop() {
   //========================================================================================================
   // Pressed will be set true is there is a valid touch on the screen
   bool pressed = tft.getTouch(&t_x, &t_y);
-  if(pressed && diplNum==0){
+  if(pressed && !newDispl){
     newDispl = true;
-    diplNum = 1;  
+    if(++displNum>2) displNum = 0;  
   } 
   //========================================================================================================
   long now = millis();
