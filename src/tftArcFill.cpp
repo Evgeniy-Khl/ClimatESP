@@ -1,7 +1,6 @@
 #include "main.h"
 #include <tftArcFill.h>
 
-extern GrafDispl grafDispl[2];
 extern uint16_t set[2];
 byte inc = 0;
 unsigned int col = 0;

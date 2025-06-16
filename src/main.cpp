@@ -6,6 +6,7 @@
 // #include "tftProcessing.h"
 #include "tftArcFill.h"
 #include "display.h"
+#include "touchKeypad.h"
 #include "procedure.h"
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
@@ -37,6 +38,9 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 long lastMsg = 0, number = 0;
 //---------------------------------
 char displStr[50];
+// Глобальный массив указателей, который будет доступен всем функциям
+const char* keyLabel[15];
+uint16_t keyColor[15];
 bool newDispl = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
 uint8_t displNum=0, seconds=0, pwTriac;
@@ -238,7 +242,7 @@ void loop() {
   bool pressed = tft.getTouch(&t_x, &t_y);
   if(pressed && !newDispl){
     newDispl = true;
-    if(++displNum>2) displNum = 0;  
+    if(++displNum>3) displNum = 0;  
   } 
   //========================================================================================================
   long now = millis();

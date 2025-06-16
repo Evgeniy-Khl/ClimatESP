@@ -4,8 +4,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <FS.h>
-#include "Keypad_240x320.h"
-
+#include <TFT_eSPI.h> // Hardware-specific library
+#include <SPI.h>
 #include "procedure.h"
 
 typedef struct {
@@ -33,6 +33,15 @@ struct Sp{
     int16_t Ki;         // Интегральный
     int16_t Kd;         // Дифференциальный
 };
+
+typedef struct
+{
+  uint16_t xpos; 
+  uint16_t ypos; 
+  uint8_t radius; 
+  int16_t value; 
+  int16_t sp;
+} GrafDispl;
 
 extern char displStr[];
 extern bool newDispl;

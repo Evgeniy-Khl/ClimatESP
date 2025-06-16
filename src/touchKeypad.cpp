@@ -1,48 +1,16 @@
 #include "main.h"
 #include "TFT_eSPI.h"
+#include "display.h"
+#include "tftArcFill.h"
+#include "touchKeypad.h"
 
 char numberBuffer[NUM_LEN + 1] = "";
 uint8_t numberIndex = 0;
 
-// Create 15 keys for the keypad
-char keyLabel[15][5] = {"#1","#2","#3","#4","#5","#6","#7","#8","#9","#10","#11","#12","#13","#14","#15"};
-uint16_t keyColor[15] = {TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
-                         TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
-                         TFT_CYAN, TFT_CYAN, TFT_GREEN, TFT_GREEN,
-                         TFT_BLUE, TFT_BLUE, TFT_BLUE
-                        };
-
-// Invoke the TFT_eSPI button class and create all the button objects
-TFT_eSPI_Button key[16];
-
-extern TFT_eSPI tft;
-
-void initKeypad(void)
-{
-  if(newDispl){
-    tft.fillScreen(TFT_BLACK);
-    drawKeypad();
-    newDispl = false;
-  }
-  /* // Draw keypad background
-  tft.fillRect(0, 0, 240, 320, TFT_DARKGREY);
-
-  // Draw number display area and frame
-  tft.fillRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_BLACK);
-  tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
- */
-}
-
-void loopKeypad(void)
-{
-    
-
-  // Pressed will be set true is there is a valid touch on the screen
-  bool pressed = tft.getTouch(&t_x, &t_y);
-
-  // / Check if any key coordinate boxes contain the touch coordinates
+void checkKeypad(){
+    // / Check if any key coordinate boxes contain the touch coordinates
   for (uint8_t b = 0; b < 15; b++) {
-    if (pressed && key[b].contains(t_x, t_y)) {
+    if (key[b].contains(t_x, t_y)) {
       key[b].press(true);  // tell the button it is pressed
     } else {
       key[b].press(false);  // tell the button it is NOT pressed
@@ -108,8 +76,6 @@ void loopKeypad(void)
     }
   }
 }
-
-
 
 void touch_calibrate()
 {

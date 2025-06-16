@@ -1,5 +1,4 @@
-#include <TFT_eSPI.h> // Hardware-specific library
-#include <SPI.h>
+#include "main.h"
 
 extern TFT_eSPI tft;
 
@@ -7,14 +6,7 @@ extern TFT_eSPI tft;
 #define LOOP_DELAY 10 // Loop delay to slow things down
 #define MAX_SENSOR 2
 
-typedef struct
-{
-  uint16_t xpos; 
-  uint16_t ypos; 
-  uint8_t radius; 
-  int16_t value; 
-  int16_t sp;
-} GrafDispl;
+
 
 extern GrafDispl grafDispl[];
 
