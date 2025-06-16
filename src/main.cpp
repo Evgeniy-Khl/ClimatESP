@@ -241,8 +241,14 @@ void loop() {
   // Pressed will be set true is there is a valid touch on the screen
   bool pressed = tft.getTouch(&t_x, &t_y);
   if(pressed && !newDispl){
-    newDispl = true;
-    if(++displNum>3) displNum = 0;  
+    switch (displNum){
+    case 0: displNum = 1; newDispl = true; break;
+    case 1: checkKeypad(); break;
+    default: displNum = 0; newDispl = true; break;
+    }
+    // if(displNum==0) displNum = 1;
+    // newDispl = true;
+    // if(++displNum>3) displNum = 0;  
   } 
   //========================================================================================================
   long now = millis();

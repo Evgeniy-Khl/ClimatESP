@@ -4,11 +4,9 @@
 
 TFT_eSPI_Button key[15];
 
-// Набор подписей для первого экрана
+// Набор подписей display_1
 const char* labels_for_display_1[15] = {
-  "#1", "#2", "#3", "#4", "#5",
-  "#6", "#7", "#8", "#9", "#10",
-  "#11", "#12", "", "#14", "#15"
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "", "30", "99"
 };
 uint16_t color_for_display_1[15] = {
   TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
@@ -18,35 +16,50 @@ uint16_t color_for_display_1[15] = {
 
 };
 
-// Набор подписей для второго экрана
+// Набор подписей display_2
 const char* labels_for_display_2[15] = {
-  "#11", "#12", "#13", "#14", "#15",
-  "#16", "#17", "#18", "#19", "#20",
-  "", "", "", "#24", "#25"
+  "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "", "", "", "90", "99"
 };
 uint16_t color_for_display_2[15] = {
+  TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
+                          TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
+                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
+                          TFT_BLACK, TFT_YELLOW, TFT_WHITE
+
+};
+
+// Набор подписей display_3
+const char* labels_for_display_3[15] = {
+  "+1","+5","+10","+50","+100","-1","-5","-10","-50","-100","","","","X","Ok"
+};
+uint16_t color_for_display_3[15] = {
+                          TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN,
+                          TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN, 
+                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
+                          TFT_BLACK, TFT_RED, TFT_GREEN
 
 };
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
 void displ_0(void){
   uint16_t h,w;
   if(newDispl){
-    newDispl = false;
     tft.fillScreen(TFT_BLACK);
   }
 //-----------
-  if(grafDispl[0].value != ds[0].pvT) {
+  if(grafDispl[0].value != ds[0].pvT || newDispl) {
     grafDispl[0].value = ds[0].pvT;
     diagram(grafDispl[0], TFT_WHITE);
   }
-  if(grafDispl[1].value != ds[1].pvT) {
+  if(grafDispl[1].value != ds[1].pvT || newDispl) {
     grafDispl[1].value = ds[1].pvT;
     diagram(grafDispl[1], TFT_WHITE);
   }
+  newDispl = false;
 //-----------
   h = lampUpdate(20, 130);
 //-----------
-  xpos = 0; ypos = h+8;
+  xpos = 5; ypos = h+8;
+  tft.drawRect(xpos-5, ypos-4, 319, 70, TFT_WHITE);
   tft.loadFont("Arial20"); // загрузка в память шрифта
   tft.setTextDatum(TL_DATUM);
   h = tft.fontHeight();
@@ -56,14 +69,14 @@ void displ_0(void){
   tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);
 
-  xpos = 0; ypos += (h+3);
+  ypos += (h+3);
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   sprintf(displStr,"ПОВОРОТ: %3d сек.",seconds);
   w = tft.textWidth("ПОВОРОТ:");
   tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);
 
-  xpos = 0; ypos += (h+3);
+  ypos += (h+3);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   sprintf(displStr,"ІНКУБАЦІЯ: %3d сек.",seconds);
   w = tft.textWidth("ІНКУБАЦІЯ:");
@@ -81,29 +94,29 @@ void displ_1(void){
   if(newDispl){
     uint16_t h;
     tft.fillScreen(TFT_BLACK);
-    xpos = 0; ypos = 0;
+    xpos = 5; ypos = 0;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
     h = tft.fontHeight();
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString(SET1, xpos, ypos); tft.drawString(SET2, xpos+150, ypos);
+    tft.drawString(SET1, xpos, ypos); tft.drawString(SET2, xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET3, xpos, ypos); tft.drawString(SET4, xpos+150, ypos);
+    tft.drawString(SET3, xpos, ypos); tft.drawString(SET4, xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET5, xpos, ypos); tft.drawString(SET5, xpos+150, ypos);
+    tft.drawString(SET5, xpos, ypos); tft.drawString(SET6, xpos+170, ypos);
     ypos += h;
-    tft.drawString("#7-охолодж. увімкнено;    #8-охолодж. вимкнено;", xpos, ypos);
+    tft.drawString(SET7, xpos, ypos); tft.drawString(SET8, xpos+170, ypos);
     ypos += h;
-    tft.drawString("#9-провітр. увімкнено;       #10-провітр. вимкнено;", xpos, ypos);
+    tft.drawString(SET9, xpos, ypos); tft.drawString(SET10, xpos+170, ypos);
     ypos += h;
-    tft.drawString("#11-положення заслінки;   #12-програма інкубації;", xpos, ypos);
+    tft.drawString(SET11, xpos, ypos); tft.drawString(SET12, xpos+170, ypos);
     ypos += h;
     tft.setTextColor(TFT_YELLOW, TFT_BLACK, true);
-    tft.drawString("#14-ТЕХНІЧНІ ПАРАМЕТРИ ДЛЯ ФАХІВЦІВ!", xpos, ypos);
+    tft.drawString("#30-ТЕХНІЧНІ ПАРАМЕТРИ ДЛЯ ФАХІВЦІВ!", xpos, ypos);
     ypos += h;
     tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
-    tft.drawString("#15-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
+    tft.drawString("#99-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
     tft.unloadFont(); // выгрузка шрифта из памяти
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
@@ -119,27 +132,27 @@ void displ_2(void){
   if(newDispl){
     uint16_t h;
     tft.fillScreen(TFT_BLACK);
-    xpos = 0; ypos = 0;
+    xpos = 5; ypos = 0;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
     h = tft.fontHeight();
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString("#11-заслінка закрита;         #12-заслінка відкрита;", xpos, ypos);
-    ypos += h+0;
-    tft.drawString("#13-мінімальний імпульс;   #14-максимальний імпульс;", xpos, ypos);
-    ypos += h+1;
-    tft.drawString("#15-період імпульсів;          #16-аварійний режим;", xpos, ypos);
-    ypos += h+1;
-    tft.drawString("#17-режим роботи реле;   #18-пропорційний коефіціент;", xpos, ypos);
-    ypos += h+1;
-    tft.drawString("#19-ітегральний коефіціент; #20-диференц. коефіціент;", xpos, ypos);
-    ypos += h+1;
+    tft.drawString(SET13, xpos, ypos); tft.drawString(SET14, xpos+170, ypos);
+    ypos += h;
+    tft.drawString(SET15, xpos, ypos); tft.drawString(SET16, xpos+170, ypos);
+    ypos += h;
+    tft.drawString(SET17, xpos, ypos); tft.drawString(SET18, xpos+170, ypos);
+    ypos += h;
+    tft.drawString(SET19, xpos, ypos); tft.drawString(SET20, xpos+170, ypos);
+    ypos += h;
+    tft.drawString(SET21, xpos, ypos); tft.drawString(SET22, xpos+170, ypos);
+    ypos += h;
     tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);
-    tft.drawString("#24-ПОВЕРНЕННЯ ДО ПОПЕРЕДНЬОГО ЕКРАНУ!", xpos, ypos);
+    tft.drawString("#90-ПОВЕРНЕННЯ ДО ПОПЕРЕДНЬОГО ЕКРАНУ!", xpos, ypos);
     ypos += h+1;
     tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
-    tft.drawString("#25-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
+    tft.drawString("#99-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
     tft.unloadFont(); // выгрузка шрифта из памяти
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
@@ -148,12 +161,10 @@ void displ_2(void){
 
 void displ_3(void){
   // Create 15 keys for the keypad
-  const char* keyLabel[15] = {"+1","+5","+10","+50","+100","-1","-5","-10","-50","-100","","","","X","Ok"};
-  uint16_t keyColor[15] = {TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN,
-                          TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN, 
-                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
-                          TFT_BLACK, TFT_RED, TFT_GREEN
-                          };
+  for (int i = 0; i < 15; i++) {
+    keyLabel[i] = labels_for_display_3[i];
+    keyColor[i] = color_for_display_3[i];
+  }
   if(newDispl){
     // Draw keypad background
     tft.fillScreen(TFT_DARKGREY);
@@ -196,9 +207,11 @@ void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
 }
 
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos){
-    uint16_t txt_width, txt_height;
+    uint16_t txt_width, h;
     bool on = false;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
+    h = tft.fontHeight()+4;
+    tft.drawRect(xpos-10, ypos-4, 300, h+4, TFT_WHITE);
     tft.setCursor(xpos, ypos);
     on = seconds&1 ? true : false;
     if(on) tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);
@@ -230,8 +243,7 @@ uint16_t lampUpdate(uint16_t xpos, uint16_t ypos){
     tft.print(" ДОПОМІЖ ");
     txt_width = tft.textWidth(" ДОПОМІЖ ");
     xpos += txt_width+10;
-    txt_height = tft.fontHeight()+5;
-    ypos += txt_height;
+    ypos += h;
     tft.unloadFont(); // выгрузка шрифта из памяти
     return ypos;
 }
