@@ -244,6 +244,8 @@ void loop() {
     switch (displNum){
     case 0: displNum = 1; newDispl = true; break;
     case 1: checkKeypad(); break;
+    case 2: checkKeypad(); break;
+    case 3: checkKeypad(); break;
     default: displNum = 0; newDispl = true; break;
     }
     // if(displNum==0) displNum = 1;

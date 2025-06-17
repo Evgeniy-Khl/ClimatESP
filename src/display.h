@@ -25,7 +25,7 @@
 #define LABEL1_FONT &FreeSansOblique12pt7b // Key label font 1
 #define LABEL2_FONT &FreeSansBold12pt7b    // Key label font 2
 
-#define SET1 "1-завдання нагрівача"
+/* #define SET1 "1-завдання нагрівача"
 #define SET2 "2-завдання зволожув."
 #define SET3 "3-лотки вгору"
 #define SET4 "4-лотки униз"
@@ -46,7 +46,13 @@
 #define SET19 "19-режим роботи реле"
 #define SET20 "20-пропорц. коефіціент"
 #define SET21 "21-ітеграл. коефіціент"
-#define SET22 "22-дифер. коефіціент"
+#define SET22 "22-дифер. коефіціент" */
+
+extern const char* txt1_for_display_3[];
+extern const char* txt2_for_display_3[];
+extern char numberBuffer[];
+extern uint8_t numberIndex, numberDispl;
+extern bool newTxt;
 
 extern TFT_eSPI_Button key[];
 extern const char* keyLabel[15];

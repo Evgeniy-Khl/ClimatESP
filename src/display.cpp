@@ -6,7 +6,7 @@ TFT_eSPI_Button key[15];
 
 // Набор подписей display_1
 const char* labels_for_display_1[15] = {
-  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "", "30", "99"
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "", ">", "0"
 };
 uint16_t color_for_display_1[15] = {
   TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
@@ -18,7 +18,7 @@ uint16_t color_for_display_1[15] = {
 
 // Набор подписей display_2
 const char* labels_for_display_2[15] = {
-  "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "", "", "", "90", "99"
+  "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "", "", "", "<", "0"
 };
 uint16_t color_for_display_2[15] = {
   TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
@@ -41,7 +41,7 @@ uint16_t color_for_display_3[15] = {
 };
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
 void displ_0(void){
-  uint16_t h,w;
+  uint16_t h;
   if(newDispl){
     tft.fillScreen(TFT_BLACK);
   }
@@ -58,6 +58,7 @@ void displ_0(void){
 //-----------
   h = lampUpdate(20, 130);
 //-----------
+  tft.setTextPadding(310);
   xpos = 5; ypos = h+8;
   tft.drawRect(xpos-5, ypos-4, 319, 70, TFT_WHITE);
   tft.loadFont("Arial20"); // загрузка в память шрифта
@@ -65,23 +66,26 @@ void displ_0(void){
   h = tft.fontHeight();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   sprintf(displStr,"РЕЖИМ: Р=%g  І=%g", pid[0].pPart, pid[0].iPart);
-  w = tft.textWidth("РЕЖИМ:");
-  tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
+  // w = tft.textWidth("РЕЖИМ:");
+  // tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);
+  // tft.fillRect(xpos + w, ypos, tft.width() - w, h, TFT_BLACK);
 
   ypos += (h+3);
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   sprintf(displStr,"ПОВОРОТ: %3d сек.",seconds);
-  w = tft.textWidth("ПОВОРОТ:");
-  tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
+  // w = tft.textWidth("ПОВОРОТ:");
+  // tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);
+  // tft.fillRect(xpos + w, ypos, tft.width() - w, h, TFT_BLACK);
 
   ypos += (h+3);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   sprintf(displStr,"ІНКУБАЦІЯ: %3d сек.",seconds);
-  w = tft.textWidth("ІНКУБАЦІЯ:");
-  tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
+  // w = tft.textWidth("ІНКУБАЦІЯ:");
+  // tft.fillRect(xpos+w, ypos, tft.width()-(xpos+w), h, TFT_BLACK);
   tft.drawString(displStr, xpos, ypos);
+  // tft.fillRect(xpos + w, ypos, tft.width() - w, h, TFT_BLACK);
   tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
@@ -100,17 +104,17 @@ void displ_1(void){
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString(SET1, xpos, ypos); tft.drawString(SET2, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[0], xpos, ypos); tft.drawString(txt1_for_display_3[1], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET3, xpos, ypos); tft.drawString(SET4, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[2], xpos, ypos); tft.drawString(txt1_for_display_3[3], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET5, xpos, ypos); tft.drawString(SET6, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[4], xpos, ypos); tft.drawString(txt1_for_display_3[5], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET7, xpos, ypos); tft.drawString(SET8, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[6], xpos, ypos); tft.drawString(txt1_for_display_3[7], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET9, xpos, ypos); tft.drawString(SET10, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[8], xpos, ypos); tft.drawString(txt1_for_display_3[9], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET11, xpos, ypos); tft.drawString(SET12, xpos+170, ypos);
+    tft.drawString(txt1_for_display_3[10], xpos, ypos); tft.drawString(txt1_for_display_3[11], xpos+170, ypos);
     ypos += h;
     tft.setTextColor(TFT_YELLOW, TFT_BLACK, true);
     tft.drawString("#30-ТЕХНІЧНІ ПАРАМЕТРИ ДЛЯ ФАХІВЦІВ!", xpos, ypos);
@@ -138,15 +142,15 @@ void displ_2(void){
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString(SET13, xpos, ypos); tft.drawString(SET14, xpos+170, ypos);
+    tft.drawString(txt2_for_display_3[0], xpos, ypos); tft.drawString(txt2_for_display_3[1], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET15, xpos, ypos); tft.drawString(SET16, xpos+170, ypos);
+    tft.drawString(txt2_for_display_3[2], xpos, ypos); tft.drawString(txt2_for_display_3[3], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET17, xpos, ypos); tft.drawString(SET18, xpos+170, ypos);
+    tft.drawString(txt2_for_display_3[4], xpos, ypos); tft.drawString(txt2_for_display_3[5], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET19, xpos, ypos); tft.drawString(SET20, xpos+170, ypos);
+    tft.drawString(txt2_for_display_3[6], xpos, ypos); tft.drawString(txt2_for_display_3[7], xpos+170, ypos);
     ypos += h;
-    tft.drawString(SET21, xpos, ypos); tft.drawString(SET22, xpos+170, ypos);
+    tft.drawString(txt2_for_display_3[8], xpos, ypos); tft.drawString(txt2_for_display_3[9], xpos+170, ypos);
     ypos += h;
     tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);
     tft.drawString("#90-ПОВЕРНЕННЯ ДО ПОПЕРЕДНЬОГО ЕКРАНУ!", xpos, ypos);
@@ -173,6 +177,22 @@ void displ_3(void){
     tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
+  }
+  if(newTxt){
+      // Update the number display field
+      tft.loadFont("Arial28"); // загрузка в память шрифта
+
+      tft.setTextDatum(TC_DATUM);        // Use top center corner as text coord datum
+    //   tft.setFreeFont(&FreeSans18pt7b);  // Choose a nice font that fits box
+      tft.setTextColor(DISP_TCOLOR);     // Set the font colour
+      // tft.setTextSize(1);
+      // Draw the string, the value returned is the width in pixels
+      tft.drawString(txt1_for_display_3[numberIndex], DISP_X + 4, DISP_Y + 5);
+
+      // Now cover up the rest of the line up by drawing a black rectangle.  No flicker this way
+      // but it will not work with italic or oblique fonts due to character overlap.
+      // tft.fillRect(DISP_X + 4 + xwidth, DISP_Y + 1, DISP_W - xwidth - 5, DISP_H - 2, TFT_BLACK);
+      tft.unloadFont(); // выгрузка шрифта из памяти
   }
 }
 
@@ -211,7 +231,8 @@ uint16_t lampUpdate(uint16_t xpos, uint16_t ypos){
     bool on = false;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
     h = tft.fontHeight()+4;
-    tft.drawRect(xpos-10, ypos-4, 300, h+4, TFT_WHITE);
+    tft.fillRect(xpos-10, ypos-4, 300, h+4, TFT_DARKGREY);
+    tft.drawRect(xpos-10, ypos-4, 300, h+4, TFT_MAGENTA);
     tft.setCursor(xpos, ypos);
     on = seconds&1 ? true : false;
     if(on) tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);

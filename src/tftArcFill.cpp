@@ -117,6 +117,8 @@ void diagram(GrafDispl grafDispl, uint16_t color){
   fillArc(grafDispl.xpos, grafDispl.ypos, tmpval1, 1, grafDispl.radius-10, grafDispl.radius-10, seg_w+8, TFT_WHITE);
 
     tft.setTextSize(1);
+    tft.setTextPadding(0);
+
     // tft.fillRect(xpos-25, ypos-2, 50, 25, TFT_BLACK);
     tft.setTextDatum(MC_DATUM);
     //-----------------------
