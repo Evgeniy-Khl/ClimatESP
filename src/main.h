@@ -21,10 +21,10 @@ extern Ds ds[];
 struct Sp{
     int16_t spT; 	      // Уставка температуры
     int16_t spRH;	      // Уставка относительной влажности (sp[0].spRH->ПОДСТРОЙКА HIH)
-    int16_t timer;      // длительность [0]-отключ.состояниe [1]-включ.состояниe
     int16_t alarm;      // дельта 5 = 0.5 гр.C
     int16_t coolOn;     // включение охлаждения
     int16_t coolOff;    // выключение охлаждения
+    int16_t timer;      // длительность [0]-отключ.состояниe [1]-включ.состояниe
     int16_t aeration;   // [0]-ПАУЗА ПРОВЕТРИВАНИЯ (минут); [1]-ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
     int16_t state;      // [0]-заслонка текущее; [1]-программа текущая
     int16_t flapLimit;  // [0]-закрыта; [1]-открыта
@@ -57,8 +57,9 @@ typedef struct
 
 extern char displStr[];
 extern bool newDispl;
-extern uint8_t seconds, displNum, pwTriac;
+extern uint8_t seconds, displNum, pwTriac, dividerValue;
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
+extern int16_t editValue;
 
 #endif /* __MAIN_H */

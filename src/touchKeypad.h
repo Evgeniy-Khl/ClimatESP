@@ -29,3 +29,4 @@
 void checkKeypad();
 void touch_calibrate();
 void status(const char *msg);
+void calculator();

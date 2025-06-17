@@ -23,13 +23,14 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 //---------------------------------
-char displStr[50];
+char displStr[30];
 // Глобальный массив указателей, который будет доступен всем функциям
 const char* keyLabel[15];
 uint16_t keyColor[15];
-bool newDispl = true;
+bool newDispl = true, newTxt = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pwTriac;
+uint8_t displNum=0, seconds=0, pwTriac, dividerValue;
+int16_t editValue;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 //---------------------------------
 Ds ds[2] = {{350,0},{280,0}};
@@ -51,10 +52,10 @@ SpUnion settings = {
         { // Элемент sp_structs[0]
             .spT = 350,
             .spRH = 0,
-            .timer = 60,
             .alarm = 10,
             .coolOn = 5,
             .coolOff = 2,
+            .timer = 60,
             .aeration = 10,
             .state = 0,
             .flapLimit = FLPCLOSE,
@@ -69,10 +70,10 @@ SpUnion settings = {
         { // Элемент sp_structs[1] (можно оставить пустым для инициализации нулями)
             .spT = 300,
             .spRH = 650,
-            .timer = 0,
             .alarm = 15,
             .coolOn = 5,
             .coolOff = 2,
+            .timer = 0,
             .aeration = 0,
             .state = 0,
             .flapLimit = FLPOPEN,

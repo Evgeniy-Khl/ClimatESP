@@ -91,16 +91,15 @@ void displ_0(void){
 
 void displ_1(void){
   // Create 15 keys for the keypad
-  for (int i = 0; i < 15; i++) {
-    keyLabel[i] = labels_for_display_1[i];
-    keyColor[i] = color_for_display_1[i];
-  }
   if(newDispl){
-    uint16_t h;
+    for (int i = 0; i < 15; i++) {
+      keyLabel[i] = labels_for_display_1[i];
+      keyColor[i] = color_for_display_1[i];
+    }
     tft.fillScreen(TFT_BLACK);
     xpos = 5; ypos = 0;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
-    h = tft.fontHeight();
+    uint16_t h = tft.fontHeight();
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
@@ -129,16 +128,15 @@ void displ_1(void){
 
 void displ_2(void){
   // Create 15 keys for the keypad
-  for (int i = 0; i < 15; i++) {
-    keyLabel[i] = labels_for_display_2[i];
-    keyColor[i] = color_for_display_2[i];
-  }
   if(newDispl){
-    uint16_t h;
+    for (int i = 0; i < 15; i++) {
+      keyLabel[i] = labels_for_display_2[i];
+      keyColor[i] = color_for_display_2[i];
+    }
     tft.fillScreen(TFT_BLACK);
     xpos = 5; ypos = 0;
     tft.loadFont("Calibri14"); // загрузка в память шрифта
-    h = tft.fontHeight();
+    uint16_t h = tft.fontHeight();
     tft.setTextDatum(TL_DATUM);
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
@@ -165,12 +163,11 @@ void displ_2(void){
 
 void displ_3(void){
   // Create 15 keys for the keypad
-  for (int i = 0; i < 15; i++) {
-    keyLabel[i] = labels_for_display_3[i];
-    keyColor[i] = color_for_display_3[i];
-  }
-  
   if(newDispl){
+    for (int i = 0; i < 15; i++) {
+      keyLabel[i] = labels_for_display_3[i];
+      keyColor[i] = color_for_display_3[i];
+    }  
     // Draw keypad background
     tft.fillScreen(TFT_DARKGREY);
     // Draw number display area and frame
@@ -180,19 +177,21 @@ void displ_3(void){
     newDispl = false;
   }
   if(newTxt){
-    tft.loadFont("Arial28"); // загрузка в память шрифта
-    // tft.setTextPadding(320);
-    //tft.setCursor(STATUS_X, STATUS_Y);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextDatum(TC_DATUM);
-    tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
-    sprintf(displStr,"%3d",settings.flat_array[numberIndex]);
-    tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
+    // tft.loadFont("Arial28"); // загрузка в память шрифта
+    // // tft.setTextPadding(320);
+    // //tft.setCursor(STATUS_X, STATUS_Y);
+    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    // tft.setTextDatum(TC_DATUM);
+    // tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
+    // sprintf(displStr,"%5d",editValue);
+    // // sprintf(displStr,"%5.1f",(float)editValue/dividerValue);
+    // tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
 
-      // Now cover up the rest of the line up by drawing a black rectangle.  No flicker this way
-      // but it will not work with italic or oblique fonts due to character overlap.
-      // tft.fillRect(DISP_X + 4 + xwidth, DISP_Y + 1, DISP_W - xwidth - 5, DISP_H - 2, TFT_BLACK);
-    tft.unloadFont(); // выгрузка шрифта из памяти
+    //   // Now cover up the rest of the line up by drawing a black rectangle.  No flicker this way
+    //   // but it will not work with italic or oblique fonts due to character overlap.
+    //   // tft.fillRect(DISP_X + 4 + xwidth, DISP_Y + 1, DISP_W - xwidth - 5, DISP_H - 2, TFT_BLACK);
+    // tft.unloadFont(); // выгрузка шрифта из памяти
+    newTxt = false;
   }
 }
 
@@ -201,13 +200,13 @@ void display(void){
   	case 0: displ_0(); break;//- СТАН КАМЕРИ --
   	case 1: displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
     case 2: displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
-    case 3: displ_3(); break;//- КАЛЬКУЛЯТОР -
+    // case 3: displ_3(); break;//- КАЛЬКУЛЯТОР -
     // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
     // case 5: displ_5(); break;//- ІНШЕ -
     // case 6: displ_6(); break;//- ЗМІНА ІНШЕ -
     // case 7: displ_7(); break;//- вибір ШВИДКІСТІ обертання -
     // case 8: displ_8(); break;//- ЗМІНА ЗНАЧЕННЯ ШВИДКІСТІ обертання -
-  	default: displ_0();	break;//- СТАН КАМЕРИ -
+  	// default: displ_0();	break;//- СТАН КАМЕРИ -
   }
 }
 

@@ -5,9 +5,8 @@
 #include "touchKeypad.h"
 
 const char* txt1_for_display_3[15] = {
-"1-завдання нагрівача", "2-завдання зволожув.", "3-лотки вгору", "4-лотки униз",
-"5-авар. відхилення Т1", "6-авар. відхилення Т2", "7-охолодж. увімкнено",
-"8-охолодж. вимкнено", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
+"1-завдання нагрівача", "2-завдання зволожув.", "3-авар. відхилення Т1", "4-авар. відхилення Т2", "5-охолодж. увімкнено",
+"6-охолодж. вимкнено", "7-лотки вгору", "8-лотки униз", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
 "12-програма інкубації", "", "", ""
 };
 const char* txt2_for_display_3[15] = {
@@ -18,7 +17,6 @@ const char* txt2_for_display_3[15] = {
 
 char numberBuffer[NUM_LEN + 1] = "";
 uint8_t numberIndex, numberDispl;
-bool newTxt = false;
 
 void checkKeypad(){
     // / Check if any key coordinate boxes contain the touch coordinates
@@ -69,24 +67,27 @@ void checkKeypad(){
         }
         
         if(b < 13){
-            newDispl = true;
-            newTxt = true;
             switch (displNum){
                 case 1: 
                         numberIndex = b;
                         numberDispl = displNum;
-                        displNum = 3;
+                        newDispl = true;
+                        displNum = 3; 
+                        displ_3();
+                        calculator();
                 break;
                 case 2: 
                         numberIndex = b;
                         numberDispl = displNum;
+                        newDispl = true;
                         displNum = 3;
+                        displ_3();
+                        calculator();
                 break;
                 case 3: 
                         numberIndex = b;
                         numberDispl = displNum;
-                        displNum = 3;
-                        newDispl = false;
+                        calculator();
                 break;
                 // default: displNum = 0; break;
             }
@@ -95,6 +96,20 @@ void checkKeypad(){
         }
     }
   }
+}
+
+void calculator(){
+  dividerValue = 1;
+  if(numberIndex < 5) dividerValue = 10;
+  editValue = settings.flat_array[numberIndex];
+  newTxt = true;
+  tft.loadFont("Arial28"); // загрузка в память шрифта
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextDatum(TC_DATUM);
+  tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
+  sprintf(displStr,"%5d  Д=%d",editValue, dividerValue);
+  tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
+  tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
 void touch_calibrate()
