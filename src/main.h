@@ -15,6 +15,9 @@ typedef struct {
 
 extern Ds ds[];
 
+// Для предотвращения выравнивания полей компилятором, что может нарушить карту памяти.
+// В данном случае все поля одного типа, и проблема маловероятна, но это хорошая практика.
+#pragma pack(push, 1)
 struct Sp{
     int16_t spT; 	      // Уставка температуры
     int16_t spRH;	      // Уставка относительной влажности (sp[0].spRH->ПОДСТРОЙКА HIH)
@@ -33,6 +36,15 @@ struct Sp{
     int16_t Ki;         // Интегральный
     int16_t Kd;         // Дифференциальный
 };
+#pragma pack(pop)
+
+// Определяем union
+union SpUnion {
+    // Представление 1: Как массив из двух структур
+    Sp sp_structs[2];
+    // Представление 2: Как линейный массив из 32-х 16-битных значений
+    int16_t flat_array[32]; // 16 полей * 2 структуры = 32
+};
 
 typedef struct
 {
@@ -47,6 +59,6 @@ extern char displStr[];
 extern bool newDispl;
 extern uint8_t seconds, displNum, pwTriac;
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
-extern Sp sp[];
+extern SpUnion settings;
 
 #endif /* __MAIN_H */

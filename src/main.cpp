@@ -1,9 +1,6 @@
 // #include <Arduino.h>
 #include <SPI.h>
 #include "TFT_eSPI.h"
-// #include "Keypad_240x320.h"
-// #include "Free_Font_Demo.h"
-// #include "tftProcessing.h"
 #include "tftArcFill.h"
 #include "display.h"
 #include "touchKeypad.h"
@@ -13,54 +10,9 @@
 // #include <OneWire.h>
 // #include <DallasTemperature.h>
 #include "AT24C32.h"
-// Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
-const int ledPin = 2; // GPIO2
+#include "my_settings.h"
 
-// Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-// #define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
-// #define MAX_DEVICE 4        // ограничение количества датчиков
-// uint8_t numberOfDevices, errDevice[MAX_DEVICE];
-// Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
-// OneWire oneWire(ONE_WIRE_BUS_PIN);
-// Передаем ссылку на объект oneWire в конструктор DallasTemperature
-// DallasTemperature sensors(&oneWire);
-// Переменная для хранения адреса датчика (если их несколько)
-// DeviceAddress sensorAddress;
-
-// Переменные для управления яркостью
-int brightness = 0;    // Текущая яркость
-int fadeAmount = 5;    // На сколько изменять яркость за один шаг
-
-// Адрес PCF8574. Может быть разным в зависимости от конфигурации A0, A1, A2.
-// Стандартные адреса: 0x20-0x27 для PCF8574 и 0x38-0x3F для PCF8574A.
-// Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
-#define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
-long lastMsg = 0, number = 0;
-//---------------------------------
-char displStr[50];
-// Глобальный массив указателей, который будет доступен всем функциям
-const char* keyLabel[15];
-uint16_t keyColor[15];
-bool newDispl = true;
-uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pwTriac;
-// spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
-#define FLPCLOSE 0
-#define FLPOPEN 255
 PIDController pid[2];
-
-Sp sp[2] = {{350,   0, 60, 10, 5, 2, 10, FLPCLOSE, 0, 10, 100, 0,   0, 200, 100, 1}, 
-            {300, 650,  0, 15, 5, 2,  0,  FLPOPEN, 0,  5,2000, 0,3000, 200, 100, 1}};
-//---------------------------------
-Ds ds[2] = {{350,0},{280,0}};
-uint16_t set[2] = {385, 305};
-int8_t dpv1 = 2;
-float flT0=350, dpv0;
-//---------------------------------
-GrafDispl grafDispl[2] = {
-    { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
-    {240,80,80, 0, 0},    // Инициализация grafDispl[1]
-};
 byte writePCF8574(byte data);
 byte readPCF8574();
 void testAT24C32();
@@ -121,7 +73,7 @@ void setup() {
   printConfig();
   //===========================================
   //--------- инициализация PID --------------------------------------------
-  PID_Init(&pid[0], sp[0].Kp, sp[0].Ki, sp[0].Kd);
+  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki, settings.sp_structs[0].Kd);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid[0].Kp,pid[0].Ki,pid[0].Kd);
   tft.drawString(displStr, xpos, ypos, 2);

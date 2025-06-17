@@ -38,7 +38,7 @@ void checkKeypad(){
 
     if (key[b].justReleased()) key[b].drawButton();     // draw normal
 
-    if (key[b].justPressed()) {
+    if (key[b].isPressed()) {
       key[b].drawButton(true);  // draw invert
 
         // Возврат к главному экрану
@@ -50,9 +50,9 @@ void checkKeypad(){
                 // default: displNum = 0; break;
             }
             newDispl = true;
-            sprintf(displStr,"В==14: Номер=%d",displNum);
-            status(displStr);
-            delay(2000); // UI debouncing
+            // sprintf(displStr,"В==14: Номер=%d",displNum);
+            // status(displStr);
+            // delay(2000); // UI debouncing
         }
 
         if (b == 13) {
@@ -63,9 +63,9 @@ void checkKeypad(){
                 // default: displNum = 0; break;
             }
             newDispl = true;
-            sprintf(displStr,"В==13: Номер=%d",displNum);
-            status(displStr);
-            delay(2000); // UI debouncing
+            // sprintf(displStr,"В==13: Номер=%d",displNum);
+            // status(displStr);
+            // delay(2000); // UI debouncing
         }
         
         if(b < 13){
@@ -90,8 +90,8 @@ void checkKeypad(){
                 break;
                 // default: displNum = 0; break;
             }
-            status("В<13");
-            delay(2000); // UI debouncing
+            // status("В<13");
+            // delay(2000); // UI debouncing
         }
     }
   }

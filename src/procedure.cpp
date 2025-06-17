@@ -37,23 +37,23 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn){
 void printConfig() {
     Serial.println("--------------------");
     for (int i = 0; i < 2; i++) {
-        Serial.printf("Элемент sp[%d]:\n", i);
-        Serial.printf("  spT: %d\n", sp[i].spT);
-        Serial.printf("  spRH: %d\n", sp[i].spRH);
-        Serial.printf("  timer: %d\n", sp[i].timer);
-        Serial.printf("  alarm: %d\n", sp[i].alarm);
-        Serial.printf("  coolOn: %d\n", sp[i].coolOn);
-        Serial.printf("  coolOff: %d\n", sp[i].coolOff);
-        Serial.printf("  aeration: %d\n", sp[i].aeration);
-        Serial.printf("  flapLimit: %d\n", sp[i].flapLimit);
-        Serial.printf("  state: %d\n", sp[i].state);
-        Serial.printf("  service: %d\n", sp[i].service);
-        Serial.printf("  pulse: %d\n", sp[i].pulse);
-        Serial.printf("  mode: %d\n", sp[i].mode);
-        Serial.printf("  extendMode: %d\n", sp[i].extendMode);
-        Serial.printf("  Kp: %d\n", sp[i].Kp);
-        Serial.printf("  Ki: %d\n", sp[i].Ki);
-        Serial.printf("  Kd: %d\n", sp[i].Kd);
+        Serial.printf("Элемент settings.sp_structs[%d]:\n", i);
+        Serial.printf("  spT: %d\n", settings.sp_structs[i].spT);
+        Serial.printf("  spRH: %d\n", settings.sp_structs[i].spRH);
+        Serial.printf("  timer: %d\n", settings.sp_structs[i].timer);
+        Serial.printf("  alarm: %d\n", settings.sp_structs[i].alarm);
+        Serial.printf("  coolOn: %d\n", settings.sp_structs[i].coolOn);
+        Serial.printf("  coolOff: %d\n", settings.sp_structs[i].coolOff);
+        Serial.printf("  aeration: %d\n", settings.sp_structs[i].aeration);
+        Serial.printf("  flapLimit: %d\n", settings.sp_structs[i].flapLimit);
+        Serial.printf("  state: %d\n", settings.sp_structs[i].state);
+        Serial.printf("  service: %d\n", settings.sp_structs[i].service);
+        Serial.printf("  pulse: %d\n", settings.sp_structs[i].pulse);
+        Serial.printf("  mode: %d\n", settings.sp_structs[i].mode);
+        Serial.printf("  extendMode: %d\n", settings.sp_structs[i].extendMode);
+        Serial.printf("  Kp: %d\n", settings.sp_structs[i].Kp);
+        Serial.printf("  Ki: %d\n", settings.sp_structs[i].Ki);
+        Serial.printf("  Kd: %d\n", settings.sp_structs[i].Kd);
     }
     Serial.println("--------------------");
 }
@@ -71,22 +71,22 @@ void saveConfig() {
     // Проходим по массиву структур и добавляем данные в JSON
     for (int i = 0; i < 2; i++) {
         JsonObject obj = jsonArray.createNestedObject();
-        obj["spT"] = sp[i].spT;
-        obj["spRH"] = sp[i].spRH;
-        obj["timer"] = sp[i].timer;
-        obj["alarm"] = sp[i].alarm;
-        obj["coolOn"] = sp[i].coolOn;
-        obj["coolOff"] = sp[i].coolOff;
-        obj["aeration"] = sp[i].aeration;
-        obj["flapLimit"] = sp[i].flapLimit;
-        obj["state"] = sp[i].state;
-        obj["service"] = sp[i].service;
-        obj["pulse"] = sp[i].pulse;
-        obj["mode"] = sp[i].mode;
-        obj["extendMode"] = sp[i].extendMode;
-        obj["Kp"] = sp[i].Kp;
-        obj["Ki"] = sp[i].Ki;
-        obj["Kd"] = sp[i].Kd;
+        obj["spT"] = settings.sp_structs[i].spT;
+        obj["spRH"] = settings.sp_structs[i].spRH;
+        obj["timer"] = settings.sp_structs[i].timer;
+        obj["alarm"] = settings.sp_structs[i].alarm;
+        obj["coolOn"] = settings.sp_structs[i].coolOn;
+        obj["coolOff"] = settings.sp_structs[i].coolOff;
+        obj["aeration"] = settings.sp_structs[i].aeration;
+        obj["flapLimit"] = settings.sp_structs[i].flapLimit;
+        obj["state"] = settings.sp_structs[i].state;
+        obj["service"] = settings.sp_structs[i].service;
+        obj["pulse"] = settings.sp_structs[i].pulse;
+        obj["mode"] = settings.sp_structs[i].mode;
+        obj["extendMode"] = settings.sp_structs[i].extendMode;
+        obj["Kp"] = settings.sp_structs[i].Kp;
+        obj["Ki"] = settings.sp_structs[i].Ki;
+        obj["Kd"] = settings.sp_structs[i].Kd;
     }
 
     // Открываем файл для записи
@@ -139,22 +139,22 @@ bool loadConfig() {
     int i = 0;
     for (JsonObject obj : jsonArray) {
         if (i < 2) {
-            sp[i].spT = obj["spT"];
-            sp[i].spRH = obj["spRH"];
-            sp[i].timer = obj["timer"];
-            sp[i].alarm = obj["alarm"];
-            sp[i].coolOn = obj["coolOn"];
-            sp[i].coolOff = obj["coolOff"];
-            sp[i].aeration = obj["aeration"];
-            sp[i].flapLimit = obj["flapLimit"];
-            sp[i].state = obj["state"];
-            sp[i].service = obj["service"];
-            sp[i].pulse = obj["pulse"];
-            sp[i].mode = obj["mode"];
-            sp[i].extendMode = obj["extendMode"];
-            sp[i].Kp = obj["Kp"];
-            sp[i].Ki = obj["Ki"];
-            sp[i].Kd = obj["Kd"];
+            settings.sp_structs[i].spT = obj["spT"];
+            settings.sp_structs[i].spRH = obj["spRH"];
+            settings.sp_structs[i].timer = obj["timer"];
+            settings.sp_structs[i].alarm = obj["alarm"];
+            settings.sp_structs[i].coolOn = obj["coolOn"];
+            settings.sp_structs[i].coolOff = obj["coolOff"];
+            settings.sp_structs[i].aeration = obj["aeration"];
+            settings.sp_structs[i].flapLimit = obj["flapLimit"];
+            settings.sp_structs[i].state = obj["state"];
+            settings.sp_structs[i].service = obj["service"];
+            settings.sp_structs[i].pulse = obj["pulse"];
+            settings.sp_structs[i].mode = obj["mode"];
+            settings.sp_structs[i].extendMode = obj["extendMode"];
+            settings.sp_structs[i].Kp = obj["Kp"];
+            settings.sp_structs[i].Ki = obj["Ki"];
+            settings.sp_structs[i].Kd = obj["Kd"];
             i++;
         }
     }
