@@ -195,16 +195,15 @@ void loop() {
   if(pressed && !newDispl){
     switch (displNum){
     case 0: 
-      tft.loadFont("Arial28"); // загрузка в память шрифта
+      // tft.loadFont("Arial28"); // загрузка в память шрифта
       // Serial.println("main():Arial28");
       // tft.setTextDatum(TC_DATUM);
       displNum = 1; newDispl = true;
       menu_1();
       break;
-    case 1: checkKeypad(6); break;
-    case 2: checkKeypad(6); break;
+    case 1: checkKeypad(MENU_1); break;
+    case 2: checkKeypad(MENU_1); break;
     case 3: checkKeypad(15); break;
-    default: displNum = 0; newDispl = true; break;
     }
     // if(displNum==0) displNum = 1;
     // newDispl = true;

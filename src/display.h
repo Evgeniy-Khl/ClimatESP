@@ -4,7 +4,7 @@
 #include <main.h>
 #include "tftArcFill.h"
 
-#define MENU_1 6
+#define MENU_1 7
 
 // Keypad start position, key sizes and spacing
 #define KEY_X 40 // Centre of key
@@ -31,7 +31,7 @@ extern const char* txt1_for_display_3[];
 extern const char* txt2_for_display_3[];
 extern const char* labels_for_display_3[];
 extern char numberBuffer[];
-extern uint8_t numberIndex, numberDispl;
+extern uint8_t numberIndex, earlyDispl;
 extern bool newTxt;
 
 extern TFT_eSPI_Button key[];

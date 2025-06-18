@@ -17,18 +17,18 @@ const char* txt2_for_display_3[15] = {
 
 // Набор подписей display_1
 const char* labelsMenu1[MENU_1] = {
-  "завдання нагрівача", 
-  "завдання зволожувача", 
+  "завдання у грд.Цесія", 
+  "завдання у відсотках", 
   "аварійне відхилення", 
   "охолодж. увімкнути", 
-  "охолодж. вимкнути", 
-  "далі >"
+  "охолодж. вимкнути",
+  "повернуться", "далі >"
 };
 // const char* labelsMenu1[15] = {
 //   "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "", ">", "0"
 // };
 uint16_t colorsMenu1[MENU_1] = {
-  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_YELLOW
+  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_YELLOW, TFT_GREEN
 };
 
 // Набор подписей display_2
@@ -111,12 +111,12 @@ void menu_1(){
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial28"); // загрузка в память шрифта
-    Serial.println("menu_1():Arial28");
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    Serial.println("menu_1():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
-    tft.drawString("канал 1", 160, 5);
-    drawKeypad_longName(keyLabel, keyColor, MENU_1, 1);
+    tft.drawString("Сухий датчик канал 1", 160, 5);
+    drawKeypad_longName(keyLabel, keyColor, MENU_1-1, 1);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("menu_1():unloadFont");
     newDispl = false;
@@ -165,12 +165,12 @@ void menu_2(){
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial28"); // загрузка в память шрифта
-    Serial.println("menu_2():Arial28");
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    Serial.println("menu_2():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
-    tft.drawString("канал 2", 160, 5);
-    drawKeypad_longName(keyLabel, keyColor, MENU_1, 1);
+    tft.drawString("Вологий датчик канал 2", 160, 5);
+    drawKeypad_longName(keyLabel, keyColor, MENU_1-1, 1);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("menu_2():unloadFont");
     newDispl = false;
@@ -254,16 +254,34 @@ void displ_3(const char* txt){
 
 void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
   const char* nul = "";
+  char dd[50];
   for (uint8_t row = 0; row < amt_row; row++) {
-    for (uint8_t col = 0; col < amt_col; col++) {
-      uint8_t b = col + row * amt_col;
-// TFT_eSPI *gfx, int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t outline, uint16_t fill, uint16_t textcolor, char *label, uint8_t textsize
-      key[b].initButton(&tft, 160 + col * (300 + 5),
-                        50 + row * (30 + 5), // x, y, w, h, outline, fill, text
-                        300, 30, TFT_WHITE, keyColor[b], TFT_BLACK,
-                        (char*)nul, KEY_TEXTSIZE);
-      String string = String(keyLabel[b]);
-      key[b].drawButton(false, string);
+    if(row < amt_row-1){
+      for (uint8_t col = 0; col < amt_col; col++) {
+        uint8_t b = col + row * amt_col;
+        key[b].initButton(&tft, 160 + col * (300 + 5),
+                          50 + row * (25 + 5), // x, y, w, h, outline, fill, text
+                          300, 25, TFT_WHITE, keyColor[b], TFT_BLACK,
+                          (char*)nul, KEY_TEXTSIZE);
+        String string = String(keyLabel[b]);
+        key[b].drawButton(false, string);
+        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",160 + col * (300 + 5),300,50 + row * (25 + 5),25);
+        // Serial.println(dd);
+      }
+    }else{
+      for (uint8_t col = 0; col < 2; col++) {
+        uint8_t b = col + row;
+        key[b].initButton(&tft, 80 + col * (145 + 5),
+                          50 + row * (25 + 5), // x, y, w, h, outline, fill, text
+                          145, 25, TFT_WHITE, keyColor[b], TFT_BLACK,
+                          (char*)nul, KEY_TEXTSIZE);
+        String string = String(keyLabel[b]);
+        key[b].drawButton(false, string);
+        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",80 + col * (145 + 5),145,50 + row * (25 + 5),25);
+        // Serial.println(dd);
+      }
     }
   }
 }
