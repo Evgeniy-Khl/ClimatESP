@@ -48,7 +48,7 @@ void checkKeypad(uint8_t amt){
             tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
             displNum = 3; 
             displ_3();
-            window(0);
+            // window(0);
           }
         break;
         case 2: 
@@ -66,16 +66,16 @@ void checkKeypad(uint8_t amt){
             tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
             displNum = 3;
             displ_3();
-            window(0);
+            // window(0);
           }
         break;
         case 3: 
           int8_t v = butCheck(b);
           window(v);
-          switch (displNum){
-            case 1: newDispl = true; displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
-            case 2: newDispl = true; displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
-          }
+          // switch (displNum){
+          //   case 1: newDispl = true; displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
+          //   case 2: newDispl = true; displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
+          // }
         break;
       }
       // status("В<13");
@@ -116,6 +116,7 @@ void window(int8_t val){
   editValue += val;
   newTxt = true;
   // sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   sprintf(displStr,"%5.1f",editValue/dividerValue);
   tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
   // tft.unloadFont(); // выгрузка шрифта из памяти
