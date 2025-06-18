@@ -27,87 +27,109 @@ void checkKeypad(){
       key[b].press(false);  // tell the button it is NOT pressed
     }
   }
-
   // Check if any key has changed state
   for (uint8_t b = 0; b < 15; b++) {
-
-    // if (b < 3) tft.setFreeFont(LABEL1_FONT);
-    // else tft.setFreeFont(LABEL2_FONT);
-
     if (key[b].justReleased()) key[b].drawButton();     // draw normal
-
     if (key[b].isPressed()) {
       key[b].drawButton(true);  // draw invert
-
-        // Возврат к главному экрану
-        if (b == 14) {
-            switch (displNum){
-                case 1: displNum = 0; break;
-                case 2: displNum = 0; break;
-                case 3: displNum = 0; break;    // Ok
-                // default: displNum = 0; break;
-            }
-            newDispl = true;
-            // sprintf(displStr,"В==14: Номер=%d",displNum);
-            // status(displStr);
-            // delay(2000); // UI debouncing
-        }
-
-        if (b == 13) {
-            switch (displNum){
-                case 1: displNum = 2; break;
-                case 2: displNum = 1; break;
-                case 3: displNum = 1; break;
-                // default: displNum = 0; break;
-            }
-            newDispl = true;
-            // sprintf(displStr,"В==13: Номер=%d",displNum);
-            // status(displStr);
-            // delay(2000); // UI debouncing
-        }
-        
-        if(b < 13){
-            switch (displNum){
-                case 1: 
-                        numberIndex = b;
-                        numberDispl = displNum;
-                        newDispl = true;
-                        displNum = 3; 
-                        displ_3();
-                        calculator();
-                break;
-                case 2: 
-                        numberIndex = b;
-                        numberDispl = displNum;
-                        newDispl = true;
-                        displNum = 3;
-                        displ_3();
-                        calculator();
-                break;
-                case 3: 
-                        numberIndex = b;
-                        numberDispl = displNum;
-                        calculator();
-                break;
-                // default: displNum = 0; break;
-            }
-            // status("В<13");
-            // delay(2000); // UI debouncing
-        }
+      switch (displNum){
+        case 1:
+          newDispl = true;
+          if (b == 14) displNum = 0;
+          else if (b == 13) displNum = 2;
+          else {
+            numberDispl = displNum;
+            numberIndex = b;
+            editValue = settings.flat_array[numberIndex]; 
+            displNum = 3; 
+            displ_3();
+            window(0);
+          }
+          Serial.print("case 1: displNum="); Serial.println(displNum);
+        break;
+        case 2: 
+          newDispl = true;
+          if (b == 14) displNum = 0;
+          else if (b == 13) displNum = 1;
+          else {
+            numberDispl = displNum;
+            numberIndex = b;
+            editValue = settings.flat_array[numberIndex];
+            displNum = 3;
+            displ_3();
+            window(0);
+          }
+          Serial.print("case 2: displNum="); Serial.println(displNum);
+        break;
+        case 3: 
+            int8_t v = butCheck(b);
+            window(v);
+          Serial.print("case 3: displNum="); Serial.println(displNum);
+          switch (displNum){
+            case 1: newDispl = true; displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
+            case 2: newDispl = true; displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
+          }
+        break;
+      }
+      // status("В<13");
+      // delay(2000); // UI debouncing
     }
   }
 }
 
-void calculator(){
-  dividerValue = 1;
+int8_t butCheck(uint8_t butt){
+  const char* current_label = labels_for_display_3[butt];
+  long value = 0;
+  // 1. Проверяем на пустую строку
+    if (strlen(current_label) == 0) {
+      Serial.println("Пустая строка.");
+    }
+
+    // 2. Проверяем на известные команды
+    if (strcmp(current_label, "X") == 0) {
+      // Serial.println("Найдена команда 'Отмена' (X).");
+      displNum = numberDispl;
+    }
+    if (strcmp(current_label, "Ok") == 0) {
+      // Serial.println("Найдена команда 'Подтвердить' (Ok).");
+      // Serial.print("numberIndex: "); Serial.println(numberIndex);
+      // Serial.print("editValue: "); Serial.println(editValue);
+      // Serial.print("settings.flat_array[numberIndex]: "); Serial.println(settings.flat_array[numberIndex]);
+      settings.flat_array[numberIndex] = editValue;
+      if(numberIndex == 0 || numberIndex == 16){
+        grafDispl[0].sp = settings.sp_structs[0].spT;
+        grafDispl[1].sp = settings.sp_structs[1].spT;
+      }
+      // Serial.print("new: "); Serial.println(settings.flat_array[numberIndex]);
+      displNum = numberDispl;
+    }
+    // 3. Если это не команда и не пустая строка, пытаемся преобразовать в число
+    char* end; // Указатель на символ, где остановился парсинг
+    value = strtol(current_label, &end, 10); // 10 - десятичная система
+
+    // strtol - умная функция. Если она смогла прочитать хоть что-то,
+    // то указатель 'end' сдвинется с начала строки.
+    // Если 'end' остался в начале, значит, строка не начинается с числа.
+    // if (end != current_label) {
+    //   Serial.print("Преобразовано в число: ");
+    //   Serial.println(value);
+    // } else {
+    //   // Этот блок сработает, если в массиве появится неизвестная нечисловая строка
+    //   Serial.println("Неизвестная строка (не число и не команда).");
+    // }
+    return value;
+}
+
+void window(int8_t val){
+  uint8_t dividerValue = 1;
   if(numberIndex < 5) dividerValue = 10;
-  editValue = settings.flat_array[numberIndex];
+  editValue += val;
   newTxt = true;
   tft.loadFont("Arial28"); // загрузка в память шрифта
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(TC_DATUM);
   tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
-  sprintf(displStr,"%5d  Д=%d",editValue, dividerValue);
+  sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
   tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
   tft.unloadFont(); // выгрузка шрифта из памяти
 }

@@ -11,7 +11,7 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki, uint16_t Kd) {
 uint8_t UpdatePID(PIDController *pid, uint8_t cn){
  int16_t error, derivative;
   // Вычисление ошибки
-  error = set[cn] - ds[cn].pvT;
+  error = settings.sp_structs[cn].spT - ds[cn].pvT;
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
   // Интегральная составляющая

@@ -29,4 +29,5 @@
 void checkKeypad();
 void touch_calibrate();
 void status(const char *msg);
-void calculator();
+int8_t butCheck(uint8_t butt);
+void window(int8_t val);

@@ -57,9 +57,9 @@ typedef struct
 
 extern char displStr[];
 extern bool newDispl;
-extern uint8_t seconds, displNum, pwTriac, dividerValue;
+extern float editValue;
+extern uint8_t seconds, displNum, pwTriac;
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
-extern int16_t editValue;
 
 #endif /* __MAIN_H */

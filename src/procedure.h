@@ -10,7 +10,6 @@ typedef struct {
 
 
 extern PIDController pid[];
-extern uint16_t set[];
 extern uint8_t seconds;
 
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki, uint16_t Kd);

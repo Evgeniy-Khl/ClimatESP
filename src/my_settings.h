@@ -29,12 +29,11 @@ const char* keyLabel[15];
 uint16_t keyColor[15];
 bool newDispl = true, newTxt = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pwTriac, dividerValue;
-int16_t editValue;
+uint8_t displNum=0, seconds=0, pwTriac;
+float editValue;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 //---------------------------------
 Ds ds[2] = {{350,0},{280,0}};
-uint16_t set[2] = {385, 305};
 int8_t dpv1 = 2;
 float flT0=350, dpv0;
 //---------------------------------

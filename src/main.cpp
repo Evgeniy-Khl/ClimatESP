@@ -214,9 +214,9 @@ void loop() {
     dpv0 = (float)pid[0].pPart/500 + (float)(pid[0].output-5)/100;
     flT0+=dpv0;
     ds[0].pvT = flT0;
-    int16_t pverr = set[0] - ds[0].pvT;
+    int16_t pverr = settings.sp_structs[0].spT - ds[0].pvT;
     //----температура среды------
-      pverr = set[1] - ds[1].pvT;
+      pverr = settings.sp_structs[1].spT - ds[1].pvT;
       if(pverr>200) dpv1 = 6;
       else if(pverr>100) dpv1 = 5;
       else if(pverr>50) dpv1 = 3;

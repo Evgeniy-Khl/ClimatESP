@@ -176,24 +176,8 @@ void displ_3(void){
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
   }
-  if(newTxt){
-    // tft.loadFont("Arial28"); // загрузка в память шрифта
-    // // tft.setTextPadding(320);
-    // //tft.setCursor(STATUS_X, STATUS_Y);
-    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    // tft.setTextDatum(TC_DATUM);
-    // tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
-    // sprintf(displStr,"%5d",editValue);
-    // // sprintf(displStr,"%5.1f",(float)editValue/dividerValue);
-    // tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
-
-    //   // Now cover up the rest of the line up by drawing a black rectangle.  No flicker this way
-    //   // but it will not work with italic or oblique fonts due to character overlap.
-    //   // tft.fillRect(DISP_X + 4 + xwidth, DISP_Y + 1, DISP_W - xwidth - 5, DISP_H - 2, TFT_BLACK);
-    // tft.unloadFont(); // выгрузка шрифта из памяти
-    newTxt = false;
-  }
 }
+
 
 void display(void){
   switch (displNum){

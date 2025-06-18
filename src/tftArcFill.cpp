@@ -1,7 +1,6 @@
 #include "main.h"
 #include <tftArcFill.h>
 
-extern uint16_t set[2];
 byte inc = 0;
 unsigned int col = 0;
 
@@ -16,9 +15,9 @@ void initMyTFT(){
   tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
   grafDispl[0].value = ds[0].pvT;
-  grafDispl[0].sp = set[0];
+  grafDispl[0].sp = settings.sp_structs[0].spT;
   grafDispl[1].value = ds[1].pvT;
-  grafDispl[1].sp = set[1];
+  grafDispl[1].sp = settings.sp_structs[1].spT;
   xpos = tft.width()/2; ypos = 10;
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
