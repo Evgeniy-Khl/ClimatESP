@@ -194,10 +194,15 @@ void loop() {
   bool pressed = tft.getTouch(&t_x, &t_y);
   if(pressed && !newDispl){
     switch (displNum){
-    case 0: displNum = 1; newDispl = true; break;
-    case 1: checkKeypad(); break;
-    case 2: checkKeypad(); break;
-    case 3: checkKeypad(); break;
+    case 0: 
+      tft.loadFont("Arial28"); // загрузка в память шрифта
+      tft.setTextDatum(TC_DATUM);
+      displNum = 1; newDispl = true;
+      displ_1();
+      break;
+    case 1: checkKeypad(6); break;
+    case 2: checkKeypad(6); break;
+    case 3: checkKeypad(15); break;
     default: displNum = 0; newDispl = true; break;
     }
     // if(displNum==0) displNum = 1;
@@ -225,7 +230,7 @@ void loop() {
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
   //================================================================
-    display();
+    if(displNum == 0) displ_0();
 
   // if (numberOfDevices) {
   //   // Получаем температуру

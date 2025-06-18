@@ -26,7 +26,9 @@
 #define STATUS_X 120 // Centred on this
 #define STATUS_Y 65
 
-void checkKeypad();
+extern const char* labelsMenu1[];
+
+void checkKeypad(uint8_t amt);
 void touch_calibrate();
 void status(const char *msg);
 int8_t butCheck(uint8_t butt);

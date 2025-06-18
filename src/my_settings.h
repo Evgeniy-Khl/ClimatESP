@@ -49,16 +49,16 @@ GrafDispl grafDispl[2] = {
 SpUnion settings = {
     .sp_structs = { // Явно говорим, что инициализируем поле sp_structs
         { // Элемент sp_structs[0]
-            .spT = 350,
-            .spRH = 0,
-            .alarm = 10,
-            .coolOn = 5,
-            .coolOff = 2,
+            .spT = 350,             // Уставка температуры #1
+            .spRH = 0,              // ПОДСТРОЙКА HIH
+            .alarm = 10,            // дельта 5 = 0.5 гр.C #1
+            .coolOn = 5,            // включение охлаждения #1
+            .coolOff = 2,           // выключение охлаждения #1
             .timer = 60,
             .aeration = 10,
             .state = 0,
             .flapLimit = FLPCLOSE,
-            .service = 10,
+            .service = 10,          // [0]-включение форсированного #1,#2
             .pulse = 100,
             .mode = 0,
             .extendMode = 0,
@@ -67,16 +67,16 @@ SpUnion settings = {
             .Kd = 1
         },
         { // Элемент sp_structs[1] (можно оставить пустым для инициализации нулями)
-            .spT = 300,
-            .spRH = 650,
-            .alarm = 15,
-            .coolOn = 5,
-            .coolOff = 2,
+            .spT = 300,             // Уставка температуры #2
+            .spRH = 650,            // Уставка относительной влажности #2
+            .alarm = 15,            // дельта 5 = 0.5 гр.C #2
+            .coolOn = 5,            // включение охлаждения #2
+            .coolOff = 2,           // выключение охлаждения #2
             .timer = 0,
             .aeration = 0,
             .state = 0,
             .flapLimit = FLPOPEN,
-            .service = 5,
+            .service = 5,           // [1]-выключение форсированного #1,#2
             .pulse = 2000,
             .mode = 0,
             .extendMode = 3000,

@@ -16,11 +16,11 @@ const char* txt2_for_display_3[15] = {
 };
 
 char numberBuffer[NUM_LEN + 1] = "";
-uint8_t numberIndex, numberDispl;
+uint8_t numberIndex, txtIndex, numberDispl;
 
-void checkKeypad(){
+void checkKeypad(uint8_t amt){
     // / Check if any key coordinate boxes contain the touch coordinates
-  for (uint8_t b = 0; b < 15; b++) {
+  for (uint8_t b = 0; b < amt; b++) {
     if (key[b].contains(t_x, t_y)) {
       key[b].press(true);  // tell the button it is pressed
     } else {
@@ -28,43 +28,50 @@ void checkKeypad(){
     }
   }
   // Check if any key has changed state
-  for (uint8_t b = 0; b < 15; b++) {
+  for (uint8_t b = 0; b < amt; b++) {
     if (key[b].justReleased()) key[b].drawButton();     // draw normal
     if (key[b].isPressed()) {
       key[b].drawButton(true);  // draw invert
       switch (displNum){
         case 1:
           newDispl = true;
-          if (b == 14) displNum = 0;
-          else if (b == 13) displNum = 2;
+          if (b == 5){
+            tft.unloadFont(); // выгрузка шрифта из памяти
+            displNum = 0;
+          }
           else {
             numberDispl = displNum;
+            txtIndex = b;
             numberIndex = b;
-            editValue = settings.flat_array[numberIndex]; 
+            editValue = settings.flat_array[numberIndex];
+            tft.setTextColor(TFT_WHITE, TFT_BLACK);
+            tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
             displNum = 3; 
             displ_3();
             window(0);
           }
-          Serial.print("case 1: displNum="); Serial.println(displNum);
         break;
         case 2: 
           newDispl = true;
-          if (b == 14) displNum = 0;
-          else if (b == 13) displNum = 1;
+          if (b == 5){
+            tft.unloadFont(); // выгрузка шрифта из памяти
+            displNum = 0;
+          }
           else {
             numberDispl = displNum;
-            numberIndex = b;
+            txtIndex = b;
+            numberIndex = b+15;
             editValue = settings.flat_array[numberIndex];
+            tft.setTextColor(TFT_WHITE, TFT_BLACK);
+            tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
             displNum = 3;
             displ_3();
             window(0);
           }
-          Serial.print("case 2: displNum="); Serial.println(displNum);
         break;
         case 3: 
-            int8_t v = butCheck(b);
-            window(v);
-          Serial.print("case 3: displNum="); Serial.println(displNum);
+          int8_t v = butCheck(b);
+          window(v);
           switch (displNum){
             case 1: newDispl = true; displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
             case 2: newDispl = true; displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
@@ -81,57 +88,37 @@ int8_t butCheck(uint8_t butt){
   const char* current_label = labels_for_display_3[butt];
   long value = 0;
   // 1. Проверяем на пустую строку
-    if (strlen(current_label) == 0) {
-      Serial.println("Пустая строка.");
-    }
+    // if (strlen(current_label) == 0) {
+    //   Serial.println("Пустая строка.");
+    // }
 
     // 2. Проверяем на известные команды
     if (strcmp(current_label, "X") == 0) {
-      // Serial.println("Найдена команда 'Отмена' (X).");
       displNum = numberDispl;
     }
     if (strcmp(current_label, "Ok") == 0) {
-      // Serial.println("Найдена команда 'Подтвердить' (Ok).");
-      // Serial.print("numberIndex: "); Serial.println(numberIndex);
-      // Serial.print("editValue: "); Serial.println(editValue);
-      // Serial.print("settings.flat_array[numberIndex]: "); Serial.println(settings.flat_array[numberIndex]);
       settings.flat_array[numberIndex] = editValue;
       if(numberIndex == 0 || numberIndex == 16){
         grafDispl[0].sp = settings.sp_structs[0].spT;
         grafDispl[1].sp = settings.sp_structs[1].spT;
       }
-      // Serial.print("new: "); Serial.println(settings.flat_array[numberIndex]);
       displNum = numberDispl;
     }
     // 3. Если это не команда и не пустая строка, пытаемся преобразовать в число
     char* end; // Указатель на символ, где остановился парсинг
     value = strtol(current_label, &end, 10); // 10 - десятичная система
-
-    // strtol - умная функция. Если она смогла прочитать хоть что-то,
-    // то указатель 'end' сдвинется с начала строки.
-    // Если 'end' остался в начале, значит, строка не начинается с числа.
-    // if (end != current_label) {
-    //   Serial.print("Преобразовано в число: ");
-    //   Serial.println(value);
-    // } else {
-    //   // Этот блок сработает, если в массиве появится неизвестная нечисловая строка
-    //   Serial.println("Неизвестная строка (не число и не команда).");
-    // }
     return value;
 }
 
 void window(int8_t val){
   uint8_t dividerValue = 1;
-  if(numberIndex < 5) dividerValue = 10;
+  if(txtIndex < 5) dividerValue = 10;
   editValue += val;
   newTxt = true;
-  tft.loadFont("Arial28"); // загрузка в память шрифта
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextDatum(TC_DATUM);
-  tft.drawString(txt1_for_display_3[numberIndex], DISP_W/2, DISP_Y + 5);
-  sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
+  // sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
+  sprintf(displStr,"%5.1f",editValue/dividerValue);
   tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
-  tft.unloadFont(); // выгрузка шрифта из памяти
+  // tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
 void touch_calibrate()
@@ -199,7 +186,7 @@ void touch_calibrate()
   }
 }
 
-// Print something in the mini status bar
+/* // Print something in the mini status bar
 void status(const char *msg) {
   tft.loadFont("Arial28"); // загрузка в память шрифта
   tft.setTextPadding(320);
@@ -210,4 +197,4 @@ void status(const char *msg) {
 //   tft.setTextSize(1);
   tft.drawString(msg, STATUS_X, STATUS_Y);
   tft.unloadFont(); // выгрузка шрифта из памяти
-}
+} */
