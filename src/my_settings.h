@@ -23,7 +23,7 @@ int fadeAmount = 5;    // На сколько изменять яркость з
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 //---------------------------------
-char displStr[30];
+char displStr[50];
 // Глобальный массив указателей, который будет доступен всем функциям
 const char* keyLabel[15];
 uint16_t keyColor[15];

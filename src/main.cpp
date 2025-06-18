@@ -196,9 +196,10 @@ void loop() {
     switch (displNum){
     case 0: 
       tft.loadFont("Arial28"); // загрузка в память шрифта
-      tft.setTextDatum(TC_DATUM);
+      // Serial.println("main():Arial28");
+      // tft.setTextDatum(TC_DATUM);
       displNum = 1; newDispl = true;
-      displ_1();
+      menu_1();
       break;
     case 1: checkKeypad(6); break;
     case 2: checkKeypad(6); break;
@@ -230,7 +231,7 @@ void loop() {
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
   //================================================================
-    if(displNum == 0) displ_0();
+    if(displNum == 0) mainDispl();
 
   // if (numberOfDevices) {
   //   // Получаем температуру

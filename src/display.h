@@ -39,10 +39,10 @@ extern const char* keyLabel[15];
 extern uint16_t keyColor[15];
 
 void display(void);
-void displ_0(void);
-void displ_1(void);
-void displ_2(void);
-void displ_3(void);
+void mainDispl(void);
+void menu_1(void);
+void menu_2(void);
+void displ_3(const char* txt);
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]);
 void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);

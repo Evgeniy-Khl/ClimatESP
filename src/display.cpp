@@ -55,7 +55,7 @@ uint16_t color_for_display_3[15] = {
 
 };
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
-void displ_0(void){
+void mainDispl(void){
   uint16_t h;
   if(newDispl){
     tft.fillScreen(TFT_BLACK);
@@ -104,23 +104,25 @@ void displ_0(void){
   tft.unloadFont(); // выгрузка шрифта из памяти
 }
 
-void displ_1(){
-  if(newDispl){
+void menu_1(){
+  // if(newDispl){
     for (int i = 0; i < MENU_1; i++) {
       keyLabel[i] = labelsMenu1[i];
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    // tft.loadFont("Arial28"); // загрузка в память шрифта
-    // tft.setTextDatum(TC_DATUM);
+    tft.loadFont("Arial28"); // загрузка в память шрифта
+    Serial.println("menu_1():Arial28");
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.setTextDatum(TC_DATUM);
     tft.drawString("канал 1", 160, 5);
     drawKeypad_longName(keyLabel, keyColor, MENU_1, 1);
-    // tft.unloadFont(); // выгрузка шрифта из памяти
-
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    Serial.println("menu_1():unloadFont");
     newDispl = false;
-  }
+  // }
 }
-/* void displ_1(void){
+/* void menu_1(void){
   // Create 15 keys for the keypad
   if(newDispl){
     for (int i = 0; i < 15; i++) {
@@ -156,23 +158,25 @@ void displ_1(){
     newDispl = false;
   }
 } */
-void displ_2(){
-  if(newDispl){
+void menu_2(){
+  // if(newDispl){
     for (int i = 0; i < MENU_1; i++) {
       keyLabel[i] = labelsMenu1[i];
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    // tft.loadFont("Arial28"); // загрузка в память шрифта
-    // tft.setTextDatum(TC_DATUM);
+    tft.loadFont("Arial28"); // загрузка в память шрифта
+    Serial.println("menu_2():Arial28");
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.setTextDatum(TC_DATUM);
     tft.drawString("канал 2", 160, 5);
     drawKeypad_longName(keyLabel, keyColor, MENU_1, 1);
-    // tft.unloadFont(); // выгрузка шрифта из памяти
-
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    Serial.println("menu_2():unloadFont");
     newDispl = false;
-  }
+  // }
 }
-/* void displ_2(void){
+/* void menu_2(void){
   // Create 15 keys for the keypad
   if(newDispl){
     for (int i = 0; i < 15; i++) {
@@ -207,9 +211,9 @@ void displ_2(){
   }
 } */
 
-void displ_3(void){
+void displ_3(const char* txt){
   // Create 15 keys for the keypad
-  if(newDispl){
+  // if(newDispl){
     for (int i = 0; i < 15; i++) {
       keyLabel[i] = labels_for_display_3[i];
       keyColor[i] = color_for_display_3[i];
@@ -219,24 +223,32 @@ void displ_3(void){
     // Draw number display area and frame
     tft.fillRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_BLACK);
     tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
+
+    tft.loadFont("Arial28"); // загрузка в память шрифта
+    Serial.println("displ_3():Arial28");
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.setTextDatum(TC_DATUM);
+    tft.drawString(txt, DISP_W/2, DISP_Y + 5);
+    tft.unloadFont();
+    Serial.println("displ_3():unloadFont");
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
-  }
+  // }
 }
 
 
 /* void display(void){
   switch (displNum){
-  	case 0: displ_0(); break;//- СТАН КАМЕРИ --
-  	case 1: displ_1(); break;//- НАЛАШТУВАННЯ  1-12 -
-    case 2: displ_2(); break;//- НАЛАШТУВАННЯ 13-20 -
+  	case 0: mainDispl(); break;//- СТАН КАМЕРИ --
+  	case 1: menu_1(); break;//- НАЛАШТУВАННЯ  1-12 -
+    case 2: menu_2(); break;//- НАЛАШТУВАННЯ 13-20 -
     // case 3: displ_3(); break;//- КАЛЬКУЛЯТОР -
     // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
     // case 5: displ_5(); break;//- ІНШЕ -
     // case 6: displ_6(); break;//- ЗМІНА ІНШЕ -
     // case 7: displ_7(); break;//- вибір ШВИДКІСТІ обертання -
     // case 8: displ_8(); break;//- ЗМІНА ЗНАЧЕННЯ ШВИДКІСТІ обертання -
-  	// default: displ_0();	break;//- СТАН КАМЕРИ -
+  	// default: mainDispl();	break;//- СТАН КАМЕРИ -
   }
 } */
 

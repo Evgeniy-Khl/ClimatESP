@@ -31,5 +31,5 @@ extern const char* labelsMenu1[];
 void checkKeypad(uint8_t amt);
 void touch_calibrate();
 void status(const char *msg);
-int8_t butCheck(uint8_t butt);
-void window(int8_t val);
+int8_t butCalculator(uint8_t butt);
+void drawValue(int8_t val);
