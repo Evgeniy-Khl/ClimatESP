@@ -4,17 +4,6 @@
 
 TFT_eSPI_Button key[15];
 
-/* const char* txt1_for_display_3[15] = {
-"1-завдання нагрівача", "2-завдання зволожув.", "3-авар. відхилення Т1", "4-авар. відхилення Т2", "5-охолодж. увімкнено",
-"6-охолодж. вимкнено", "7-лотки вгору", "8-лотки униз", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
-"12-програма інкубації", "", "", ""
-};
-const char* txt2_for_display_3[15] = {
-"13-заслінка закрита", "14-заслінка відкрита", "15-мінім. імпульс","16-максим. імпульс",
-"17-період імпульсів", "18-аварійний режим", "19-режим роботи реле", "20-пропорц. коефіціент",
-"21-ітеграл. коефіціент", "22-дифер. коефіціент", "", "", "", "", ""
-}; */
-
 // Набор подписей
 const char* labelsMenu1[MENU_1] = {
   "завдання у грд.Цесія", 
@@ -33,11 +22,11 @@ uint16_t colorsMenu1[MENU_1] = {
 
 // Набор подписей
 const char* labelsMenu2[MENU_2] = {
-  "лотки", "лотки", 
-  "провітр.", "провітр.",
-  "заслінка", "програма",
-  "заслінка", "заслінка", 
-  "імпульс", "імпульс",
+  "лотки увім.", "лотки вимкн.", 
+  "провітр.увім.", "провітр. вимкн.",
+  "заслінка полож.", "програма викон.",
+  "заслінка закр.", "заслінка відкр.", 
+  "імпульс мин.", "імпульс макс.",
   "повернуться", "далі >"
 };
 
@@ -47,27 +36,31 @@ uint16_t colorsMenu2[MENU_2] = {
   TFT_YELLOW, TFT_GREEN
 };
 
-// Набор подписей display_2
-const char* labels_for_display_2[15] = {
-  "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "", "", "", "<", "0"
+// Набор подписей 
+const char* labelsMenu3[MENU_3] = {
+  "період імпульс.", "аварійн. режим", 
+  "режим реле", "затрим. зволож.",
+  "пропорц. 1", "пропорц. 2",
+  "ітеграл. 1", "ітеграл. 2", 
+  "диферен. 1", "диферен. 2",
+  "повернуться", "далі >"
 };
-uint16_t color_for_display_2[15] = {
-  TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN, TFT_DARKGREEN,
-                          TFT_RED, TFT_RED, TFT_BLUE, TFT_BLUE, 
-                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
-                          TFT_BLACK, TFT_YELLOW, TFT_WHITE
 
+uint16_t colorsMenu3[MENU_3] = {
+  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE,
+  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE,
+  TFT_YELLOW, TFT_GREEN
 };
 
 // Набор подписей display_3
-const char* labels_for_display_3[15] = {
+const char* labelsCalculator[15] = {
   "+1","+5","+10","+50","+100","-1","-5","-10","-50","-100","","","","X","Ok"
 };
 uint16_t color_for_display_3[15] = {
-                          TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN,
-                          TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN, 
-                          TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
-                          TFT_BLACK, TFT_RED, TFT_GREEN
+  TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN,
+  TFT_CYAN, TFT_CYAN, TFT_CYAN, TFT_CYAN, 
+  TFT_CYAN, TFT_CYAN, TFT_BLACK, TFT_BLACK,
+  TFT_BLACK, TFT_RED, TFT_GREEN
 
 };
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
@@ -177,11 +170,30 @@ void menu_3(){
   // }
 }
 
+void menu_4(){
+  // if(newDispl){
+    for (int i = 0; i < MENU_3; i++) {
+      keyLabel[i] = labelsMenu3[i];
+      keyColor[i] = colorsMenu3[i];
+    }
+    tft.fillScreen(TFT_BLACK);
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    Serial.println("menu_4():Arial20");
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.setTextDatum(TC_DATUM);
+    tft.drawString("Технічні параметри", 160, 5);
+    drawKeypad_longName_12(keyLabel, keyColor, MENU_3/2, 2);
+    tft.unloadFont(); // выгрузка шрифта из памяти
+    Serial.println("menu_4():unloadFont");
+    newDispl = false;
+  // }
+}
+
 void calcDisplay(const char* txt){
   // Create 15 keys for the keypad
   // if(newDispl){
     for (int i = 0; i < 15; i++) {
-      keyLabel[i] = labels_for_display_3[i];
+      keyLabel[i] = labelsCalculator[i];
       keyColor[i] = color_for_display_3[i];
     }  
     // Draw keypad background

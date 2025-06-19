@@ -204,6 +204,7 @@ void loop() {
     case 1: checkKeypad(MENU_1); break;
     case 2: checkKeypad(MENU_1); break;
     case 3: checkKeypad(MENU_2); break;
+    case 4: checkKeypad(MENU_3); break;
 
     case 10: checkKeypad(15); break;
     }

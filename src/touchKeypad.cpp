@@ -4,16 +4,6 @@
 #include "tftArcFill.h"
 #include "touchKeypad.h"
 
-const char* txt1_for_display_3[15] = {
-"7-лотки вгору", "8-лотки униз", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
-"12-програма інкубації", "", "", ""
-};
-const char* txt2_for_display_3[15] = {
-"13-заслінка закрита", "14-заслінка відкрита", "15-мінім. імпульс","16-максим. імпульс",
-"17-період імпульсів", "18-аварійний режим", "19-режим роботи реле", "20-пропорц. коефіціент",
-"21-ітеграл. коефіціент", "22-дифер. коефіціент", "", "", "", "", ""
-};
-
 char numberBuffer[NUM_LEN + 1] = "";
 uint8_t numberIndex, txtIndex, earlyDispl;
 
@@ -105,8 +95,9 @@ void checkKeypad(uint8_t amt){
             newDispl = true;
             if (b == MENU_2-1){
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_2-1: case 3: displNum = 0 unloadFont()");
-              displNum = 0; newDispl = true;
+              Serial.println("checkKeypad(): b == MENU_2-1: case 3: displNum = 4 unloadFont()");
+              displNum = 4;
+              menu_4();
             }
             else if (b == MENU_2-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
@@ -128,6 +119,33 @@ void checkKeypad(uint8_t amt){
               drawValue(0, false);
             }
           break;
+          case 4: 
+            newDispl = true;
+            if (b == MENU_3-1){
+              tft.unloadFont(); // выгрузка шрифта из памяти
+              Serial.println("checkKeypad(): b == MENU_3-1: case 4: displNum = 0 unloadFont()");
+              displNum = 0; newDispl = true;
+            }
+            else if (b == MENU_3-2) {
+              tft.unloadFont(); // выгрузка шрифта из памяти
+              Serial.println("checkKeypad(): b == MENU_3-2: case 4: displNum = 3 unloadFont()");
+              displNum = 3;
+              menu_3();
+            }else {
+              earlyDispl = displNum;
+              txtIndex = b;
+              numberIndex = b/2+11;
+              if(b%2) numberIndex += 16;
+              editValue = settings.flat_array[numberIndex];
+              tft.setTextColor(TFT_WHITE, TFT_BLACK);
+              txt = labelsMenu3[txtIndex];
+              // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
+              Serial.print("checkKeypad(): b < MENU_3-2: case 4: displNum = 10"); Serial.println(txt);
+              displNum = 10;
+              calcDisplay(txt);
+              drawValue(0, false);
+            }
+          break;
         }
         
         // status("В<13");
@@ -138,7 +156,7 @@ void checkKeypad(uint8_t amt){
 }
 
 int8_t butCalculator(uint8_t butt){
-  const char* current_label = labels_for_display_3[butt];
+  const char* current_label = labelsCalculator[butt];
   long value = 0;
   // 1. Проверяем на пустую строку
     if (strlen(current_label) == 0) {
@@ -153,6 +171,7 @@ int8_t butCalculator(uint8_t butt){
         case 1: menu_1();  break;
         case 2: menu_2();  break;
         case 3: menu_3();  break;
+        case 4: menu_4();  break;
       }
       Serial.println("Найдена команда 'Отмена' (X).");
     }
@@ -168,6 +187,7 @@ int8_t butCalculator(uint8_t butt){
         case 1: menu_1();  break;
         case 2: menu_2();  break;
         case 3: menu_3();  break;
+        case 4: menu_4();  break;
       }
       Serial.println("Найдена команда 'Подтвердить' (Ok).");
     }

@@ -6,6 +6,7 @@
 
 #define MENU_1 7
 #define MENU_2 12
+#define MENU_3 12
 
 // Keypad start position, key sizes and spacing
 #define KEY_X 40 // Centre of key
@@ -28,9 +29,10 @@
 #define LABEL1_FONT &FreeSansOblique12pt7b // Key label font 1
 #define LABEL2_FONT &FreeSansBold12pt7b    // Key label font 2
 
-extern const char* txt1_for_display_3[];
-extern const char* txt2_for_display_3[];
-extern const char* labels_for_display_3[];
+extern const char* labelsMenu1[];
+extern const char* labelsMenu2[];
+extern const char* labelsMenu3[];
+extern const char* labelsCalculator[];
 extern char numberBuffer[];
 extern uint8_t numberIndex, earlyDispl;
 extern bool newTxt;
@@ -39,11 +41,11 @@ extern TFT_eSPI_Button key[];
 extern const char* keyLabel[15];
 extern uint16_t keyColor[15];
 
-void display(void);
 void mainDispl(void);
 void menu_1(void);
 void menu_2(void);
 void menu_3(void);
+void menu_4(void);
 void calcDisplay(const char* txt);
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]);
 void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
