@@ -203,7 +203,9 @@ void loop() {
       break;
     case 1: checkKeypad(MENU_1); break;
     case 2: checkKeypad(MENU_1); break;
-    case 3: checkKeypad(15); break;
+    case 3: checkKeypad(MENU_2); break;
+
+    case 10: checkKeypad(15); break;
     }
     // if(displNum==0) displNum = 1;
     // newDispl = true;

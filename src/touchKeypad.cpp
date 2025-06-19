@@ -34,7 +34,7 @@ void checkKeypad(uint8_t amt){
         key[b].drawButton(true);  // draw invert      
         int8_t v = butCalculator(b);
           Serial.print("checkKeypad/amt==15: v="); Serial.println(v);
-          drawValue(v);
+          drawValue(v, true);
           // switch (displNum){
           //   case 1: newDispl = true; menu_1(); break;//- НАЛАШТУВАННЯ  1-12 -
           //   case 2: newDispl = true; menu_2(); break;//- НАЛАШТУВАННЯ 13-20 -
@@ -52,14 +52,14 @@ void checkKeypad(uint8_t amt){
             newDispl = true;
             if (b == MENU_1-1){
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_1-1: case 1:unloadFont");
+              Serial.println("checkKeypad(): b == MENU_1-1: case 1: displNum = 2 unloadFont()");
               displNum = 2;
               menu_2();
             }
             else if (b == MENU_1-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_1-2: case 1:unloadFont");
-              displNum = 0;
+              Serial.println("checkKeypad(): b == MENU_1-2: case 1: displNum = 0 unloadFont()");
+              displNum = 0; newDispl = true;
             }else {
               earlyDispl = displNum;
               txtIndex = b;
@@ -68,24 +68,25 @@ void checkKeypad(uint8_t amt){
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu1[txtIndex];
               // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
-              displNum = 3;
-              Serial.print("checkKeypad(): b < MENU_1-2: case 1:"); Serial.println(txt);
+              Serial.print("checkKeypad(): b < MENU_1-2: case 1: displNum = 10 txt:"); Serial.println(txt);
+              displNum = 10;
               calcDisplay(txt);
-              drawValue(0);
+              drawValue(0, true);
             }
           break;
           case 2: 
             newDispl = true;
             if (b == MENU_1-1){
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_1-1: case 2:unloadFont");
+              Serial.println("checkKeypad(): b == MENU_1-1: case 2: displNum = 3 unloadFont()");
               displNum = 3;
               menu_3();
             }
             else if (b == MENU_1-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_1-2: case 2:unloadFont");
-              displNum = 0; newDispl = true;
+              Serial.println("checkKeypad(): b == MENU_1-2: case 2: displNum = 2 unloadFont()");
+              displNum = 2;
+              menu_2();
             }else {
               earlyDispl = displNum;
               txtIndex = b;
@@ -94,36 +95,37 @@ void checkKeypad(uint8_t amt){
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu1[txtIndex];
               // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
-              Serial.print("checkKeypad(): b < MENU_1-2: case 2:"); Serial.println(txt);
-              displNum = 3;
+              Serial.print("checkKeypad(): b < MENU_1-2: case 2: displNum = 10"); Serial.println(txt);
+              displNum = 10;
               calcDisplay(txt);
-              drawValue(0);
+              drawValue(0, true);
             }
           break;
           case 3: 
             newDispl = true;
             if (b == MENU_2-1){
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_2-1: case 3:unloadFont");
+              Serial.println("checkKeypad(): b == MENU_2-1: case 3: displNum = 0 unloadFont()");
               displNum = 0; newDispl = true;
             }
             else if (b == MENU_2-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_2-2: case 3:unloadFont");
-              displNum = 0; newDispl = true;
+              Serial.println("checkKeypad(): b == MENU_2-2: case 3: displNum = 2 unloadFont()");
+              displNum = 2;
+              menu_2();
             }else {
               earlyDispl = displNum;
               txtIndex = b;
-              numberIndex = b+5;
+              numberIndex = b/2+5;
               if(b%2) numberIndex += 16;
               editValue = settings.flat_array[numberIndex];
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
-              txt = labelsMenu1[txtIndex];
+              txt = labelsMenu2[txtIndex];
               // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
-              Serial.print("checkKeypad(): b < MENU_2-2: case 3:"); Serial.println(txt);
-              displNum = 3;
+              Serial.print("checkKeypad(): b < MENU_2-2: case 3: displNum = 10"); Serial.println(txt);
+              displNum = 10;
               calcDisplay(txt);
-              drawValue(0);
+              drawValue(0, false);
             }
           break;
         }
@@ -150,6 +152,7 @@ int8_t butCalculator(uint8_t butt){
         case 0: newDispl = true; break;
         case 1: menu_1();  break;
         case 2: menu_2();  break;
+        case 3: menu_3();  break;
       }
       Serial.println("Найдена команда 'Отмена' (X).");
     }
@@ -164,6 +167,7 @@ int8_t butCalculator(uint8_t butt){
         case 0: newDispl = true; break;
         case 1: menu_1();  break;
         case 2: menu_2();  break;
+        case 3: menu_3();  break;
       }
       Serial.println("Найдена команда 'Подтвердить' (Ok).");
     }
@@ -177,10 +181,10 @@ int8_t butCalculator(uint8_t butt){
     return value;
 }
 
-void drawValue(int8_t val){
+void drawValue(int8_t val, bool divide){
   uint8_t dividerValue = 1;
-  if(displNum == 3){
-    if(txtIndex < 5) dividerValue = 10;
+  if(displNum == 10){
+    if(divide) dividerValue = 10;
     editValue += val;
     newTxt = true;
     // sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
@@ -189,6 +193,8 @@ void drawValue(int8_t val){
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     sprintf(displStr,"%5.1f",editValue/dividerValue);
     tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
+    sprintf(displStr,"індекс=%2d",numberIndex);
+    tft.drawString(displStr, DISP_W/2, DISP_Y + 10 + 56);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("drawValue():unloadFont");
   }

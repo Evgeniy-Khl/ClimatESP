@@ -169,7 +169,7 @@ void menu_3(){
     Serial.println("menu_3():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
-    tft.drawString("Загальні параметрі 1", 160, 5);
+    tft.drawString("Загальні параметри", 160, 5);
     drawKeypad_longName_12(keyLabel, keyColor, MENU_2/2, 2);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("menu_3():unloadFont");
@@ -201,22 +201,6 @@ void calcDisplay(const char* txt){
     newDispl = false;
   // }
 }
-
-
-/* void display(void){
-  switch (displNum){
-  	case 0: mainDispl(); break;//- СТАН КАМЕРИ --
-  	case 1: menu_1(); break;//- НАЛАШТУВАННЯ  1-12 -
-    case 2: menu_2(); break;//- НАЛАШТУВАННЯ 13-20 -
-    // case 3: calcDisplay(); break;//- КАЛЬКУЛЯТОР -
-    // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
-    // case 5: displ_5(); break;//- ІНШЕ -
-    // case 6: displ_6(); break;//- ЗМІНА ІНШЕ -
-    // case 7: displ_7(); break;//- вибір ШВИДКІСТІ обертання -
-    // case 8: displ_8(); break;//- ЗМІНА ЗНАЧЕННЯ ШВИДКІСТІ обертання -
-  	// default: mainDispl();	break;//- СТАН КАМЕРИ -
-  }
-} */
 
 void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
   const char* nul = "";

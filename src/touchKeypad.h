@@ -34,4 +34,4 @@ void checkKeypad(uint8_t amt);
 void touch_calibrate();
 void status(const char *msg);
 int8_t butCalculator(uint8_t butt);
-void drawValue(int8_t val);
+void drawValue(int8_t val, bool divide);
