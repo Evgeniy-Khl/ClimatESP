@@ -40,10 +40,10 @@ void printConfig() {
         Serial.printf("Элемент settings.sp_structs[%d]:\n", i);
         Serial.printf("  spT: %d\n", settings.sp_structs[i].spT);
         Serial.printf("  spRH: %d\n", settings.sp_structs[i].spRH);
-        Serial.printf("  timer: %d\n", settings.sp_structs[i].timer);
         Serial.printf("  alarm: %d\n", settings.sp_structs[i].alarm);
         Serial.printf("  coolOn: %d\n", settings.sp_structs[i].coolOn);
         Serial.printf("  coolOff: %d\n", settings.sp_structs[i].coolOff);
+        Serial.printf("  timer: %d\n", settings.sp_structs[i].timer);
         Serial.printf("  aeration: %d\n", settings.sp_structs[i].aeration);
         Serial.printf("  flapLimit: %d\n", settings.sp_structs[i].flapLimit);
         Serial.printf("  state: %d\n", settings.sp_structs[i].state);
@@ -73,10 +73,10 @@ void saveConfig() {
         JsonObject obj = jsonArray.createNestedObject();
         obj["spT"] = settings.sp_structs[i].spT;
         obj["spRH"] = settings.sp_structs[i].spRH;
-        obj["timer"] = settings.sp_structs[i].timer;
         obj["alarm"] = settings.sp_structs[i].alarm;
         obj["coolOn"] = settings.sp_structs[i].coolOn;
         obj["coolOff"] = settings.sp_structs[i].coolOff;
+        obj["timer"] = settings.sp_structs[i].timer;
         obj["aeration"] = settings.sp_structs[i].aeration;
         obj["flapLimit"] = settings.sp_structs[i].flapLimit;
         obj["state"] = settings.sp_structs[i].state;
@@ -141,10 +141,10 @@ bool loadConfig() {
         if (i < 2) {
             settings.sp_structs[i].spT = obj["spT"];
             settings.sp_structs[i].spRH = obj["spRH"];
-            settings.sp_structs[i].timer = obj["timer"];
             settings.sp_structs[i].alarm = obj["alarm"];
             settings.sp_structs[i].coolOn = obj["coolOn"];
             settings.sp_structs[i].coolOff = obj["coolOff"];
+            settings.sp_structs[i].timer = obj["timer"];
             settings.sp_structs[i].aeration = obj["aeration"];
             settings.sp_structs[i].flapLimit = obj["flapLimit"];
             settings.sp_structs[i].state = obj["state"];

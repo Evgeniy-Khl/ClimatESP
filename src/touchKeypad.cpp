@@ -202,16 +202,17 @@ int8_t butCalculator(uint8_t butt){
 }
 
 void drawValue(int8_t val, bool divide){
-  uint8_t dividerValue = 1;
+  // uint8_t dividerValue = 1;
   if(displNum == 10){
-    if(divide) dividerValue = 10;
+    // if(divide) dividerValue = 10;
     editValue += val;
     newTxt = true;
     // sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
     tft.loadFont("Arial28"); // загрузка в память шрифта
     Serial.println("drawValue():Arial28");
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    sprintf(displStr,"%5.1f",editValue/dividerValue);
+    if(divide) sprintf(displStr,"%5.1f",editValue/10);
+    else sprintf(displStr,"%5.0f",editValue);
     tft.drawString(displStr, DISP_W/2, DISP_Y + 5 + 28);
     sprintf(displStr,"індекс=%2d",numberIndex);
     tft.drawString(displStr, DISP_W/2, DISP_Y + 10 + 56);
