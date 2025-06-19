@@ -5,8 +5,7 @@
 #include "touchKeypad.h"
 
 const char* txt1_for_display_3[15] = {
-"1-завдання нагрівача", "2-завдання зволожув.", "3-авар. відхилення Т1", "4-авар. відхилення Т2", "5-охолодж. увімкнено",
-"6-охолодж. вимкнено", "7-лотки вгору", "8-лотки униз", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
+"7-лотки вгору", "8-лотки униз", "9-провітр. увімкнено", "10-провітр. вимкнено", "11-положення заслінки",
 "12-програма інкубації", "", "", ""
 };
 const char* txt2_for_display_3[15] = {
@@ -70,8 +69,8 @@ void checkKeypad(uint8_t amt){
               txt = labelsMenu1[txtIndex];
               // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
               displNum = 3;
-              Serial.print("checkKeypad(): b < MENU_1-2: case1:"); Serial.println(txt);
-              displ_3(txt);
+              Serial.print("checkKeypad(): b < MENU_1-2: case 1:"); Serial.println(txt);
+              calcDisplay(txt);
               drawValue(0);
             }
           break;
@@ -80,7 +79,8 @@ void checkKeypad(uint8_t amt){
             if (b == MENU_1-1){
               tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_1-1: case 2:unloadFont");
-              displNum = 0; newDispl = true;
+              displNum = 3;
+              menu_3();
             }
             else if (b == MENU_1-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
@@ -94,9 +94,35 @@ void checkKeypad(uint8_t amt){
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu1[txtIndex];
               // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
-              Serial.print("checkKeypad(): b < MENU_1-2: case2:"); Serial.println(txt);
+              Serial.print("checkKeypad(): b < MENU_1-2: case 2:"); Serial.println(txt);
               displNum = 3;
-              displ_3(txt);
+              calcDisplay(txt);
+              drawValue(0);
+            }
+          break;
+          case 3: 
+            newDispl = true;
+            if (b == MENU_2-1){
+              tft.unloadFont(); // выгрузка шрифта из памяти
+              Serial.println("checkKeypad(): b == MENU_2-1: case 3:unloadFont");
+              displNum = 0; newDispl = true;
+            }
+            else if (b == MENU_2-2) {
+              tft.unloadFont(); // выгрузка шрифта из памяти
+              Serial.println("checkKeypad(): b == MENU_2-2: case 3:unloadFont");
+              displNum = 0; newDispl = true;
+            }else {
+              earlyDispl = displNum;
+              txtIndex = b;
+              numberIndex = b+5;
+              if(b%2) numberIndex += 16;
+              editValue = settings.flat_array[numberIndex];
+              tft.setTextColor(TFT_WHITE, TFT_BLACK);
+              txt = labelsMenu1[txtIndex];
+              // tft.drawString(labelsMenu1[txtIndex], DISP_W/2, DISP_Y + 5);
+              Serial.print("checkKeypad(): b < MENU_2-2: case 3:"); Serial.println(txt);
+              displNum = 3;
+              calcDisplay(txt);
               drawValue(0);
             }
           break;

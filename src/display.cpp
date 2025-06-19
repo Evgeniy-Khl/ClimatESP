@@ -15,13 +15,13 @@ const char* txt2_for_display_3[15] = {
 "21-ітеграл. коефіціент", "22-дифер. коефіціент", "", "", "", "", ""
 }; */
 
-// Набор подписей display_1
+// Набор подписей
 const char* labelsMenu1[MENU_1] = {
   "завдання у грд.Цесія", 
   "завдання у відсотках", 
   "аварійне відхилення", 
-  "охолодж. увімкнути", 
-  "охолодж. вимкнути",
+  "знижувач увімкнути", 
+  "знижувач вимкнути",
   "повернуться", "далі >"
 };
 // const char* labelsMenu1[15] = {
@@ -29,6 +29,22 @@ const char* labelsMenu1[MENU_1] = {
 // };
 uint16_t colorsMenu1[MENU_1] = {
   TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_YELLOW, TFT_GREEN
+};
+
+// Набор подписей
+const char* labelsMenu2[MENU_2] = {
+  "лотки", "лотки", 
+  "провітр.", "провітр.",
+  "заслінка", "програма",
+  "заслінка", "заслінка", 
+  "імпульс", "імпульс",
+  "повернуться", "далі >"
+};
+
+uint16_t colorsMenu2[MENU_2] = {
+  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE,
+  TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE, TFT_WHITE,
+  TFT_YELLOW, TFT_GREEN
 };
 
 // Набор подписей display_2
@@ -116,48 +132,13 @@ void menu_1(){
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Сухий датчик канал 1", 160, 5);
-    drawKeypad_longName(keyLabel, keyColor, MENU_1-1, 1);
+    drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("menu_1():unloadFont");
     newDispl = false;
   // }
 }
-/* void menu_1(void){
-  // Create 15 keys for the keypad
-  if(newDispl){
-    for (int i = 0; i < 15; i++) {
-      keyLabel[i] = labelsMenu1[i];
-      keyColor[i] = colorsMenu1[i];
-    }
-    tft.fillScreen(TFT_BLACK);
-    xpos = 5; ypos = 0;
-    tft.loadFont("Calibri14"); // загрузка в память шрифта
-    uint16_t h = tft.fontHeight();
-    tft.setTextDatum(TL_DATUM);
-    tft.setCursor(xpos, ypos);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString(txt1_for_display_3[0], xpos, ypos); tft.drawString(txt1_for_display_3[1], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt1_for_display_3[2], xpos, ypos); tft.drawString(txt1_for_display_3[3], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt1_for_display_3[4], xpos, ypos); tft.drawString(txt1_for_display_3[5], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt1_for_display_3[6], xpos, ypos); tft.drawString(txt1_for_display_3[7], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt1_for_display_3[8], xpos, ypos); tft.drawString(txt1_for_display_3[9], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt1_for_display_3[10], xpos, ypos); tft.drawString(txt1_for_display_3[11], xpos+170, ypos);
-    ypos += h;
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK, true);
-    tft.drawString("#30-ТЕХНІЧНІ ПАРАМЕТРИ ДЛЯ ФАХІВЦІВ!", xpos, ypos);
-    ypos += h;
-    tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
-    tft.drawString("#99-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
-    tft.unloadFont(); // выгрузка шрифта из памяти
-    drawKeypad(keyLabel, keyColor);
-    newDispl = false;
-  }
-} */
+
 void menu_2(){
   // if(newDispl){
     for (int i = 0; i < MENU_1; i++) {
@@ -170,48 +151,33 @@ void menu_2(){
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Вологий датчик канал 2", 160, 5);
-    drawKeypad_longName(keyLabel, keyColor, MENU_1-1, 1);
+    drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
     tft.unloadFont(); // выгрузка шрифта из памяти
     Serial.println("menu_2():unloadFont");
     newDispl = false;
   // }
 }
-/* void menu_2(void){
-  // Create 15 keys for the keypad
-  if(newDispl){
-    for (int i = 0; i < 15; i++) {
-      keyLabel[i] = labels_for_display_2[i];
-      keyColor[i] = color_for_display_2[i];
+
+void menu_3(){
+  // if(newDispl){
+    for (int i = 0; i < MENU_2; i++) {
+      keyLabel[i] = labelsMenu2[i];
+      keyColor[i] = colorsMenu2[i];
     }
     tft.fillScreen(TFT_BLACK);
-    xpos = 5; ypos = 0;
-    tft.loadFont("Calibri14"); // загрузка в память шрифта
-    uint16_t h = tft.fontHeight();
-    tft.setTextDatum(TL_DATUM);
-    tft.setCursor(xpos, ypos);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
-    tft.drawString(txt2_for_display_3[0], xpos, ypos); tft.drawString(txt2_for_display_3[1], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt2_for_display_3[2], xpos, ypos); tft.drawString(txt2_for_display_3[3], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt2_for_display_3[4], xpos, ypos); tft.drawString(txt2_for_display_3[5], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt2_for_display_3[6], xpos, ypos); tft.drawString(txt2_for_display_3[7], xpos+170, ypos);
-    ypos += h;
-    tft.drawString(txt2_for_display_3[8], xpos, ypos); tft.drawString(txt2_for_display_3[9], xpos+170, ypos);
-    ypos += h;
-    tft.setTextColor(TFT_BLACK, TFT_YELLOW, true);
-    tft.drawString("#90-ПОВЕРНЕННЯ ДО ПОПЕРЕДНЬОГО ЕКРАНУ!", xpos, ypos);
-    ypos += h+1;
-    tft.setTextColor(TFT_BLACK, TFT_WHITE, true);
-    tft.drawString("#99-ПОВЕРНЕННЯ ДО ГОЛОВНОГО ЕКРАНУ!", xpos, ypos);
+    tft.loadFont("Arial20"); // загрузка в память шрифта
+    Serial.println("menu_3():Arial20");
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.setTextDatum(TC_DATUM);
+    tft.drawString("Загальні параметрі 1", 160, 5);
+    drawKeypad_longName_12(keyLabel, keyColor, MENU_2/2, 2);
     tft.unloadFont(); // выгрузка шрифта из памяти
-    drawKeypad(keyLabel, keyColor);
+    Serial.println("menu_3():unloadFont");
     newDispl = false;
-  }
-} */
+  // }
+}
 
-void displ_3(const char* txt){
+void calcDisplay(const char* txt){
   // Create 15 keys for the keypad
   // if(newDispl){
     for (int i = 0; i < 15; i++) {
@@ -225,12 +191,12 @@ void displ_3(const char* txt){
     tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
 
     tft.loadFont("Arial28"); // загрузка в память шрифта
-    Serial.println("displ_3():Arial28");
+    Serial.println("calcDisplay():Arial28");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString(txt, DISP_W/2, DISP_Y + 5);
     tft.unloadFont();
-    Serial.println("displ_3():unloadFont");
+    Serial.println("calcDisplay():unloadFont");
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
   // }
@@ -242,7 +208,7 @@ void displ_3(const char* txt){
   	case 0: mainDispl(); break;//- СТАН КАМЕРИ --
   	case 1: menu_1(); break;//- НАЛАШТУВАННЯ  1-12 -
     case 2: menu_2(); break;//- НАЛАШТУВАННЯ 13-20 -
-    // case 3: displ_3(); break;//- КАЛЬКУЛЯТОР -
+    // case 3: calcDisplay(); break;//- КАЛЬКУЛЯТОР -
     // case 4: displ_4(); break;//- ЗМІНА РЕЖИМУ -
     // case 5: displ_5(); break;//- ІНШЕ -
     // case 6: displ_6(); break;//- ЗМІНА ІНШЕ -
@@ -252,16 +218,17 @@ void displ_3(const char* txt){
   }
 } */
 
-void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
+void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
   const char* nul = "";
-  char dd[50];
+  uint16_t key_x = 160, key_y = 50, key_w = 300, key_h = 25;
+  // char dd[50];
   for (uint8_t row = 0; row < amt_row; row++) {
     if(row < amt_row-1){
       for (uint8_t col = 0; col < amt_col; col++) {
         uint8_t b = col + row * amt_col;
-        key[b].initButton(&tft, 160 + col * (300 + 5),
-                          50 + row * (25 + 5), // x, y, w, h, outline, fill, text
-                          300, 25, TFT_WHITE, keyColor[b], TFT_BLACK,
+        key[b].initButton(&tft, key_x + col * (key_w + 5),
+                          key_y + row * (key_h + 5), // x, y, w, h, outline, fill, text
+                          key_w, key_h, TFT_WHITE, keyColor[b], TFT_BLACK,
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
@@ -272,9 +239,9 @@ void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t am
     }else{
       for (uint8_t col = 0; col < 2; col++) {
         uint8_t b = col + row;
-        key[b].initButton(&tft, 80 + col * (145 + 5),
-                          50 + row * (25 + 5), // x, y, w, h, outline, fill, text
-                          145, 25, TFT_WHITE, keyColor[b], TFT_BLACK,
+        key[b].initButton(&tft, key_x/2 + col * (key_w/2 - 5 + 5),
+                          key_y + row * (key_h + 5), // x, y, w, h, outline, fill, text
+                          key_w/2 - 5, key_h, TFT_WHITE, keyColor[b], TFT_BLACK,
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
@@ -285,6 +252,24 @@ void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t am
     }
   }
 }
+
+void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
+  const char* nul = "";
+  uint16_t key_x = 160/amt_col, key_y = 50, key_w = 300/amt_col, key_h = 25;
+  for (uint8_t row = 0; row < amt_row; row++) {
+    for (uint8_t col = 0; col < amt_col; col++) {
+      uint8_t b = col + row * amt_col;
+// TFT_eSPI *gfx, int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t outline, uint16_t fill, uint16_t textcolor, char *label, uint8_t textsize
+      key[b].initButton(&tft, key_x + col * (key_w + 5),
+                        key_y + row * (key_h + 5), // x, y, w, h, outline, fill, text
+                        key_w, key_h, TFT_WHITE, keyColor[b], TFT_BLACK,
+                        (char*)nul, KEY_TEXTSIZE);
+      String string = String(keyLabel[b]);
+      key[b].drawButton(false, string);
+    }
+  }
+}
+
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
   tft.setFreeFont(LABEL2_FONT);
   for (uint8_t row = 0; row < 3; row++) {

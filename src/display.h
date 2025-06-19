@@ -5,6 +5,7 @@
 #include "tftArcFill.h"
 
 #define MENU_1 7
+#define MENU_2 12
 
 // Keypad start position, key sizes and spacing
 #define KEY_X 40 // Centre of key
@@ -42,9 +43,11 @@ void display(void);
 void mainDispl(void);
 void menu_1(void);
 void menu_2(void);
-void displ_3(const char* txt);
+void menu_3(void);
+void calcDisplay(const char* txt);
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]);
-void drawKeypad_longName(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
+void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
+void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
 
 #endif /* __DISPLAY_H */
