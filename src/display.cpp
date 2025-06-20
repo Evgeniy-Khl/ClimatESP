@@ -226,7 +226,7 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",160 + col * (300 + 5),300,50 + row * (25 + 5),25);
         // Serial.println(dd);
       }
@@ -239,12 +239,13 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",80 + col * (145 + 5),145,50 + row * (25 + 5),25);
         // Serial.println(dd);
       }
     }
   }
+  Serial.println("=======================================================");
 }
 
 void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
@@ -260,9 +261,10 @@ void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t
                         (char*)nul, KEY_TEXTSIZE);
       String string = String(keyLabel[b]);
       key[b].drawButton(false, string);
-      Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+      Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
     }
   }
+  Serial.println("=======================================================");
 }
 
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
@@ -275,7 +277,9 @@ void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
                         KEY_Y + row * (KEY_H + KEY_SPACING_Y), // x, y, w, h, outline, fill, text
                         KEY_W, KEY_H, TFT_WHITE, keyColor[b], TFT_BLACK,
                         (char*)keyLabel[b], KEY_TEXTSIZE);
-      key[b].drawButton();
+      // key[b].drawButton();
+      String string = String(keyLabel[b]);
+      key[b].drawButton(false, string);
     }
   }
 }

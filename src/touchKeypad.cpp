@@ -19,9 +19,7 @@ void checkKeypad(uint8_t amt){
   }
 
   for (uint8_t b = 0; b < amt; b++) {
-      if (key[b].justReleased()) key[b].drawButton();     // draw normal
       if (key[b].isPressed()) {
-        key[b].drawButton(true);  // draw invert
         if(amt==15){      
           int8_t v = butCalculator(b);
           Serial.print("checkKeypad/amt==15: v="); Serial.println(v);
@@ -31,13 +29,13 @@ void checkKeypad(uint8_t amt){
           case 1:
             newDispl = true;
             if (b == MENU_1-1){
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_1-1: case 1: displNum = 2 unloadFont()");
               displNum = 2;
               menu_2();
             }
             else if (b == MENU_1-2) {
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_1-2: case 1: displNum = 0 unloadFont()");
               displNum = 0; newDispl = true;
             }else {
@@ -57,13 +55,13 @@ void checkKeypad(uint8_t amt){
           case 2: 
             newDispl = true;
             if (b == MENU_1-1){
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_1-1: case 2: displNum = 3 unloadFont()");
               displNum = 3;
               menu_3();
             }
             else if (b == MENU_1-2) {
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_1-2: case 2: displNum = 1 unloadFont()");
               displNum = 1;
               menu_1();
@@ -84,13 +82,13 @@ void checkKeypad(uint8_t amt){
           case 3: 
             newDispl = true;
             if (b == MENU_2-1){
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_2-1: case 3: displNum = 4 unloadFont()");
               displNum = 4;
               menu_4();
             }
             else if (b == MENU_2-2) {
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_2-2: case 3: displNum = 2 unloadFont()");
               displNum = 2;
               menu_2();
@@ -112,12 +110,12 @@ void checkKeypad(uint8_t amt){
           case 4: 
             newDispl = true;
             if (b == MENU_3-1){
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_3-1: case 4: displNum = 0 unloadFont()");
               displNum = 0; newDispl = true;
             }
             else if (b == MENU_3-2) {
-              tft.unloadFont(); // выгрузка шрифта из памяти
+              // tft.unloadFont(); // выгрузка шрифта из памяти
               Serial.println("checkKeypad(): b == MENU_3-2: case 4: displNum = 3 unloadFont()");
               displNum = 3;
               menu_3();
