@@ -124,7 +124,7 @@ void menu_1(){
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Сухий датчик канал 1", 160, 5);
     drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
-    // Serial.println("menu_1():unloadFont");
+    // Serial.println(keyLabel[MENU_1-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -143,7 +143,7 @@ void menu_2(){
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Вологий датчик канал 2", 160, 5);
     drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
-    // Serial.println("menu_2():unloadFont");
+    // Serial.println(keyLabel[MENU_1-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -162,7 +162,7 @@ void menu_3(){
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Загальні параметри", 160, 5);
     drawKeypad_longName_12(keyLabel, keyColor, MENU_2/2, 2);
-    // Serial.println("menu_3():unloadFont");
+    // Serial.println(keyLabel[MENU_2-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -181,7 +181,7 @@ void menu_4(){
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Технічні параметри", 160, 5);
     drawKeypad_longName_12(keyLabel, keyColor, MENU_3/2, 2);
-    // Serial.println("menu_4():unloadFont");
+    // Serial.println(keyLabel[MENU_2-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -226,7 +226,7 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",160 + col * (300 + 5),300,50 + row * (25 + 5),25);
         // Serial.println(dd);
       }
@@ -239,7 +239,7 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
+        // Serial.print("b=="); Serial.println(b); Serial.print("str:"); Serial.println(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",80 + col * (145 + 5),145,50 + row * (25 + 5),25);
         // Serial.println(dd);
       }

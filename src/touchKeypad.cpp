@@ -17,27 +17,17 @@ void checkKeypad(uint8_t amt){
       key[b].press(false);  // tell the button it is NOT pressed
     }
   }
-  if(amt==15){
-    for (uint8_t b = 0; b < amt; b++) {
-      if (key[b].justReleased()) key[b].drawButton();     // draw normal
-      if (key[b].isPressed()) {
-        key[b].drawButton(true);  // draw invert      
-        int8_t v = butCalculator(b);
-          Serial.print("checkKeypad/amt==15: v="); Serial.println(v);
-          drawValue(v, true);
-          // switch (displNum){
-          //   case 1: newDispl = true; menu_1(); break;//- НАЛАШТУВАННЯ  1-12 -
-          //   case 2: newDispl = true; menu_2(); break;//- НАЛАШТУВАННЯ 13-20 -
-          // }
-      }
-    }
-  } else {
-    // Check if any key has changed state
-    for (uint8_t b = 0; b < amt; b++) {
+
+  for (uint8_t b = 0; b < amt; b++) {
       if (key[b].justReleased()) key[b].drawButton();     // draw normal
       if (key[b].isPressed()) {
         key[b].drawButton(true);  // draw invert
-        switch (displNum){
+        if(amt==15){      
+          int8_t v = butCalculator(b);
+          Serial.print("checkKeypad/amt==15: v="); Serial.println(v);
+          drawValue(v, true);
+        } else {
+          switch (displNum){
           case 1:
             newDispl = true;
             if (b == MENU_1-1){
@@ -146,14 +136,12 @@ void checkKeypad(uint8_t amt){
               drawValue(0, false);
             }
           break;
+          }
         }
-        
-        // status("В<13");
-        // delay(2000); // UI debouncing
       }
-    }
   }
 }
+  
 
 int8_t butCalculator(uint8_t butt){
   const char* current_label = labelsCalculator[butt];
@@ -178,7 +166,7 @@ int8_t butCalculator(uint8_t butt){
     if (strcmp(current_label, "Ok") == 0){
       settings.flat_array[numberIndex] = editValue;
       saveConfig();  // Сохраним эти значения в файл
-      if(numberIndex == 0 || numberIndex == 16){
+      if(numberIndex == 0 || numberIndex == 15){
         grafDispl[0].sp = settings.sp_structs[0].spT;
         grafDispl[1].sp = settings.sp_structs[1].spT;
       }
