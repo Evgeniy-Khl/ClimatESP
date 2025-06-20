@@ -73,9 +73,9 @@ void setup() {
   printConfig();
   //===========================================
   //--------- инициализация PID --------------------------------------------
-  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki, settings.sp_structs[0].Kd);
+  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid[0].Kp,pid[0].Ki,pid[0].Kd);
+  sprintf(displStr,"Kp=%g  Ki=%g  Kd=%d", pid[0].Kp,pid[0]);
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 20;
   //------------------------------------------------------------------------

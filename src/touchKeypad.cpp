@@ -74,13 +74,13 @@ void checkKeypad(uint8_t amt){
             }
             else if (b == MENU_1-2) {
               tft.unloadFont(); // выгрузка шрифта из памяти
-              Serial.println("checkKeypad(): b == MENU_1-2: case 2: displNum = 2 unloadFont()");
-              displNum = 2;
-              menu_2();
+              Serial.println("checkKeypad(): b == MENU_1-2: case 2: displNum = 1 unloadFont()");
+              displNum = 1;
+              menu_1();
             }else {
               earlyDispl = displNum;
               txtIndex = b;
-              numberIndex = b+16;
+              numberIndex = b+15;
               editValue = settings.flat_array[numberIndex];
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu1[txtIndex];
@@ -108,7 +108,7 @@ void checkKeypad(uint8_t amt){
               earlyDispl = displNum;
               txtIndex = b;
               numberIndex = b/2+5;
-              if(b%2) numberIndex += 16;
+              if(b%2) numberIndex += 15;
               editValue = settings.flat_array[numberIndex];
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu2[txtIndex];
@@ -135,7 +135,7 @@ void checkKeypad(uint8_t amt){
               earlyDispl = displNum;
               txtIndex = b;
               numberIndex = b/2+11;
-              if(b%2) numberIndex += 16;
+              if(b%2) numberIndex += 15;
               editValue = settings.flat_array[numberIndex];
               tft.setTextColor(TFT_WHITE, TFT_BLACK);
               txt = labelsMenu3[txtIndex];
@@ -177,6 +177,7 @@ int8_t butCalculator(uint8_t butt){
     }
     if (strcmp(current_label, "Ok") == 0){
       settings.flat_array[numberIndex] = editValue;
+      saveConfig();  // Сохраним эти значения в файл
       if(numberIndex == 0 || numberIndex == 16){
         grafDispl[0].sp = settings.sp_structs[0].spT;
         grafDispl[1].sp = settings.sp_structs[1].spT;

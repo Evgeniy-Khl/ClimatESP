@@ -2,27 +2,21 @@
 #include "procedure.h"
 
 
-void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki, uint16_t Kd) {
+void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
     pid->Kp = (float)Kp/10;
     pid->Ki = (float)Ki/1000;
-    pid->Kd = Kd;
 }
 
 uint8_t UpdatePID(PIDController *pid, uint8_t cn){
- int16_t error, derivative;
+ int16_t error;
   // Вычисление ошибки
   error = settings.sp_structs[cn].spT - ds[cn].pvT;
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
   // Интегральная составляющая
   pid[cn].iPart += (float)error * pid[cn].Ki;// * dt;
-  // Дифференциальная составляющая
-  derivative = (error - pid[cn].prev_error);// / dt;
-  pid[cn].dPart = pid[cn].Kd * derivative;
-  // Сохраняем текущую ошибку для следующего вызова
-  pid[cn].prev_error = error;
   // Суммарное управляющее воздействие
-  pid[cn].output = pid[cn].pPart + pid[cn].iPart + pid[cn].dPart;
+  pid[cn].output = pid[cn].pPart + pid[cn].iPart;
   // Ограничение выходного значения и антивиндовинг
   if (pid[cn].output > 100) pid[cn].output = 110;
   else if (pid[cn].output < 0) pid[cn].output = 0;
@@ -45,15 +39,14 @@ void printConfig() {
         Serial.printf("  coolOff: %d\n", settings.sp_structs[i].coolOff);
         Serial.printf("  timer: %d\n", settings.sp_structs[i].timer);
         Serial.printf("  aeration: %d\n", settings.sp_structs[i].aeration);
+        Serial.printf("  auxiliary: %d\n", settings.sp_structs[i].auxiliary);
         Serial.printf("  flapLimit: %d\n", settings.sp_structs[i].flapLimit);
         Serial.printf("  state: %d\n", settings.sp_structs[i].state);
-        Serial.printf("  service: %d\n", settings.sp_structs[i].service);
         Serial.printf("  pulse: %d\n", settings.sp_structs[i].pulse);
         Serial.printf("  mode: %d\n", settings.sp_structs[i].mode);
         Serial.printf("  extendMode: %d\n", settings.sp_structs[i].extendMode);
         Serial.printf("  Kp: %d\n", settings.sp_structs[i].Kp);
         Serial.printf("  Ki: %d\n", settings.sp_structs[i].Ki);
-        Serial.printf("  Kd: %d\n", settings.sp_structs[i].Kd);
     }
     Serial.println("--------------------");
 }
@@ -78,15 +71,14 @@ void saveConfig() {
         obj["coolOff"] = settings.sp_structs[i].coolOff;
         obj["timer"] = settings.sp_structs[i].timer;
         obj["aeration"] = settings.sp_structs[i].aeration;
+        obj["auxiliary"] = settings.sp_structs[i].auxiliary;
         obj["flapLimit"] = settings.sp_structs[i].flapLimit;
         obj["state"] = settings.sp_structs[i].state;
-        obj["service"] = settings.sp_structs[i].service;
         obj["pulse"] = settings.sp_structs[i].pulse;
         obj["mode"] = settings.sp_structs[i].mode;
         obj["extendMode"] = settings.sp_structs[i].extendMode;
         obj["Kp"] = settings.sp_structs[i].Kp;
         obj["Ki"] = settings.sp_structs[i].Ki;
-        obj["Kd"] = settings.sp_structs[i].Kd;
     }
 
     // Открываем файл для записи
@@ -146,15 +138,14 @@ bool loadConfig() {
             settings.sp_structs[i].coolOff = obj["coolOff"];
             settings.sp_structs[i].timer = obj["timer"];
             settings.sp_structs[i].aeration = obj["aeration"];
+            settings.sp_structs[i].auxiliary = obj["auxiliary"];
             settings.sp_structs[i].flapLimit = obj["flapLimit"];
             settings.sp_structs[i].state = obj["state"];
-            settings.sp_structs[i].service = obj["service"];
             settings.sp_structs[i].pulse = obj["pulse"];
             settings.sp_structs[i].mode = obj["mode"];
             settings.sp_structs[i].extendMode = obj["extendMode"];
             settings.sp_structs[i].Kp = obj["Kp"];
             settings.sp_structs[i].Ki = obj["Ki"];
-            settings.sp_structs[i].Kd = obj["Kd"];
             i++;
         }
     }
