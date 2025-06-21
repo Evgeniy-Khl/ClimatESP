@@ -4,12 +4,6 @@
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
 
 uint8_t numberOfDevices, errDevice[MAX_DEVICE];
-// Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
-// OneWire oneWire(ONE_WIRE_BUS_PIN);
-// Передаем ссылку на объект oneWire в конструктор DallasTemperature
-// DallasTemperature sensors(&oneWire);
-// Переменная для хранения адреса датчика (если их несколько)
-// DeviceAddress sensorAddress;
 
 // Переменные для управления яркостью
 int brightness = 0;    // Текущая яркость

@@ -37,7 +37,9 @@ void initMyConfig(){
   }
   xpos = 0; ypos += 25;
   DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
-  printConfig();
+  #ifdef DEBUG
+    printConfig();
+  #endif
   //--------- инициализация PID --------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
@@ -98,22 +100,20 @@ void initMyConfig(){
   // xpos = 0; ypos += 20;
   //==============================================================================
 
-  // DEBUG_PRINTLN("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
-
-  // Инициализация библиотеки DallasTemperature
-  // sensors.begin();
-  // sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
-  // sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
-  // sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
-  // sensors.setResolution(12);
+  //------------ Инициализация библиотеки DallasTemperature -----------------------------
+  sensors.begin();
+  sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
+  sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
+  sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
+  sensors.setResolution(12);// Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
 
   // Поиск устройств на шине 1-Wire
-  numberOfDevices = 2;//sensors.getDeviceCount();
-  // if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
+  numberOfDevices = sensors.getDeviceCount();
+  if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
   // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
-  // DEBUG_PRINT("Found ");
-  // DEBUG_PRINT(numberOfDevices, DEC);
-  // DEBUG_PRINTLN(" devices.");
+  DEBUG_PRINT("Found ");
+  DEBUG_PRINT(numberOfDevices, DEC);
+  DEBUG_PRINTLN(" devices.");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Датчиків температури - ", xpos, ypos, 2);
   xpos = 220;
@@ -121,30 +121,29 @@ void initMyConfig(){
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 25;
 
-  // if (numberOfDevices == 0) {
-  //   DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
-  //   // Можно остановить выполнение, если датчики не найдены
-  //   // while(true) delay(100);
-  // } else {
-  //   sensors.requestTemperatures(); // Отправляем команду на измерение
-  //   DEBUG_PRINTLN("Sensor addresses:");
-  //   // Выводим адрес каждого найденного устройства
-  //   for (uint8_t i = 0; i < numberOfDevices; i++) {
-  //     if (sensors.getAddress(sensorAddress, i)) {
-  //       DEBUG_PRINT("  Sensor ");
-  //       DEBUG_PRINT(i);
-  //       DEBUG_PRINT(": ");
-  //       printAddress(sensorAddress);
-  //       DEBUG_PRINTLN();
-  //     } else {
-  //       DEBUG_PRINT("Could not get address for sensor ");
-  //       DEBUG_PRINTLN(i);
-  //     }
-  //   }
-    // Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
-    // 12 бит дает наибольшую точность, но и наибольшее время преобразования (~750ms)
-    // sensors.setResolution(12); // Уже по умолчанию 12 бит при инициализации
-//}
+  #ifdef DEBUG
+  if (numberOfDevices == 0) {
+    DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
+    // Можно остановить выполнение, если датчики не найдены
+    // while(true) delay(100);
+  } else {
+    sensors.requestTemperatures(); // Отправляем команду на измерение
+    DEBUG_PRINTLN("Sensor addresses:");
+    // Выводим адрес каждого найденного устройства
+    for (uint8_t i = 0; i < numberOfDevices; i++) {
+      if (sensors.getAddress(sensorAddress, i)) {
+        DEBUG_PRINT("  Sensor ");
+        DEBUG_PRINT(i);
+        DEBUG_PRINT(": ");
+        printAddress(sensorAddress);
+        DEBUG_PRINTLN();
+      } else {
+        DEBUG_PRINT("Could not get address for sensor ");
+        DEBUG_PRINTLN(i);
+      }
+    }
+  }
+  #endif
   //==================================================================================
   tft.unloadFont();
   delay(10000);
@@ -261,3 +260,13 @@ void diagram(GrafDispl grafDispl, uint16_t color){
     tft.setTextColor(TFT_BLACK,TFT_WHITE,true);
     tft.drawString(tempStr, grafDispl.xpos, grafDispl.ypos+25, 4);
 }
+#ifdef DEBUG
+// Вспомогательная функция для вывода адреса датчика
+void printAddress(DeviceAddress deviceAddress) {
+  for (uint8_t i = 0; i < 8; i++) {
+    if (deviceAddress[i] < 16) DEBUG_PRINT("0");
+    DEBUG_PRINT(deviceAddress[i], HEX);
+    if (i < 7) DEBUG_PRINT(":");
+  }
+}
+#endif

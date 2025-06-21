@@ -3,22 +3,24 @@
 #include "display.h"
 #include "touchKeypad.h"
 #include "procedure.h"
-
-// #include <OneWire.h>
-// #include <DallasTemperature.h>
 #include "AT24C32.h"
 #include "my_settings.h"
 
 PIDController pid[2];
 
-// void printAddress(DeviceAddress deviceAddress);
-RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
+RTC_DS3231 rtc;                     // Создаем объект RTC для DS3231
+
+OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
+DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
+DeviceAddress sensorAddress;        // Переменная для хранения адреса датчика (если их несколько)
 
 // Создаем объекты TFT
 TFT_eSPI tft = TFT_eSPI();    // Создаем экземпляр библиотеки
 
 void setup() {
-  Serial.begin(115200);       // Инициализация последовательного порта для отладки
+  #ifdef DEBUG
+    Serial.begin(115200);       // Инициализация последовательного порта для отладки
+  #endif
   tft.begin();
   tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
@@ -175,11 +177,3 @@ void printBinary(byte inByte) {
   }
 }
 
-// Вспомогательная функция для вывода адреса датчика
-// void printAddress(DeviceAddress deviceAddress) {
-//   for (uint8_t i = 0; i < 8; i++) {
-//     if (deviceAddress[i] < 16) DEBUG_PRINT("0");
-//     DEBUG_PRINT(deviceAddress[i], HEX);
-//     if (i < 7) DEBUG_PRINT(":");
-//   }
-// }

@@ -8,6 +8,8 @@
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
+#include <OneWire.h>
+#include <DallasTemperature.h>
 #include "procedure.h"
 
 // #define DEBUG
@@ -77,9 +79,11 @@ extern RTC_DS3231 rtc;
 extern char displStr[];
 extern bool newDispl;
 extern float editValue;
-extern uint8_t numberOfDevices, seconds, displNum, pwTriac;
+extern uint8_t numberOfDevices, seconds, displNum, pwTriac, errDevice[];
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
+extern DallasTemperature sensors;
+extern DeviceAddress sensorAddress;
 
 byte writePCF8574(byte data);
 byte readPCF8574();
