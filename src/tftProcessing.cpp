@@ -1,3 +1,4 @@
+#include "main.h"
 #include "tftProcessing.h"
 
 void initMyFont(void){
@@ -8,7 +9,7 @@ void initMyFont(void){
 
     // инициализация SPIFFS
     if (!SPIFFS.begin()) {
-        Serial.println("ERROR file system!");
+        DEBUG_PRINTLN("ERROR file system!");
     }
     xpos = 0; ypos = 150;
     /* tft.loadFont("Arial14"); // загрузка в память шрифта

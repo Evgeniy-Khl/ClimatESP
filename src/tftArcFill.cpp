@@ -36,7 +36,7 @@ void initMyConfig(){
       tft.drawString("Конфігурація за замовчуванням!", xpos, ypos);
   }
   xpos = 0; ypos += 25;
-  Serial.println("\n>> Итоговые значения после загрузки из FS:");
+  DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   printConfig();
   //--------- инициализация PID --------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
@@ -45,7 +45,7 @@ void initMyConfig(){
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 25;
   //------------------------------------------------------------------------
-  /* Serial.println("\n");
+  /* DEBUG_PRINTLN("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
   uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
   FlashMode_t ideMode = ESP.getFlashChipMode();
@@ -58,11 +58,11 @@ void initMyConfig(){
   Serial.printf("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
 
   if (ideSize != realSize) {
-    Serial.println("Внимание! Размер Flash, установленный в IDE, не совпадает с реальным!");
+    DEBUG_PRINTLN("Внимание! Размер Flash, установленный в IDE, не совпадает с реальным!");
   } else {
-    Serial.println("Размер Flash в IDE совпадает с реальным.");
+    DEBUG_PRINTLN("Размер Flash в IDE совпадает с реальным.");
   }
-  Serial.println(); */
+  DEBUG_PRINTLN(); */
   //------------------------------------------------------------------------------
   // Пин, к которому подключен светодиод (GPIO2)
   pinMode(LEDPIN, OUTPUT);    // Устанавливаем пин светодиода как выход
@@ -83,7 +83,7 @@ void initMyConfig(){
 
   //---------- Инициализация DS3231 ----------------------------------------
   if (rtc.begin()) {
-    Serial.println("RTC found!");
+    DEBUG_PRINTLN("RTC found!");
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.drawString("Знайден годинник реального часу!", xpos, ypos, 2);
     xpos = 0; ypos += 25;
@@ -94,7 +94,7 @@ void initMyConfig(){
   // xpos = 0; ypos += 20;
   //==============================================================================
 
-  // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
+  // DEBUG_PRINTLN("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
 
   // Инициализация библиотеки DallasTemperature
   // sensors.begin();
@@ -107,9 +107,9 @@ void initMyConfig(){
   numberOfDevices = 2;//sensors.getDeviceCount();
   // if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
   // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
-  // Serial.print("Found ");
-  // Serial.print(numberOfDevices, DEC);
-  // Serial.println(" devices.");
+  // DEBUG_PRINT("Found ");
+  // DEBUG_PRINT(numberOfDevices, DEC);
+  // DEBUG_PRINTLN(" devices.");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Датчиків температури - ", xpos, ypos, 2);
   xpos = 200;
@@ -118,23 +118,23 @@ void initMyConfig(){
   xpos = 0; ypos += 25;
 
   // if (numberOfDevices == 0) {
-  //   Serial.println("No DS18B20 sensors found! Check wiring and pull-up resistor.");
+  //   DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
   //   // Можно остановить выполнение, если датчики не найдены
   //   // while(true) delay(100);
   // } else {
   //   sensors.requestTemperatures(); // Отправляем команду на измерение
-  //   Serial.println("Sensor addresses:");
+  //   DEBUG_PRINTLN("Sensor addresses:");
   //   // Выводим адрес каждого найденного устройства
   //   for (uint8_t i = 0; i < numberOfDevices; i++) {
   //     if (sensors.getAddress(sensorAddress, i)) {
-  //       Serial.print("  Sensor ");
-  //       Serial.print(i);
-  //       Serial.print(": ");
+  //       DEBUG_PRINT("  Sensor ");
+  //       DEBUG_PRINT(i);
+  //       DEBUG_PRINT(": ");
   //       printAddress(sensorAddress);
-  //       Serial.println();
+  //       DEBUG_PRINTLN();
   //     } else {
-  //       Serial.print("Could not get address for sensor ");
-  //       Serial.println(i);
+  //       DEBUG_PRINT("Could not get address for sensor ");
+  //       DEBUG_PRINTLN(i);
   //     }
   //   }
     // Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)

@@ -12,14 +12,14 @@
 
 #define DEBUG
 
-
-// --- Блок определения макросов (ничего здесь не меняйте) ---
 #ifdef DEBUG
-  #define DEBUG_PRINT(x)     Serial.print(x)
-  #define DEBUG_PRINTLN(x)   Serial.println(x)
+  // Вариативные макросы, принимающие любое количество аргументов
+  #define DEBUG_PRINT(...)   Serial.print(__VA_ARGS__)
+  #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
 #else
-  #define DEBUG_PRINT(x)
-  #define DEBUG_PRINTLN(x)
+  // "Пустышки" остаются такими же
+  #define DEBUG_PRINT(...)
+  #define DEBUG_PRINTLN(...)
 #endif
 // --- Конец блока макросов ---
 

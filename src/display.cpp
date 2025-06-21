@@ -119,12 +119,12 @@ void menu_1(){
     }
     tft.fillScreen(TFT_BLACK);
     tft.loadFont("Arial20"); // загрузка в память шрифта
-    Serial.println("menu_1():Arial20");
+    DEBUG_PRINTLN("menu_1():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Сухий датчик канал 1", 160, 5);
     drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
-    // Serial.println(keyLabel[MENU_1-1]);
+    // DEBUG_PRINTLN(keyLabel[MENU_1-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -138,12 +138,12 @@ void menu_2(){
     }
     tft.fillScreen(TFT_BLACK);
     tft.loadFont("Arial20"); // загрузка в память шрифта
-    Serial.println("menu_2():Arial20");
+    DEBUG_PRINTLN("menu_2():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Вологий датчик канал 2", 160, 5);
     drawKeypad_longName_7(keyLabel, keyColor, MENU_1-1, 1);
-    // Serial.println(keyLabel[MENU_1-1]);
+    // DEBUG_PRINTLN(keyLabel[MENU_1-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -157,12 +157,12 @@ void menu_3(){
     }
     tft.fillScreen(TFT_BLACK);
     tft.loadFont("Arial20"); // загрузка в память шрифта
-    Serial.println("menu_3():Arial20");
+    DEBUG_PRINTLN("menu_3():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Загальні параметри", 160, 5);
     drawKeypad_longName_12(keyLabel, keyColor, MENU_2/2, 2);
-    // Serial.println(keyLabel[MENU_2-1]);
+    // DEBUG_PRINTLN(keyLabel[MENU_2-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -176,12 +176,12 @@ void menu_4(){
     }
     tft.fillScreen(TFT_BLACK);
     tft.loadFont("Arial20"); // загрузка в память шрифта
-    Serial.println("menu_4():Arial20");
+    DEBUG_PRINTLN("menu_4():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString("Технічні параметри", 160, 5);
     drawKeypad_longName_12(keyLabel, keyColor, MENU_3/2, 2);
-    // Serial.println(keyLabel[MENU_2-1]);
+    // DEBUG_PRINTLN(keyLabel[MENU_2-1]);
     newDispl = false;
     // tft.unloadFont(); // выгрузка шрифта из памяти
   // }
@@ -201,12 +201,12 @@ void calcDisplay(const char* txt){
     tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
 
     tft.loadFont("Arial28"); // загрузка в память шрифта
-    Serial.println("calcDisplay():Arial28");
+    DEBUG_PRINTLN("calcDisplay():Arial28");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
     tft.drawString(txt, DISP_W/2, DISP_Y + 5);
     tft.unloadFont();
-    Serial.println("calcDisplay():unloadFont");
+    DEBUG_PRINTLN("calcDisplay():unloadFont");
     drawKeypad(keyLabel, keyColor);
     newDispl = false;
   // }
@@ -226,9 +226,9 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
+        DEBUG_PRINT("b=="); DEBUG_PRINT(b); DEBUG_PRINT("  str:"); DEBUG_PRINTLN(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",160 + col * (300 + 5),300,50 + row * (25 + 5),25);
-        // Serial.println(dd);
+        // DEBUG_PRINTLN(dd);
       }
     }else{
       for (uint8_t col = 0; col < 2; col++) {
@@ -239,13 +239,13 @@ void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t 
                           (char*)nul, KEY_TEXTSIZE);
         String string = String(keyLabel[b]);
         key[b].drawButton(false, string);
-        Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
+        DEBUG_PRINT("b=="); DEBUG_PRINT(b); DEBUG_PRINT("  str:"); DEBUG_PRINTLN(string);
         // sprintf(dd,"X=%i Xw=%i Y=%i Yh=%i",80 + col * (145 + 5),145,50 + row * (25 + 5),25);
-        // Serial.println(dd);
+        // DEBUG_PRINTLN(dd);
       }
     }
   }
-  Serial.println("=======================================================");
+  DEBUG_PRINTLN("=======================================================");
 }
 
 void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col){
@@ -261,10 +261,10 @@ void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t
                         (char*)nul, KEY_TEXTSIZE);
       String string = String(keyLabel[b]);
       key[b].drawButton(false, string);
-      Serial.print("b=="); Serial.print(b); Serial.print("  str:"); Serial.println(string);
+      DEBUG_PRINT("b=="); DEBUG_PRINT(b); DEBUG_PRINT("  str:"); DEBUG_PRINTLN(string);
     }
   }
-  Serial.println("=======================================================");
+  DEBUG_PRINTLN("=======================================================");
 }
 
 void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){

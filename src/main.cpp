@@ -26,7 +26,7 @@ void setup() {
   touch_calibrate();
   //--------- инициализация SPIFFS -----------------------------------------
   if (!SPIFFS.begin()) {
-      Serial.println("ERROR file system!");
+      DEBUG_PRINTLN("ERROR file system!");
       tft.setTextDatum(TC_DATUM);
       tft.setTextColor(TFT_RED, TFT_YELLOW);
       tft.drawString("ERROR file system!", tft.width()/2, tft.height()/2-20, 4);
@@ -54,7 +54,7 @@ void loop() {
     switch (displNum){
     case 0: 
       // tft.loadFont("Arial28"); // загрузка в память шрифта
-      // Serial.println("main():Arial28");
+      // DEBUG_PRINTLN("main():Arial28");
       // tft.setTextDatum(TC_DATUM);
       displNum = 1; newDispl = true;
       menu_1();
@@ -108,10 +108,10 @@ void loop() {
   //       errDevice[i] = 0;
   //     }
   //   }
-  //   Serial.println();
+  //   DEBUG_PRINTLN();
   //   sensors.requestTemperatures(); // Отправляем команду на измерение
   // } else {
-  //   Serial.println("No sensors to read from.");
+  //   DEBUG_PRINTLN("No sensors to read from.");
   // }
     //-------------------------
     DateTime now = rtc.now();
@@ -128,9 +128,9 @@ void loop() {
     byte inputData = readPCF8574();
     // Пример проверки состояния конкретного пина (например, P8)
     if (!(inputData & 0x80)) { // Если P8 равен 0
-      Serial.println("Pin P8 is LOW");
+      DEBUG_PRINTLN("Pin P8 is LOW");
     } else {
-      Serial.println("Pin P8 is HIGH");
+      DEBUG_PRINTLN("Pin P8 is HIGH");
     }
     */
     
@@ -144,12 +144,12 @@ byte writePCF8574(byte data) {
   Wire.write(data);
   byte error = Wire.endTransmission();
   if (error == 0) {
-    //Serial.print("Data written: 0b");
+    //DEBUG_PRINT("Data written: 0b");
     //printBinary(data);
-    //Serial.println();
+    //DEBUG_PRINTLN();
   } else {
-    Serial.print("Error writing to PCF8574. Error code: ");
-    Serial.println(error);
+    DEBUG_PRINT("Error writing to PCF8574. Error code: ");
+    DEBUG_PRINTLN(error);
   }
   return error;
 }
@@ -160,7 +160,7 @@ byte readPCF8574() {
   if (Wire.available()) {
     return Wire.read();
   } else {
-    Serial.println("Error reading from PCF8574: No data available.");
+    DEBUG_PRINTLN("Error reading from PCF8574: No data available.");
     return 0xFF; // Возвращаем 0xFF в случае ошибки (можно выбрать другое значение)
   }
 }
@@ -168,15 +168,15 @@ byte readPCF8574() {
 // Вспомогательная функция для печати байта в двоичном формате
 void printBinary(byte inByte) {
   for (int b = 7; b >= 0; b--) {
-    Serial.print(bitRead(inByte, b));
+    DEBUG_PRINT(bitRead(inByte, b));
   }
 }
 
 // Вспомогательная функция для вывода адреса датчика
 // void printAddress(DeviceAddress deviceAddress) {
 //   for (uint8_t i = 0; i < 8; i++) {
-//     if (deviceAddress[i] < 16) Serial.print("0");
-//     Serial.print(deviceAddress[i], HEX);
-//     if (i < 7) Serial.print(":");
+//     if (deviceAddress[i] < 16) DEBUG_PRINT("0");
+//     DEBUG_PRINT(deviceAddress[i], HEX);
+//     if (i < 7) DEBUG_PRINT(":");
 //   }
 // }

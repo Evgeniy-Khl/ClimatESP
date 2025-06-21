@@ -29,7 +29,7 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn){
 
 // Функция для печати текущих значений структуры в Serial порт
 void printConfig() {
-    Serial.println("--------------------");
+    DEBUG_PRINTLN("--------------------");
     for (int i = 0; i < 2; i++) {
         Serial.printf("Элемент settings.sp_structs[%d]:\n", i);
         Serial.printf("  spT: %d\n", settings.sp_structs[i].spT);
@@ -48,12 +48,12 @@ void printConfig() {
         Serial.printf("  Kp: %d\n", settings.sp_structs[i].Kp);
         Serial.printf("  Ki: %d\n", settings.sp_structs[i].Ki);
     }
-    Serial.println("--------------------");
+    DEBUG_PRINTLN("--------------------");
 }
 
 // Функция сохранения конфигурации в JSON файл
 void saveConfig() {
-    Serial.println("Сохранение конфигурации...");
+    DEBUG_PRINTLN("Сохранение конфигурации...");
 
     // Создаем JSON документ. Размер 512 байт более чем достаточен.
     StaticJsonDocument<1024> doc;
@@ -84,15 +84,15 @@ void saveConfig() {
     // Открываем файл для записи
     File configFile = SPIFFS.open("/setpoint.json", "w");
     if (!configFile) {
-        Serial.println("Не удалось открыть файл для записи");
+        DEBUG_PRINTLN("Не удалось открыть файл для записи");
         return;
     }
 
     // Сериализуем JSON в файл
     if (serializeJson(doc, configFile) == 0) {
-        Serial.println("Ошибка записи в файл");
+        DEBUG_PRINTLN("Ошибка записи в файл");
     } else {
-        Serial.println("Конфигурация успешно сохранена.");
+        DEBUG_PRINTLN("Конфигурация успешно сохранена.");
     }
     
     configFile.close();
@@ -100,12 +100,12 @@ void saveConfig() {
 
 // Функция загрузки конфигурации из JSON файла
 bool loadConfig() {
-    Serial.println("Загрузка конфигурации...");
+    DEBUG_PRINTLN("Загрузка конфигурации...");
 
     // Открываем файл для чтения
     File configFile = SPIFFS.open("/setpoint.json", "r");
     if (!configFile) {
-        Serial.println("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
+        DEBUG_PRINTLN("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
         return false;
     }
 
@@ -115,8 +115,8 @@ bool loadConfig() {
     // Десериализуем JSON из файла
     DeserializationError error = deserializeJson(doc, configFile);
     if (error) {
-        Serial.print("Ошибка десериализации JSON: ");
-        Serial.println(error.c_str());
+        DEBUG_PRINT("Ошибка десериализации JSON: ");
+        DEBUG_PRINTLN(error.c_str());
         configFile.close();
         return false;
     }
@@ -149,6 +149,6 @@ bool loadConfig() {
             i++;
         }
     }
-    Serial.println("Конфигурация успешно загружена.");
+    DEBUG_PRINTLN("Конфигурация успешно загружена.");
     return true;
 }

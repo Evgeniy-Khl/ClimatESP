@@ -1,3 +1,4 @@
+#include "main.h"
 //#include "SPI.h"
 #include "TFT_eSPI.h"
 #include "Free_Font_Demo.h"
@@ -26,8 +27,8 @@ void drawDatumMarker(int x, int y)
 }
 
 void initFreeFont(){
-  Serial.println();
-  Serial.println("init Free Font!");
+  DEBUG_PRINTLN();
+  DEBUG_PRINTLN("init Free Font!");
 
   // Initialise the TFT screen
   tft.init();
