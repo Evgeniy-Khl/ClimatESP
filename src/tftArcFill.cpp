@@ -146,7 +146,7 @@ void initMyConfig(){
   #endif
   //==================================================================================
   tft.unloadFont();
-  delay(10000);
+  delay(3000);
   tft.fillScreen(TFT_BLACK);
   diagram(grafDispl[0], TFT_WHITE);
   diagram(grafDispl[1], TFT_WHITE);

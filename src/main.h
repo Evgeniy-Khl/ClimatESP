@@ -26,8 +26,8 @@
 // --- Конец блока макросов ---
 
 #define LEDPIN 2
-#define ONE_WIRE_BUS_PIN 0  // используется номер GPIO
-#define MAX_DEVICE 4        // ограничение количества датчиков
+#define ONE_WIRE_BUS_PIN LEDPIN   // используется номер GPIO2
+#define MAX_DEVICE 4              // ограничение количества датчиков
 
 typedef struct {
   int16_t pvT;
