@@ -10,7 +10,7 @@
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 #include "procedure.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
   // Вариативные макросы, принимающие любое количество аргументов

@@ -20,7 +20,7 @@ void initMyConfig(){
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
   tft.loadFont("Arial28"); // загрузка в память шрифта
   tft.drawString("КЛІМАТ-5.25", xpos, ypos);
-  xpos = 0; ypos += 50;
+  xpos = 0; ypos += 40;
   tft.loadFont("Arial20"); // загрузка в память шрифта
   tft.setTextDatum(TL_DATUM);
   //--------- Загрузка конфигурации --------------------------------------------
@@ -112,7 +112,7 @@ void initMyConfig(){
   // DEBUG_PRINTLN(" devices.");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Датчиків температури - ", xpos, ypos, 2);
-  xpos = 200;
+  xpos = 220;
   sprintf(displStr,"%d шт.", numberOfDevices);
   tft.drawString(displStr, xpos, ypos, 2);
   xpos = 0; ypos += 25;
