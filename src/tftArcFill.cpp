@@ -10,21 +10,143 @@ byte blue = 0; // Blue is the bottom 5 bits
 byte state = 0;
 
 
-void initMyTFT(){
-  tft.begin();
-  tft.setRotation(3);
-  tft.fillScreen(TFT_BLACK);
+void initMyConfig(){
   grafDispl[0].value = ds[0].pvT;
   grafDispl[0].sp = settings.sp_structs[0].spT;
   grafDispl[1].value = ds[1].pvT;
   grafDispl[1].sp = settings.sp_structs[1].spT;
-  xpos = tft.width()/2; ypos = 10;
+  xpos = tft.width()/2; ypos = tft.height()/2-80;
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
   tft.loadFont("Arial28"); // загрузка в память шрифта
   tft.drawString("КЛІМАТ-5.25", xpos, ypos);
-  xpos = 0; ypos += 30;
-  tft.unloadFont(); // выгрузка шрифта из памяти
+  xpos = 0; ypos += 50;
+  tft.loadFont("Arial20"); // загрузка в память шрифта
+  tft.setTextDatum(TL_DATUM);
+  //--------- Загрузка конфигурации --------------------------------------------
+  if(SPIFFS.exists("/setpoint.json")){
+    if(!loadConfig()){
+      tft.setTextColor(TFT_RED, TFT_BLACK);
+      tft.drawString("Конфігурація не завантажена!", xpos, ypos);
+    }
+  }
+  else {
+    saveConfig();  // Сохраним эти значения в файл
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+      tft.drawString("Конфігурація за замовчуванням!", xpos, ypos);
+  }
+  xpos = 0; ypos += 25;
+  Serial.println("\n>> Итоговые значения после загрузки из FS:");
+  printConfig();
+  //--------- инициализация PID --------------------------------------------
+  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  sprintf(displStr,"Пропорц.= %g  Ітеграл.= %g", pid[0].Kp,pid[0].Ki);
+  tft.drawString(displStr, xpos, ypos, 2);
+  xpos = 0; ypos += 25;
+  //------------------------------------------------------------------------
+  /* Serial.println("\n");
+  uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
+  uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
+  FlashMode_t ideMode = ESP.getFlashChipMode();
+
+  Serial.printf("Flash real id:   %08X\n", ESP.getFlashChipId());
+  Serial.printf("Flash real size: %u bytes\n\n", realSize);
+
+  Serial.printf("Flash ide  size: %u bytes\n", ideSize);
+  Serial.printf("Flash ide speed: %u Hz\n", ESP.getFlashChipSpeed());
+  Serial.printf("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
+
+  if (ideSize != realSize) {
+    Serial.println("Внимание! Размер Flash, установленный в IDE, не совпадает с реальным!");
+  } else {
+    Serial.println("Размер Flash в IDE совпадает с реальным.");
+  }
+  Serial.println(); */
+  //------------------------------------------------------------------------------
+  // Пин, к которому подключен светодиод (GPIO2)
+  pinMode(LEDPIN, OUTPUT);    // Устанавливаем пин светодиода как выход
+  // Можно установить желаемую частоту ШИМ (опционально)
+  // analogWriteFreq(1000);   // По умолчанию и так 1000 Гц
+  // Можно установить желаемый диапазон (опционально)
+  analogWriteRange(255);      // Если хотите диапазон 0-255
+  //------------------------------------------------------------------------------
+  Wire.begin();               // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
+  // Wire.begin(D2, D1);      // Если вы хотите использовать другие пины для I2C (например, D2 для SDA, D1 для SCL)
+  //--------------------- Инициализация PCF8574 ----------------------------------
+  /* Пример: Установить все пины PCF8574 как выходы и выключить их (записать 0)
+            Для PCF8574, чтобы использовать пин как "выход", мы просто записываем в него значение.
+            Чтобы использовать пин как "вход", мы записываем в него '1' (высокий уровень),
+            а затем читаем состояние. Внутренние подтягивающие резисторы слабые. 
+  */
+  writePCF8574(0x00);         // Установить все пины в LOW (если они используются как выходы)
+
+  //---------- Инициализация DS3231 ----------------------------------------
+  if (rtc.begin()) {
+    Serial.println("RTC found!");
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString("Знайден годинник реального часу!", xpos, ypos, 2);
+    xpos = 0; ypos += 25;
+  }
+  //------------------------------------------------------------------------------
+  // testAT24C32();              // тест
+  // tft.drawString("AT24C32 test complete.", xpos, ypos, 2);
+  // xpos = 0; ypos += 20;
+  //==============================================================================
+
+  // Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor ----------------");
+
+  // Инициализация библиотеки DallasTemperature
+  // sensors.begin();
+  // sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
+  // sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
+  // sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
+  // sensors.setResolution(12);
+
+  // Поиск устройств на шине 1-Wire
+  numberOfDevices = 2;//sensors.getDeviceCount();
+  // if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
+  // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
+  // Serial.print("Found ");
+  // Serial.print(numberOfDevices, DEC);
+  // Serial.println(" devices.");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.drawString("Датчиків температури - ", xpos, ypos, 2);
+  xpos = 200;
+  sprintf(displStr,"%d шт.", numberOfDevices);
+  tft.drawString(displStr, xpos, ypos, 2);
+  xpos = 0; ypos += 25;
+
+  // if (numberOfDevices == 0) {
+  //   Serial.println("No DS18B20 sensors found! Check wiring and pull-up resistor.");
+  //   // Можно остановить выполнение, если датчики не найдены
+  //   // while(true) delay(100);
+  // } else {
+  //   sensors.requestTemperatures(); // Отправляем команду на измерение
+  //   Serial.println("Sensor addresses:");
+  //   // Выводим адрес каждого найденного устройства
+  //   for (uint8_t i = 0; i < numberOfDevices; i++) {
+  //     if (sensors.getAddress(sensorAddress, i)) {
+  //       Serial.print("  Sensor ");
+  //       Serial.print(i);
+  //       Serial.print(": ");
+  //       printAddress(sensorAddress);
+  //       Serial.println();
+  //     } else {
+  //       Serial.print("Could not get address for sensor ");
+  //       Serial.println(i);
+  //     }
+  //   }
+    // Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
+    // 12 бит дает наибольшую точность, но и наибольшее время преобразования (~750ms)
+    // sensors.setResolution(12); // Уже по умолчанию 12 бит при инициализации
+//}
+  //==================================================================================
+  tft.unloadFont();
+  delay(10000);
+  tft.fillScreen(TFT_BLACK);
+  diagram(grafDispl[0], TFT_WHITE);
+  diagram(grafDispl[1], TFT_WHITE);
 }
 
 // #########################################################################

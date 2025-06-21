@@ -1,11 +1,9 @@
 #include "main.h"
 
-// Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
-const int ledPin = 2; // GPIO2
+
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-// #define ONE_WIRE_BUS_PIN 0 // используется номер GPIO
-// #define MAX_DEVICE 4        // ограничение количества датчиков
-// uint8_t numberOfDevices, errDevice[MAX_DEVICE];
+
+uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 // OneWire oneWire(ONE_WIRE_BUS_PIN);
 // Передаем ссылку на объект oneWire в конструктор DallasTemperature

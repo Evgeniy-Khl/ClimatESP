@@ -6,7 +6,26 @@
 #include <FS.h>
 #include <TFT_eSPI.h> // Hardware-specific library
 #include <SPI.h>
+#include <Wire.h>     // Библиотека для I2C связи
+#include <RTClib.h>   // Библиотека для работы с RTC DS3231
 #include "procedure.h"
+
+#define DEBUG
+
+
+// --- Блок определения макросов (ничего здесь не меняйте) ---
+#ifdef DEBUG
+  #define DEBUG_PRINT(x)     Serial.print(x)
+  #define DEBUG_PRINTLN(x)   Serial.println(x)
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINTLN(x)
+#endif
+// --- Конец блока макросов ---
+
+#define LEDPIN 2
+#define ONE_WIRE_BUS_PIN 0  // используется номер GPIO
+#define MAX_DEVICE 4        // ограничение количества датчиков
 
 typedef struct {
   int16_t pvT;
@@ -54,11 +73,16 @@ typedef struct
   int16_t sp;
 } GrafDispl;
 
+extern RTC_DS3231 rtc;
 extern char displStr[];
 extern bool newDispl;
 extern float editValue;
-extern uint8_t seconds, displNum, pwTriac;
+extern uint8_t numberOfDevices, seconds, displNum, pwTriac;
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
+
+byte writePCF8574(byte data);
+byte readPCF8574();
+void testAT24C32();
 
 #endif /* __MAIN_H */
