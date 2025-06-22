@@ -87,7 +87,7 @@ extern uint8_t numberOfDevices, seconds, displNum, pwTriac, errDevice[];
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
 extern DallasTemperature sensors;
-extern DeviceAddress sensorAddress;
+// extern DeviceAddress sensorAddress;
 
 byte writePCF8574(byte data);
 byte readPCF8574();

@@ -11,6 +11,7 @@ Flash: [===       ]  34.5% (used 360187 bytes from 1044464 bytes)
 #include "display.h"
 #include "touchKeypad.h"
 #include "procedure.h"
+#include "sensors.h"
 #include "AT24C32.h"
 #include "my_settings.h"
 
@@ -20,7 +21,7 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
-DeviceAddress sensorAddress;        // Переменная для хранения адреса датчика (если их несколько)
+
 
 // Создаем объекты TFT
 TFT_eSPI tft = TFT_eSPI();    // Создаем экземпляр библиотеки
@@ -91,6 +92,7 @@ void loop() {
   //========================================================================================================
   long now = millis();
   if (now - lastMsg > 1000) {
+    temperature_check();
     seconds++;
     lastMsg = now;
     pwTriac = UpdatePID(&pid[0],0);            // ПИД нагреватель
