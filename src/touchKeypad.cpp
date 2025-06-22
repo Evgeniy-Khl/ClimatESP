@@ -29,7 +29,6 @@ void checkKeypad(uint8_t amt){
           case 1:
             newDispl = true;
             if (b == MENU_1-1){
-              // tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_1-1: case 1: displNum = 2 unloadFont()");
               displNum = 2;
               menu_2();
@@ -55,13 +54,11 @@ void checkKeypad(uint8_t amt){
           case 2: 
             newDispl = true;
             if (b == MENU_1-1){
-              // tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_1-1: case 2: displNum = 3 unloadFont()");
               displNum = 3;
               menu_3();
             }
             else if (b == MENU_1-2) {
-              // tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_1-2: case 2: displNum = 1 unloadFont()");
               displNum = 1;
               menu_1();
@@ -82,13 +79,11 @@ void checkKeypad(uint8_t amt){
           case 3: 
             newDispl = true;
             if (b == MENU_2-1){
-              // tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_2-1: case 3: displNum = 4 unloadFont()");
               displNum = 4;
               menu_4();
             }
             else if (b == MENU_2-2) {
-              // tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_2-2: case 3: displNum = 2 unloadFont()");
               displNum = 2;
               menu_2();
@@ -140,7 +135,6 @@ void checkKeypad(uint8_t amt){
   }
 }
   
-
 int8_t butCalculator(uint8_t butt){
   const char* current_label = labelsCalculator[butt];
   long value = 0;
