@@ -35,7 +35,7 @@ void checkKeypad(uint8_t amt){
               menu_2();
             }
             else if (b == MENU_1-2) {
-              // tft.unloadFont(); // выгрузка шрифта из памяти
+              tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_1-2: case 1: displNum = 0 unloadFont()");
               displNum = 0; newDispl = true;
             }else {
@@ -110,7 +110,7 @@ void checkKeypad(uint8_t amt){
           case 4: 
             newDispl = true;
             if (b == MENU_3-1){
-              // tft.unloadFont(); // выгрузка шрифта из памяти
+              tft.unloadFont(); // выгрузка шрифта из памяти
               DEBUG_PRINTLN("checkKeypad(): b == MENU_3-1: case 4: displNum = 0 unloadFont()");
               displNum = 0; newDispl = true;
             }
