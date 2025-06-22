@@ -48,20 +48,9 @@ void setup() {
   if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
   if (font_missing){
     DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
-    while(1) yield();
   } else DEBUG_PRINTLN("\nFonts found OK.");
-
-  /* if (!LittleFS.begin()) {
-      DEBUG_PRINTLN("ERROR file system!");
-      tft.setTextDatum(TC_DATUM);
-      tft.setTextColor(TFT_RED, TFT_YELLOW);
-      tft.drawString("ERROR file system!", tft.width()/2, tft.height()/2-20, 4);
-      delay(10000);
-  } */
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
-
-  
 }
 
 void loop() {

@@ -33,7 +33,7 @@ void initMyConfig(){
   else {
     saveConfig();  // Сохраним эти значения в файл
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
-      tft.drawString("Конфігурація за замовчуванням!", xpos, ypos);
+    tft.drawString("Конфігурація за замовчуванням!", xpos, ypos);
   }
   xpos = 0; ypos += 25;
   DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
