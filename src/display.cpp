@@ -83,7 +83,7 @@ void mainDispl(void){
   tft.setTextPadding(310);
   xpos = 5; ypos = h+8;
   tft.drawRect(xpos-5, ypos-4, 319, 70, TFT_WHITE);
-  tft.loadFont("Arial20"); // загрузка в память шрифта
+  tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
   tft.setTextDatum(TL_DATUM);
   h = tft.fontHeight();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -118,7 +118,7 @@ void menu_1(){
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("menu_1():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
@@ -137,7 +137,7 @@ void menu_2(){
       keyColor[i] = colorsMenu1[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("menu_2():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
@@ -156,7 +156,7 @@ void menu_3(){
       keyColor[i] = colorsMenu2[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("menu_3():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
@@ -175,7 +175,7 @@ void menu_4(){
       keyColor[i] = colorsMenu3[i];
     }
     tft.fillScreen(TFT_BLACK);
-    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("menu_4():Arial20");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);
@@ -200,7 +200,7 @@ void calcDisplay(const char* txt){
     tft.fillRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_BLACK);
     tft.drawRect(DISP_X, DISP_Y, DISP_W, DISP_H, TFT_WHITE);
 
-    tft.loadFont("Arial28"); // загрузка в память шрифта
+    tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("calcDisplay():Arial28");
     tft.setTextColor(TFT_ORANGE, TFT_BLACK);
     tft.setTextDatum(TC_DATUM);

@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <FS.h>
+#include <LittleFS.h>
+#define FlashFS LittleFS
 #include <TFT_eSPI.h> // Hardware-specific library
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи
@@ -12,7 +14,7 @@
 #include <DallasTemperature.h>
 #include "procedure.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
   // Вариативные макросы, принимающие любое количество аргументов
@@ -28,6 +30,8 @@
 #define LEDPIN 2
 #define ONE_WIRE_BUS_PIN LEDPIN   // используется номер GPIO2
 #define MAX_DEVICE 4              // ограничение количества датчиков
+#define FONT_SMALL "Arial20"
+#define FONT_LARGE "Arial28"
 
 typedef struct {
   int16_t pvT;

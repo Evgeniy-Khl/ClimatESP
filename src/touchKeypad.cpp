@@ -195,7 +195,7 @@ void drawValue(int8_t val, bool divide){
     editValue += val;
     newTxt = true;
     // sprintf(displStr,"%5.1f  Д=%d  К=%i",editValue/dividerValue, dividerValue, val);
-    tft.loadFont("Arial28"); // загрузка в память шрифта
+    tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
     DEBUG_PRINTLN("drawValue():Arial28");
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     if(divide) sprintf(displStr,"%5.1f",editValue/10);
@@ -214,22 +214,22 @@ void touch_calibrate()
   uint8_t calDataOK = 0;
 
   // check file system exists
-  if (!SPIFFS.begin()) {
+  if (!LittleFS.begin()) {
     DEBUG_PRINTLN("formatting file system");
-    SPIFFS.format();
-    SPIFFS.begin();
+    LittleFS.format();
+    LittleFS.begin();
   }
 
   // check if calibration file exists and size is correct
-  if (SPIFFS.exists(CALIBRATION_FILE)) {
+  if (LittleFS.exists(CALIBRATION_FILE)) {
     if (REPEAT_CAL)
     {
       // Delete if we want to re-calibrate
-      SPIFFS.remove(CALIBRATION_FILE);
+      LittleFS.remove(CALIBRATION_FILE);
     }
     else
     {
-      File f = SPIFFS.open(CALIBRATION_FILE, "r");
+      File f = LittleFS.open(CALIBRATION_FILE, "r");
       if (f) {
         if (f.readBytes((char *)calData, 14) == 14)
           calDataOK = 1;
@@ -265,7 +265,7 @@ void touch_calibrate()
     tft.println("Calibration complete!");
 
     // store data
-    File f = SPIFFS.open(CALIBRATION_FILE, "w");
+    File f = LittleFS.open(CALIBRATION_FILE, "w");
     if (f) {
       f.write((const unsigned char *)calData, 14);
       f.close();
@@ -275,7 +275,7 @@ void touch_calibrate()
 
 /* // Print something in the mini status bar
 void status(const char *msg) {
-  tft.loadFont("Arial28"); // загрузка в память шрифта
+  tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
   tft.setTextPadding(320);
   //tft.setCursor(STATUS_X, STATUS_Y);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);

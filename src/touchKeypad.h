@@ -11,7 +11,7 @@
 
 // This is the file name used to store the calibration data
 // You can change this to create new calibration files.
-// The SPIFFS file name must start with "/".
+// The LittleFS file name must start with "/".
 #define CALIBRATION_FILE "/TouchCalData1"
 
 // Set REPEAT_CAL to true instead of false to run calibration

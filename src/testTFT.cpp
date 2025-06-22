@@ -28,18 +28,18 @@ void initTFT0(void){
 
   // --- Для кириллицы (если у вас есть шрифт .vlw с кириллицей) ---
   // 1. Поместите .vlw файл в папку 'data' проекта
-  // 2. Настройте SPIFFS/LittleFS в platformio.ini и загрузите файловую систему
+  // 2. Настройте LittleFS/LittleFS в platformio.ini и загрузите файловую систему
   // 3. Используйте tft.loadFont("MyCyrillicFontName") и tft.drawString()
   // Пример (псевдокод, требует настройки FS и шрифта):
   /*
-  if (SPIFFS.begin()) {
-      if (tft.loadFont("CyrillicFont-24", SPIFFS)) { // Имя файла шрифта
+  if (LittleFS.begin()) {
+      if (tft.loadFont("CyrillicFont-24", LittleFS)) { // Имя файла шрифта
           tft.drawString("Привет, Мир!", 10, 50);
           tft.unloadFont();
       } else {
           tft.drawString("Font Error", 10, 50);
       }
-      SPIFFS.end();
+      LittleFS.end();
   }
   */
 }

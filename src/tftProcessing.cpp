@@ -7,8 +7,8 @@ void initMyFont(void){
     // tft.setRotation(0);
     // tft.fillScreen(TFT_BLACK);
 
-    // инициализация SPIFFS
-    if (!SPIFFS.begin()) {
+    // инициализация LittleFS
+    if (!LittleFS.begin()) {
         DEBUG_PRINTLN("ERROR file system!");
     }
     xpos = 0; ypos = 150;
@@ -28,7 +28,7 @@ void initMyFont(void){
     y_pos += 3*h;
     tft.unloadFont(); // выгрузка шрифта из памяти */
     //---------------------------------------------------------
-    tft.loadFont("Arial20"); // загрузка в память шрифта
+    tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
     tft.setCursor(xpos, ypos);
     tft.setTextColor(TFT_YELLOW);
     tft.println("АаБбВвГгДдЖжІЇіїЄє");  // ЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщ
@@ -44,7 +44,7 @@ void initMyFont(void){
     ypos += 2*h;
     tft.unloadFont(); // выгрузка шрифта из памяти
     //---------------------------------------------------------
-    // tft.loadFont("Arial28"); // загрузка в память шрифта
+    // tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
     // tft.setCursor(x_pos, y_pos);
     // tft.setTextColor(TFT_YELLOW);
     // tft.println("АаБбВвГгДдЖжЗзИиКкЛлМмНнОоПпРрСсТтУуФфХхЧчШшЩщІЇіїЄє28%");

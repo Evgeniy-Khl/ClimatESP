@@ -18,13 +18,13 @@ void initMyConfig(){
   xpos = tft.width()/2; ypos = tft.height()/2-80;
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
-  tft.loadFont("Arial28"); // загрузка в память шрифта
+  tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
   tft.drawString("КЛІМАТ-5.25", xpos, ypos);
   xpos = 0; ypos += 40;
-  tft.loadFont("Arial20"); // загрузка в память шрифта
+  tft.loadFont(FONT_SMALL, LittleFS); // загрузка в память шрифта
   tft.setTextDatum(TL_DATUM);
   //--------- Загрузка конфигурации --------------------------------------------
-  if(SPIFFS.exists("/setpoint.json")){
+  if(LittleFS.exists("/setpoint.json")){
     if(!loadConfig()){
       tft.setTextColor(TFT_RED, TFT_BLACK);
       tft.drawString("Конфігурація не завантажена!", xpos, ypos);

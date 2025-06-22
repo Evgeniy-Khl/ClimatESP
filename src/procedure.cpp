@@ -82,7 +82,7 @@ void saveConfig() {
     }
 
     // Открываем файл для записи
-    File configFile = SPIFFS.open("/setpoint.json", "w");
+    File configFile = LittleFS.open("/setpoint.json", "w");
     if (!configFile) {
         DEBUG_PRINTLN("Не удалось открыть файл для записи");
         return;
@@ -103,7 +103,7 @@ bool loadConfig() {
     DEBUG_PRINTLN("Загрузка конфигурации...");
 
     // Открываем файл для чтения
-    File configFile = SPIFFS.open("/setpoint.json", "r");
+    File configFile = LittleFS.open("/setpoint.json", "r");
     if (!configFile) {
         DEBUG_PRINTLN("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
         return false;

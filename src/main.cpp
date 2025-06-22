@@ -1,4 +1,7 @@
 /*
+RAM:   [====      ]  43.3% (used 35472 bytes from 81920 bytes)
+Flash: [====      ]  37.7% (used 393475 bytes from 1044464 bytes)
+
 RAM:   [====      ]  39.8% (used 32576 bytes from 81920 bytes)
 Flash: [===       ]  34.5% (used 360187 bytes from 1044464 bytes)
 */
@@ -31,14 +34,30 @@ void setup() {
   tft.fillScreen(TFT_BLACK);
   // Calibrate the touch screen and retrieve the scaling factors
   touch_calibrate();
-  //--------- инициализация SPIFFS -----------------------------------------
-  if (!SPIFFS.begin()) {
+  //--------- инициализация FS -----------------------------------------
+  if (!LittleFS.begin()) {
+    DEBUG_PRINTLN("Flash FS initialisation failed!");
+    tft.setTextDatum(TC_DATUM);
+    tft.setTextColor(TFT_RED, TFT_YELLOW);
+    tft.drawString("ERROR file system!", tft.width()/2, tft.height()/2-20, 4);
+    delay(10000);
+  }
+  Serial.println("\nFlash FS available!");
+  bool font_missing = false;
+  if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
+  if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
+  if (font_missing){
+    DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
+    while(1) yield();
+  } else DEBUG_PRINTLN("\nFonts found OK.");
+
+  /* if (!LittleFS.begin()) {
       DEBUG_PRINTLN("ERROR file system!");
       tft.setTextDatum(TC_DATUM);
       tft.setTextColor(TFT_RED, TFT_YELLOW);
       tft.drawString("ERROR file system!", tft.width()/2, tft.height()/2-20, 4);
       delay(10000);
-  }
+  } */
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 
@@ -63,7 +82,7 @@ void loop() {
   if(pressed && !newDispl){
     switch (displNum){
     case 0: 
-      // tft.loadFont("Arial28"); // загрузка в память шрифта
+      // tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
       // DEBUG_PRINTLN("main():Arial28");
       // tft.setTextDatum(TC_DATUM);
       displNum = 1; newDispl = true;
