@@ -99,6 +99,7 @@ union Byte {
 
 extern union Byte portOut;
 extern union Byte errors;
+extern union Byte portFlag;
 
 #define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
 #define HUMIDI	portOut.bitfield.a1  // УВЛАЖНИТЕЛЬ
@@ -116,8 +117,19 @@ extern union Byte errors;
 #define ERROR7	errors.bitfield.a6  //
 #define ERROR8	errors.bitfield.a7  // завис датчик.
 
+#define CHECK   portFlag.bitfield.a0  // Start of all checks
+#define ALARM   portFlag.bitfield.a1  // Alarm flag
+#define VENTIL 	portFlag.bitfield.a2  // Ventilation flag
+#define EEPSAVE portFlag.bitfield.a3  // Save in EEPROM flag
+#define HIH5030	portFlag.bitfield.a4  // exist HIH5030 flag
+#define AM2301	portFlag.bitfield.a5  // exist AM2301 flag
+#define COOLING   portFlag.bitfield.a6  // охлаждение
+#define AERATION  portFlag.bitfield.a7  // 
+
 #define ON 1
 #define OFF 0
+#define DISPLAYOFF 300
+
 
 extern RTC_DS3231 rtc;
 extern char displStr[];

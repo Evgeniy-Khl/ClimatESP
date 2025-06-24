@@ -52,6 +52,9 @@ void setup() {
   } else DEBUG_PRINTLN("\nFonts found OK.");
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
+
+  pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
+  pvWait = settings.sp_structs[0].aeration;                // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
 }
 
 void loop() {
@@ -85,16 +88,34 @@ void loop() {
 
     case 10: checkKeypad(15); break;
     }
-    // if(displNum==0) displNum = 1;
-    // newDispl = true;
-    // if(++displNum>3) displNum = 0;  
   } 
   //========================================================================================================
   long now = millis();
-  if (now - lastMsg > 1000) {
-    seconds++; lastMsg = now;
+  if (now - lastMsg > 1000){
+    seconds++; lastMsg = now; errors.value = 0;
+    if(resetDispl) --resetDispl; 
+    else if(displNum){displNum = 0; newDispl = true; displOff=DISPLAYOFF;}  // возврат к главному дисплею
+    else if(displOff) --displOff;
+    // else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);       // отключение дисплея через 5 минут
+  //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
     temperature_check();
     pwTriac = UpdatePID(&pid[0],0);            // ПИД нагреватель
+    if(seconds > 59){
+        seconds = 0;
+      //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
+        if(settings.sp_structs[0].timer) rotate_trays();
+      //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
+        if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
+          if(--pvWait == 0){
+            pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = ON;
+          //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
+          }
+        } else if(COOLING){
+          EXTRA1 = ON; pvFlap = 100; beepOn = 50;
+          if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; COOLING = 0;}
+          // if(extendMode&1) BREAK=ON; 
+        }
+    }
     //-----температура воздуха------
     dpv0 = (float)pid[0].pPart/500;
     flT0+=dpv0;

@@ -12,12 +12,13 @@ uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 long lastMsg = 0, number = 0;
 //---------------------------------
 char displStr[50];
+int16_t resetDispl, displOff = DISPLAYOFF, pvWait, pvVenting;
 // Глобальный массив указателей, который будет доступен всем функциям
 const char* keyLabel[15];
 uint16_t keyColor[15];
 bool newDispl = true, newTxt = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pwTriac, pvTimer;
+uint8_t displNum=0, seconds=0, pwTriac, pvTimer, pvFlap, beepOn;
 float editValue;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 //---------------------------------
@@ -31,6 +32,7 @@ GrafDispl grafDispl[2] = {
 };
 union Byte portOut;
 union Byte errors;
+union Byte portFlag;
 //************************************************************************************************** */
 #define FLPCLOSE 9
 #define FLPOPEN  24
