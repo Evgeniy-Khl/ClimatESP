@@ -9,6 +9,7 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 
 uint8_t UpdatePID(PIDController *pid, uint8_t cn){
  int16_t error;
+ float output;
   // Вычисление ошибки
   error = settings.sp_structs[cn].spT - ds[cn].pvT;
   // Пропорциональная составляющая
@@ -16,18 +17,53 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn){
   // Интегральная составляющая
   pid[cn].iPart += (float)error * pid[cn].Ki;// * dt;
   // Суммарное управляющее воздействие
-  pid[cn].output = pid[cn].pPart + pid[cn].iPart;
+  output = pid[cn].pPart + pid[cn].iPart;
   // Ограничение выходного значения и антивиндовинг
-  if (pid[cn].output > 100) pid[cn].output = 110;
-  else if (pid[cn].output < 0) pid[cn].output = 0;
+  if (output > 100) output = 110;
+  else if (output < 0) output = 0;
   if (pid[cn].pPart >= 100) pid[cn].iPart = 0; // Сброс интеграла
   else if (pid[cn].pPart <= -50) pid[cn].iPart = 0; // Сброс интеграла
 
-  error = pid[cn].output;
+  error = output;
   return (uint8_t)error;
 }
+//------------- симистричный таймер -------------------
+void rotate_trays(void){ 
+  if(TURN){
+    if(--pvTimer == 0){
+        pvTimer = settings.sp_structs[0].timer; 
+        TURN = OFF;
+    }
+  }
+  else {
+    if(--pvTimer == 0){
+        if(settings.sp_structs[1].timer){
+            pvTimer = settings.sp_structs[1].timer; 
+            TURN = ON;
+        } else {
+            pvTimer = settings.sp_structs[0].timer; 
+            TURN = ON;
+        }
+    }
+  }
+}
 
-// Функция для печати текущих значений структуры в Serial порт
+//------------- индикация 66,0 - завис датчик. --------------
+bool check_freeze(uint8_t i){
+ if(ds[i].pvT == ds[i].previousValue){
+    if(++ds[i].counter > 600){
+        ds[i].counter = 600;
+        return true;
+    }
+ } else {
+    ds[i].counter = 0; 
+    ds[i].previousValue = ds[i].pvT;
+ }
+ return false;
+}
+
+//-------- Функция для печати текущих значений структуры в Serial порт --------
+#ifdef DEBUG
 void printConfig() {
     DEBUG_PRINTLN("--------------------");
     for (int i = 0; i < 2; i++) {
@@ -50,8 +86,9 @@ void printConfig() {
     }
     DEBUG_PRINTLN("--------------------");
 }
+#endif
 
-// Функция сохранения конфигурации в JSON файл
+//----------- Функция сохранения конфигурации в JSON файл ----------------
 void saveConfig() {
     DEBUG_PRINTLN("Сохранение конфигурации...");
 
@@ -98,7 +135,7 @@ void saveConfig() {
     configFile.close();
 }
 
-// Функция загрузки конфигурации из JSON файла
+//------------ Функция загрузки конфигурации из JSON файла -------------
 bool loadConfig() {
     DEBUG_PRINTLN("Загрузка конфигурации...");
 

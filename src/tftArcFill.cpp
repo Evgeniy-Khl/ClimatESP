@@ -122,27 +122,28 @@ void initMyConfig(){
   xpos = 0; ypos += 25;
 
   #ifdef DEBUG
-  if (numberOfDevices == 0) {
-    DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
-    // Можно остановить выполнение, если датчики не найдены
-    // while(true) delay(100);
-  } else {
-    sensors.requestTemperatures(); // Отправляем команду на измерение
-    DEBUG_PRINTLN("Sensor addresses:");
-    // Выводим адрес каждого найденного устройства
-    for (uint8_t i = 0; i < numberOfDevices; i++) {
-      if (sensors.getAddress(sensorAddress, i)) {
-        DEBUG_PRINT("  Sensor ");
-        DEBUG_PRINT(i);
-        DEBUG_PRINT(": ");
-        printAddress(sensorAddress);
-        DEBUG_PRINTLN();
-      } else {
-        DEBUG_PRINT("Could not get address for sensor ");
-        DEBUG_PRINTLN(i);
+    if (numberOfDevices == 0) {
+      DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
+      // Можно остановить выполнение, если датчики не найдены
+      // while(true) delay(100);
+    } else {
+      sensors.requestTemperatures(); // Отправляем команду на измерение
+      DeviceAddress sensorAddress;
+      DEBUG_PRINTLN("Sensor addresses:");
+      // Выводим адрес каждого найденного устройства
+      for (uint8_t i = 0; i < numberOfDevices; i++) {
+        if (sensors.getAddress(sensorAddress, i)) {
+          DEBUG_PRINT("  Sensor ");
+          DEBUG_PRINT(i);
+          DEBUG_PRINT(": ");
+          printAddress(sensorAddress);
+          DEBUG_PRINTLN();
+        } else {
+          DEBUG_PRINT("Could not get address for sensor ");
+          DEBUG_PRINTLN(i);
+        }
       }
     }
-  }
   #endif
   //==================================================================================
   tft.unloadFont();

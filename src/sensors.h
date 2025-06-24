@@ -2,5 +2,7 @@
 #define __MA__SENSORS_HIN_H
 
 void temperature_check(void);
+int16_t ValDcToRH(uint16_t Vadc);
+int16_t LowPassF2(int16_t PV);
 
 #endif /* __SENSORS_H */

@@ -92,12 +92,11 @@ void loop() {
   //========================================================================================================
   long now = millis();
   if (now - lastMsg > 1000) {
+    seconds++; lastMsg = now;
     temperature_check();
-    seconds++;
-    lastMsg = now;
     pwTriac = UpdatePID(&pid[0],0);            // ПИД нагреватель
     //-----температура воздуха------
-    dpv0 = (float)pid[0].pPart/500 + (float)(pid[0].output-5)/100;
+    dpv0 = (float)pid[0].pPart/500;
     flT0+=dpv0;
     ds[0].pvT = flT0;
     int16_t pverr = settings.sp_structs[0].spT - ds[0].pvT;

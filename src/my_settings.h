@@ -5,10 +5,6 @@
 
 uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 
-// Переменные для управления яркостью
-int brightness = 0;    // Текущая яркость
-int fadeAmount = 5;    // На сколько изменять яркость за один шаг
-
 // Адрес PCF8574. Может быть разным в зависимости от конфигурации A0, A1, A2.
 // Стандартные адреса: 0x20-0x27 для PCF8574 и 0x38-0x3F для PCF8574A.
 // Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
@@ -21,7 +17,7 @@ const char* keyLabel[15];
 uint16_t keyColor[15];
 bool newDispl = true, newTxt = true;
 uint16_t xpos, ypos, txt_height, t_x = 0, t_y = 0; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pwTriac;
+uint8_t displNum=0, seconds=0, pwTriac, pvTimer;
 float editValue;
 // spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 //---------------------------------
@@ -33,7 +29,8 @@ GrafDispl grafDispl[2] = {
     { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
     {240,80,80, 0, 0},    // Инициализация grafDispl[1]
 };
-
+union Byte portOut;
+union Byte errors;
 //************************************************************************************************** */
 #define FLPCLOSE 9
 #define FLPOPEN  24

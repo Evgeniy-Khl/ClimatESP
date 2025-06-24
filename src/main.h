@@ -35,7 +35,9 @@
 
 typedef struct {
   int16_t pvT;
+  int16_t previousValue;
   uint8_t err;
+  uint16_t counter;
 } Ds;
 
 extern Ds ds[];
@@ -79,11 +81,49 @@ typedef struct
   int16_t sp;
 } GrafDispl;
 
+struct Bitfield {
+    unsigned a0: 1;
+    unsigned a1: 1;
+    unsigned a2: 1;
+    unsigned a3: 1;
+    unsigned a4: 1;
+    unsigned a5: 1;
+    unsigned a6: 1;
+    unsigned a7: 1;
+};
+ 
+union Byte {
+    unsigned char value;
+    struct Bitfield bitfield;
+};
+
+extern union Byte portOut;
+extern union Byte errors;
+
+#define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
+#define HUMIDI	portOut.bitfield.a1  // УВЛАЖНИТЕЛЬ
+#define TURN		portOut.bitfield.a2  // Поворот лотков
+#define EXTRA1	portOut.bitfield.a3  // Вспомогательный канал
+#define EXTRA2	portOut.bitfield.a4  // Вспомогательный канал
+#define EXTRA3	portOut.bitfield.a5  // Вспомогательный канал
+
+#define ERROR1  errors.bitfield.a0  //
+#define ERROR2	errors.bitfield.a1  //
+#define ERROR3	errors.bitfield.a2  //
+#define ERROR4	errors.bitfield.a3  //
+#define ERROR5	errors.bitfield.a4  //
+#define ERROR6	errors.bitfield.a5  //
+#define ERROR7	errors.bitfield.a6  //
+#define ERROR8	errors.bitfield.a7  // завис датчик.
+
+#define ON 1
+#define OFF 0
+
 extern RTC_DS3231 rtc;
 extern char displStr[];
 extern bool newDispl;
 extern float editValue;
-extern uint8_t numberOfDevices, seconds, displNum, pwTriac, errDevice[];
+extern uint8_t numberOfDevices, seconds, displNum, pwTriac, pvTimer, errDevice[];
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
 extern DallasTemperature sensors;
