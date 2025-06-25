@@ -16,6 +16,8 @@ Flash: [===       ]  34.5% (used 360187 bytes from 1044464 bytes)
 #include "my_settings.h"
 
 PIDController pid[2];
+SoftwarePWMBit heaterPwm(&portOut.value, 0); 
+SoftwarePWMBit humidiPwm(&portOut.value, 1);
 
 RTC_DS3231 rtc;                     // Создаем объект RTC для DS3231
 
@@ -55,20 +57,28 @@ void setup() {
 
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
   pvWait = settings.sp_structs[0].aeration;                // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
+  portOut.value = 0;
+  heaterPwm.write(heaterValue);
+  humidiPwm.write(humidiValue);
 }
 
 void loop() {
-/* 
+
   //---------- Изменяем яркость светодиода --------------------------------------------
-  analogWrite(LEDPIN, brightness);      // Устанавливаем яркость светодиода
-  brightness = brightness + fadeAmount; // Изменяем яркость для следующего шага
-  // Меняем направление изменения яркости, если достигнуты пределы
-  if (brightness <= 0 || brightness >= 255) { // analogWriteRange(255) /  Для диапазона по умолчанию 0-1023:
-    fadeAmount = -fadeAmount;
+  bool hasChanged = false;
+  hasChanged |= heaterPwm.update();
+  hasChanged |= humidiPwm.update();
+    
+  if (hasChanged) {
+      writePCF8574(portOut.value);
+      DEBUG_PRINT("Изменение! portOut: ");
+      #ifdef DEBUG
+      printBinary(portOut.value);
+      #endif
+      DEBUG_PRINTLN();
   }
-  delay(30);                            // Небольшая задержка для плавности эффекта
   //====================================================================================
-*/
+
 
   // Pressed will be set true is there is a valid touch on the screen
   bool pressed = tft.getTouch(&t_x, &t_y);
@@ -99,7 +109,34 @@ void loop() {
     // else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);       // отключение дисплея через 5 минут
   //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
     temperature_check();
-    pwTriac = UpdatePID(&pid[0],0);            // ПИД нагреватель
+    if (HIH5030){
+      uint16_t adc=1024;
+      pvVadcRH = 0;//lowPassF2(adc);           // относительная влажность в Vadc ??????????????????????????????????????????
+      if (pvVadcRH>80) pvRH = valDcToRH(pvVadcRH); // относительная влажность в %
+      else pvRH = 1990;
+    } else {
+      uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
+      if(valTable>100) pvRH = 999; else pvRH = valTable;
+    }
+
+    heaterValue = UpdatePID(&pid[0],0);            // ПИД нагреватель
+    humidiValue = UpdatePID(&pid[1],1);            // ПИД увлажнитель
+
+    /* if(!COOLING){               // нормальная работа
+         pwTriac0 = OutPW(0);
+         if (pwTriac0) CN1 = CN1ON;                 // включить канал 1 (10 А)
+         if (relayMode & 4) OutPulse(1);            // импульсное управление увлажнителем
+         else pwTriac1 = OutPW(1);
+         if (Superheat) {pwTriac0 = OFF; pwTriac1 = OFF; errors |= 0x80;}// ПЕРЕГРЕВ СИМСТОРА !!!
+         power = pwTriac0/2;
+         statPw[0]+=power;                          // расчет эконометра
+         if (checkDry==1 && !(ok[0]&1)) pwTriac1=OFF; // задержка регулирования по 2 каналу до прогрева инкубатора
+         if (pwTriac1) CN2 = CN2ON;                 // включить канал 2 (10 А)
+         statPw[1]+=(pwTriac1/2);                   // расчет эконометра
+    }
+    else {CN2=CN2OFF; power=0;}  // идет ОХЛАЖДЕНИЕ! */
+
+  //================================= НОВАЯ МИНУТА ==============================
     if(seconds > 59){
         seconds = 0;
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
@@ -116,6 +153,7 @@ void loop() {
           // if(extendMode&1) BREAK=ON; 
         }
     }
+  //==================================================================================
     //-----температура воздуха------
     dpv0 = (float)pid[0].pPart/500;
     flT0+=dpv0;
@@ -130,7 +168,7 @@ void loop() {
       else if(pverr>0) dpv1 = 1;
       else if(pverr<0) dpv1 = -1;
       ds[1].pvT+=dpv1;
-  //================================================================
+  //------
     if(displNum == 0) mainDispl();
 
   // if (numberOfDevices) {

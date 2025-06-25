@@ -12,6 +12,7 @@
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "SoftwarePWMBit.h" // Подключаем наш новый класс
 #include "procedure.h"
 
 #define DEBUG
@@ -139,7 +140,7 @@ extern uint8_t numberOfDevices, seconds, displNum, pwTriac, pvTimer, errDevice[]
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern SpUnion settings;
 extern DallasTemperature sensors;
-// extern DeviceAddress sensorAddress;
+extern const uint8_t tabRH[];
 
 byte writePCF8574(byte data);
 byte readPCF8574();

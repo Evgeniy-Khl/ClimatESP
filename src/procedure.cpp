@@ -62,6 +62,22 @@ bool check_freeze(uint8_t i){
  return false;
 }
 
+uint8_t tableRH(int16_t maxT, int16_t minT){
+  int16_t dT;
+   if (maxT>199 && maxT<410) // maxT> 19.9 и maxT< 41.0
+    {
+     dT = (maxT-minT)*16/10;    //?????????????????????????????????????
+     if (dT<0) dT = 240;        // задаем число при котором dT >>=3; выполняется -> dT>20
+     maxT /=10;
+     dT >>=3;
+     if (dT>20) dT = 255;
+     else if (dT==0) dT = 100;
+     else {maxT -= 20; maxT *= 20; maxT += (dT-1); dT = tabRH[maxT];};
+    }
+   else dT = 255;
+   return dT;
+ }
+
 //-------- Функция для печати текущих значений структуры в Serial порт --------
 #ifdef DEBUG
 void printConfig() {
@@ -189,3 +205,10 @@ bool loadConfig() {
     DEBUG_PRINTLN("Конфигурация успешно загружена.");
     return true;
 }
+
+// // Вспомогательная функция для печати
+// void printBinary(unsigned char byte) {
+//   for (int i = 7; i >= 0; i--) {
+//     DEBUG_PRINTLN(bitRead(byte, i));
+//   }
+// }

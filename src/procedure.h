@@ -15,8 +15,10 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
 void rotate_trays(void);
 bool check_freeze(uint8_t i);
+uint8_t tableRH(int16_t maxT, int16_t minT);
 void printConfig();
 void saveConfig();
 bool loadConfig();
+void printBinary(unsigned char byte);
 
 #endif /* _PROCEDURE_H */
