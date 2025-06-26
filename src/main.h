@@ -58,9 +58,9 @@ struct Sp{
     int16_t auxiliary;  // [0]-включение форсированного; [1]-выключение форсированного
     int16_t state;      // [0]-заслонка текущее; [1]-программа текущая
     int16_t flapLimit;  // [0]-закрыта; [1]-открыта
-    int16_t pulse;      // [0]-MIN; [1]-MAX
+    int16_t pulse;      // [0]-MIN; [1]-Период импульсов
     int16_t mode;       // [0]-релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное по кан.1; [1]-задержка регулировки по влажному
-    int16_t extendMode; // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; [1]-период импульсов
+    int16_t extendMode; // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; [1]-???????????????
     int16_t Kp;         // Пропорциональный
     int16_t Ki;         // Интегральный
 };
@@ -106,8 +106,8 @@ extern union Byte portFlag;
 #define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
 #define HUMIDI	portOut.bitfield.a1  // УВЛАЖНИТЕЛЬ
 #define TURN		portOut.bitfield.a2  // Поворот лотков
-#define EXTRA1	portOut.bitfield.a3  // Заслонка охлаждения
-#define EXTRA2	portOut.bitfield.a4  // Вспомогательный канал
+#define EXTRA1	portOut.bitfield.a3  // Заслонка/вентилятор охлаждения
+#define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель
 #define EXTRA3	portOut.bitfield.a5  // Авария
 
 #define ERROR1  errors.bitfield.a0  //
@@ -119,8 +119,8 @@ extern union Byte portFlag;
 #define ERROR7	errors.bitfield.a6  //
 #define ERROR8	errors.bitfield.a7  // завис датчик.
 
-#define REACHED0  portFlag.bitfield.a0  // Start of all checks
-#define REACHED1  portFlag.bitfield.a1  // Alarm flag
+#define REACHED0  portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
+#define REACHED1  portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
 #define VENTIL 	portFlag.bitfield.a2  // Ventilation flag
 #define EEPSAVE portFlag.bitfield.a3  // Save in EEPROM flag
 #define HIH5030	  portFlag.bitfield.a4  // exist HIH5030 flag
@@ -140,7 +140,7 @@ extern bool newDispl;
 extern float editValue;
 extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
-extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue;
+extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 extern SpUnion settings;
 extern DallasTemperature sensors;
 extern const uint8_t tabRH[];

@@ -17,7 +17,7 @@ bool newDispl = true, newTxt = true;
 // Глобальный массив указателей, который будет доступен всем функциям
 const char* keyLabel[15];
 uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
-uint16_t pvVadcRH, pvRH, heaterValue, humidiValue; // To store the touch coordinates;
+uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 uint8_t displNum=0, seconds=0, displPower, pvTimer, pvFlap, beepOn;
 float editValue;
 //---------------------------------

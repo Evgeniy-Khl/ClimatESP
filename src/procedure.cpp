@@ -13,7 +13,7 @@ uint8_t UpdatePID(uint8_t cn){
  float output;
   // Вычисление ошибки
   error = settings.sp_structs[cn].spT - ds[cn].pvT;
-  ds[cn].pvErr = error;
+  ds[cn].pvErr = error;         // error > 0 -> холодно
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
   // Интегральная составляющая
@@ -51,32 +51,42 @@ bool check_freeze(uint8_t i){
 
 int16_t checkPV(uint8_t cn){
   int16_t err;
-  if (cn && HIH5030){
-     if (pvVadcRH < 80) {errors.value |= (cn+1); err = 0;}
+  if(cn==1 && HIH5030){
+     if(pvVadcRH < 80) {errors.value |= (cn+1); err = 0;}
      else err = settings.sp_structs[1].spRH - pvRH;
-     ds[1].pvErr = err;
+     ds[1].pvErr = err;         // err > 0 -> холодно
   } else {
-     if (ds[cn].pvT >= 850) {errors.value |= (cn+1); err = 0;}
+     if(ds[cn].pvT >= 850) {errors.value |= (cn+1); err = 0;}
      else err = settings.sp_structs[cn].spT - ds[cn].pvT;
-     ds[cn].pvErr = err;
+     ds[cn].pvErr = err;        // err > 0 -> холодно
   };
   return err;
 }
 
 uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал № 1 или 2
   uint8_t x=UNALTERED;
-  int16_t err = checkPV(cn);        // err > 0 = холодно
-  if (err >= hysteresis) x = ON;    // включить
-  if (err <= 0) x = OFF;            // отключить
+  int16_t err = checkPV(cn);        // err > 0 -> холодно
+  if(err >= hysteresis) x = ON;    // включить
+  if(err <= 0) x = OFF;            // отключить
   return x;
 }
 
 uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 или 2
   uint8_t x=UNALTERED;
-  int16_t err = checkPV(cn);        // err > 0 = холодно
+  int16_t err = checkPV(cn);        // err > 0 -> холодно
   if ((err+on) <= 0) x = ON;        // включить
   if ((err+off) >= 0) x = OFF;      // отключить
   return x;
+}
+
+void OutPulse(void){
+  int16_t err = checkPV(1);                     // err > 0 -> холодно
+  if(err == 0){pvPulse = 0; return;};
+  if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
+  pvPulse = UpdatePID(1);                       // определение длительности ВКЛ. состояния
+  if(pvPulse < settings.sp_structs[0].pulse) pvPulse = settings.sp_structs[0].pulse;
+  else if(pvPulse > settings.sp_structs[1].pulse) pvPulse = settings.sp_structs[1].pulse;      // длит. впрыска не должна превыщать длит.переода
+  if(ds[1].pvErr < 0) pvPulse = 0;                  // отключение впрыска по 2 каналу если перелив
 }
 
 uint8_t tableRH(int16_t maxT, int16_t minT){

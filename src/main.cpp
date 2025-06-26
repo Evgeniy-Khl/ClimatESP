@@ -117,21 +117,42 @@ void loop() {
   #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
       switch (settings.sp_structs[0].mode) {
+          uint8_t val;
           case 0:
             heaterValue = UpdatePID(0);            // ПИД нагреватель
             humidiValue = UpdatePID(1);            // ПИД увлажнитель
             break;
           case 1:
+            val = RelayPos(0,2);
+            switch (val){
+                case ON: heaterValue = TRIACON; break;
+                case OFF: heaterValue = OFF;    break;
+            }
             humidiValue = UpdatePID(1);            // ПИД увлажнитель
             break;
           case 2:
             heaterValue = UpdatePID(0);            // ПИД нагреватель
+            val = RelayPos(1,3);
+            switch (val){
+                case ON: humidiValue = TRIACON; break;
+                case OFF: humidiValue = OFF;    break;
+            }
             break;
           case 3:
+            val = RelayPos(0,2);
+            switch (val){
+                case ON: heaterValue = TRIACON; break;
+                case OFF: heaterValue = OFF;    break;
+            }
+            val = RelayPos(1,3);
+            switch (val){
+                case ON: humidiValue = TRIACON; break;
+                case OFF: humidiValue = OFF;    break;
+            }
             break;
           case 4:
-            heaterValue = UpdatePID(0);            // ПИД нагреватель
-            // OutPulse(1);            // импульсное управление увлажнителем
+            heaterValue = UpdatePID(0);           // ПИД нагреватель
+            OutPulse();                           // импульсное управление увлажнителем
             break;
       }
     } else {heaterValue = 0; displPower = 0;}      //-- идет ОХЛАЖДЕНИЕ!--

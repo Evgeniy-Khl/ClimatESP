@@ -18,6 +18,7 @@ bool check_freeze(uint8_t i);
 uint8_t RelayPos(unsigned char cn, unsigned char hysteresis);
 uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off);
 uint8_t tableRH(int16_t maxT, int16_t minT);
+void OutPulse(void);
 void printConfig();
 void saveConfig();
 bool loadConfig();
