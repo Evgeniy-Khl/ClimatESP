@@ -1,17 +1,19 @@
 #include "main.h"
 #include "procedure.h"
 
+#define UNALTERED   2 // неизменный
 
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
     pid->Kp = (float)Kp/10;
     pid->Ki = (float)Ki/1000;
 }
 
-uint8_t UpdatePID(PIDController *pid, uint8_t cn){
+uint8_t UpdatePID(uint8_t cn){
  int16_t error;
  float output;
   // Вычисление ошибки
   error = settings.sp_structs[cn].spT - ds[cn].pvT;
+  ds[cn].pvErr = error;
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
   // Интегральная составляющая
@@ -30,20 +32,11 @@ uint8_t UpdatePID(PIDController *pid, uint8_t cn){
 //------------- симистричный таймер -------------------
 void rotate_trays(void){ 
   if(TURN){
+    if(--pvTimer == 0){pvTimer = settings.sp_structs[0].timer; TURN = OFF;}
+  } else {
     if(--pvTimer == 0){
-        pvTimer = settings.sp_structs[0].timer; 
-        TURN = OFF;
-    }
-  }
-  else {
-    if(--pvTimer == 0){
-        if(settings.sp_structs[1].timer){
-            pvTimer = settings.sp_structs[1].timer; 
-            TURN = ON;
-        } else {
-            pvTimer = settings.sp_structs[0].timer; 
-            TURN = ON;
-        }
+        if(settings.sp_structs[1].timer){pvTimer = settings.sp_structs[1].timer; TURN = ON;}
+        else {pvTimer = settings.sp_structs[0].timer; TURN = ON;}
     }
   }
 }
@@ -51,21 +44,44 @@ void rotate_trays(void){
 //------------- индикация 66,0 - завис датчик. --------------
 bool check_freeze(uint8_t i){
  if(ds[i].pvT == ds[i].previousValue){
-    if(++ds[i].counter > 600){
-        ds[i].counter = 600;
-        return true;
-    }
- } else {
-    ds[i].counter = 0; 
-    ds[i].previousValue = ds[i].pvT;
- }
+    if(++ds[i].duration > 600){ds[i].duration = 600; return true;}
+ } else {ds[i].duration = 0; ds[i].previousValue = ds[i].pvT;}
  return false;
+}
+
+int16_t checkPV(uint8_t cn){
+  int16_t err;
+  if (cn && HIH5030){
+     if (pvVadcRH < 80) {errors.value |= (cn+1); err = 0;}
+     else err = settings.sp_structs[1].spRH - pvRH;
+     ds[1].pvErr = err;
+  } else {
+     if (ds[cn].pvT >= 850) {errors.value |= (cn+1); err = 0;}
+     else err = settings.sp_structs[cn].spT - ds[cn].pvT;
+     ds[cn].pvErr = err;
+  };
+  return err;
+}
+
+uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал № 1 или 2
+  uint8_t x=UNALTERED;
+  int16_t err = checkPV(cn);        // err > 0 = холодно
+  if (err >= hysteresis) x = ON;    // включить
+  if (err <= 0) x = OFF;            // отключить
+  return x;
+}
+
+uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 или 2
+  uint8_t x=UNALTERED;
+  int16_t err = checkPV(cn);        // err > 0 = холодно
+  if ((err+on) <= 0) x = ON;        // включить
+  if ((err+off) >= 0) x = OFF;      // отключить
+  return x;
 }
 
 uint8_t tableRH(int16_t maxT, int16_t minT){
   int16_t dT;
-   if (maxT>199 && maxT<410) // maxT> 19.9 и maxT< 41.0
-    {
+   if (maxT>199 && maxT<410){ // maxT> 19.9 и maxT< 41.0
      dT = (maxT-minT)*16/10;    //?????????????????????????????????????
      if (dT<0) dT = 240;        // задаем число при котором dT >>=3; выполняется -> dT>20
      maxT /=10;
@@ -73,8 +89,7 @@ uint8_t tableRH(int16_t maxT, int16_t minT){
      if (dT>20) dT = 255;
      else if (dT==0) dT = 100;
      else {maxT -= 20; maxT *= 20; maxT += (dT-1); dT = tabRH[maxT];};
-    }
-   else dT = 255;
+   } else dT = 255;
    return dT;
  }
 

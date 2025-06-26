@@ -64,42 +64,29 @@ void setup() {
 
 void loop() {
 
-  //---------- Изменяем яркость светодиода --------------------------------------------
+  //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
   hasChanged |= heaterPwm.update();
   hasChanged |= humidiPwm.update();
-    
-  if (hasChanged) {
-      writePCF8574(portOut.value);
-      DEBUG_PRINT("Изменение! portOut: ");
-      #ifdef DEBUG
-      printBinary(portOut.value);
-      #endif
-      DEBUG_PRINTLN();
-  }
-  //====================================================================================
-
+  if (hasChanged)  writePCF8574(portOut.value);
 
   // Pressed will be set true is there is a valid touch on the screen
   bool pressed = tft.getTouch(&t_x, &t_y);
   if(pressed && !newDispl){
     switch (displNum){
-    case 0: 
-      // tft.loadFont(FONT_LARGE, LittleFS); // загрузка в память шрифта
-      // DEBUG_PRINTLN("main():Arial28");
-      // tft.setTextDatum(TC_DATUM);
-      displNum = 1; newDispl = true;
-      menu_1();
-      break;
-    case 1: checkKeypad(MENU_1); break;
-    case 2: checkKeypad(MENU_1); break;
-    case 3: checkKeypad(MENU_2); break;
-    case 4: checkKeypad(MENU_3); break;
+        case 0: 
+          displNum = 1; newDispl = true;
+          menu_1();
+          break;
+        case 1: checkKeypad(MENU_1); break;
+        case 2: checkKeypad(MENU_1); break;
+        case 3: checkKeypad(MENU_2); break;
+        case 4: checkKeypad(MENU_3); break;
 
-    case 10: checkKeypad(15); break;
+        case 10: checkKeypad(15); break;
     }
   } 
-  //========================================================================================================
+  //=================== НОВАЯ СЕКУНДА =================================
   long now = millis();
   if (now - lastMsg > 1000){
     seconds++; lastMsg = now; errors.value = 0;
@@ -108,35 +95,101 @@ void loop() {
     else if(displOff) --displOff;
     // else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);       // отключение дисплея через 5 минут
   //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
+  #ifndef DEBUG  
     temperature_check();
+  
     if (HIH5030){
       uint16_t adc=1024;
-      pvVadcRH = 0;//lowPassF2(adc);           // относительная влажность в Vadc ??????????????????????????????????????????
+      pvVadcRH = adc;//lowPassF2(adc);           // относительная влажность в Vadc ??????????????????????????????????????????
       if (pvVadcRH>80) pvRH = valDcToRH(pvVadcRH); // относительная влажность в %
       else pvRH = 1990;
     } else {
       uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
       if(valTable>100) pvRH = 999; else pvRH = valTable;
     }
+  #else
+    //-----температура воздуха------
+    dpv0 = pid[0].pPart/500 + pid[0].iPart/10;
+    ds[0].pvT += dpv0;
+    dpv1 = pid[1].pPart/500 + pid[1].iPart/10;
+    ds[1].pvT += dpv1;
+    //------
+  #endif
+    if(!COOLING){  //-------------- нормальная работа -------------------------
+      switch (settings.sp_structs[0].mode) {
+          case 0:
+            heaterValue = UpdatePID(0);            // ПИД нагреватель
+            humidiValue = UpdatePID(1);            // ПИД увлажнитель
+            break;
+          case 1:
+            humidiValue = UpdatePID(1);            // ПИД увлажнитель
+            break;
+          case 2:
+            heaterValue = UpdatePID(0);            // ПИД нагреватель
+            break;
+          case 3:
+            break;
+          case 4:
+            heaterValue = UpdatePID(0);            // ПИД нагреватель
+            // OutPulse(1);            // импульсное управление увлажнителем
+            break;
+      }
+    } else {heaterValue = 0; displPower = 0;}      //-- идет ОХЛАЖДЕНИЕ!--
+    if(settings.sp_structs[1].mode == 1 && !REACHED0) humidiValue=OFF; // задержка регулирования по 2 каналу до прогрева инкубатора
+    heaterPwm.write(heaterValue);
+    humidiPwm.write(humidiValue);
 
-    heaterValue = UpdatePID(&pid[0],0);            // ПИД нагреватель
-    humidiValue = UpdatePID(&pid[1],1);            // ПИД увлажнитель
-
-    /* if(!COOLING){               // нормальная работа
-         pwTriac0 = OutPW(0);
-         if (pwTriac0) CN1 = CN1ON;                 // включить канал 1 (10 А)
-         if (relayMode & 4) OutPulse(1);            // импульсное управление увлажнителем
-         else pwTriac1 = OutPW(1);
-         if (Superheat) {pwTriac0 = OFF; pwTriac1 = OFF; errors |= 0x80;}// ПЕРЕГРЕВ СИМСТОРА !!!
-         power = pwTriac0/2;
-         statPw[0]+=power;                          // расчет эконометра
-         if (checkDry==1 && !(ok[0]&1)) pwTriac1=OFF; // задержка регулирования по 2 каналу до прогрева инкубатора
-         if (pwTriac1) CN2 = CN2ON;                 // включить канал 2 (10 А)
-         statPw[1]+=(pwTriac1/2);                   // расчет эконометра
+    if(!COOLING){  //-------------- нормальная работа -------------------------
+      //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
+      if(ERROR1 == 0){
+        if (ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;       // включить вспомогательны нагреватель
+        else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = OFF; // отключить вспомогательны нагреватель
+      } else EXTRA2 = OFF;                                                      // отключить вспомогательны нагреватель
+      //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
+      uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
+      if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
+              val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
+      if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
+      //------ АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ ---------------------------------------------------------------
+      if(settings.sp_structs[0].extendMode&1){    // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
+        uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // канал 5 АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
+        if(val == ON) EXTRA3 = ON;                // включить канал 5
+        else if(val == OFF) EXTRA3 = OFF;         // отключить канал 5
+      }
+    //------- ПРОВЕТРИВАНИЕ ----------------------------------------------------------------------    
+      if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
+        EXTRA1 = ON; pvFlap = 100; beepOn = 10;
+        if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; AERATION =0;}
+      }
+      // if(setup==0) alarm();
     }
-    else {CN2=CN2OFF; power=0;}  // идет ОХЛАЖДЕНИЕ! */
+    // setflap();                            // задание положения заслонки 
+    // if((setup+setprgday)==0) display(displmode);// вывод на дисплей
 
-  //================================= НОВАЯ МИНУТА ==============================
+    //-------------------------
+    
+    DateTime now = rtc.now();
+    if(displNum == 0) mainDispl();
+    //-----------------------------------------------------------------------------
+
+    // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
+    // writePCF8574(now.second()%10);
+    /* -- Пример 2: Чтение входов PCF8574 ---
+          Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
+          чтобы перевести их в режим "квази-входа" с высоким импедансом.
+          Если к пину ничего не подключено или подключено к VCC, вы прочитаете '1'.
+          Если пин замкнут на GND, вы прочитаете '0'. 
+    writePCF8574(0x80); // Устанавливаем  пин в режим "квази-входа"
+    delay(100); // Небольшая задержка для стабилизации
+    byte inputData = readPCF8574();
+    // Пример проверки состояния конкретного пина (например, P8)
+    if (!(inputData & 0x80)) { // Если P8 равен 0
+      DEBUG_PRINTLN("Pin P8 is LOW");
+    } else {
+      DEBUG_PRINTLN("Pin P8 is HIGH");
+    }
+    */
+    //================================= НОВАЯ МИНУТА ==============================
     if(seconds > 59){
         seconds = 0;
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
@@ -154,64 +207,6 @@ void loop() {
         }
     }
   //==================================================================================
-    //-----температура воздуха------
-    dpv0 = (float)pid[0].pPart/500;
-    flT0+=dpv0;
-    ds[0].pvT = flT0;
-    int16_t pverr = settings.sp_structs[0].spT - ds[0].pvT;
-    //----температура среды------
-      pverr = settings.sp_structs[1].spT - ds[1].pvT;
-      if(pverr>200) dpv1 = 6;
-      else if(pverr>100) dpv1 = 5;
-      else if(pverr>50) dpv1 = 3;
-      else if(pverr>10) dpv1 = 2;
-      else if(pverr>0) dpv1 = 1;
-      else if(pverr<0) dpv1 = -1;
-      ds[1].pvT+=dpv1;
-  //------
-    if(displNum == 0) mainDispl();
-
-  // if (numberOfDevices) {
-  //   // Получаем температуру
-  //   for (byte i = 0; i < numberOfDevices; i++)
-  //   {
-  //     float tempC = sensors.getTempCByIndex(i); // Температура в градусах Цельсия
-  //     // Проверка на корректность чтения
-  //     if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
-  //       Serial.printf("Error%d= %.2f °C\n", i, tempC);
-  //       errDevice[i]++;
-  //     } else {
-  //       if(i==0) t1 = tempC*10;
-  //       Serial.printf("T%d= %.2f °C\n", i, tempC);
-  //       errDevice[i] = 0;
-  //     }
-  //   }
-  //   DEBUG_PRINTLN();
-  //   sensors.requestTemperatures(); // Отправляем команду на измерение
-  // } else {
-  //   DEBUG_PRINTLN("No sensors to read from.");
-  // }
-    //-------------------------
-    DateTime now = rtc.now();
-    //-----------------------------------------------------------------------------
-    // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
-    writePCF8574(now.second()%10);
-    /* -- Пример 2: Чтение входов PCF8574 ---
-          Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
-          чтобы перевести их в режим "квази-входа" с высоким импедансом.
-          Если к пину ничего не подключено или подключено к VCC, вы прочитаете '1'.
-          Если пин замкнут на GND, вы прочитаете '0'. 
-    writePCF8574(0x80); // Устанавливаем  пин в режим "квази-входа"
-    delay(100); // Небольшая задержка для стабилизации
-    byte inputData = readPCF8574();
-    // Пример проверки состояния конкретного пина (например, P8)
-    if (!(inputData & 0x80)) { // Если P8 равен 0
-      DEBUG_PRINTLN("Pin P8 is LOW");
-    } else {
-      DEBUG_PRINTLN("Pin P8 is HIGH");
-    }
-    */
-    
   }
     //-----------------------------------------------------------------------------
 }

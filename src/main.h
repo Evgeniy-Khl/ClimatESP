@@ -36,9 +36,10 @@
 
 typedef struct {
   int16_t pvT;
+  int16_t pvErr;
   int16_t previousValue;
-  uint8_t err;
-  uint16_t counter;
+  uint8_t errDevice;
+  uint16_t duration;
 } Ds;
 
 extern Ds ds[];
@@ -105,9 +106,9 @@ extern union Byte portFlag;
 #define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
 #define HUMIDI	portOut.bitfield.a1  // УВЛАЖНИТЕЛЬ
 #define TURN		portOut.bitfield.a2  // Поворот лотков
-#define EXTRA1	portOut.bitfield.a3  // Вспомогательный канал
+#define EXTRA1	portOut.bitfield.a3  // Заслонка охлаждения
 #define EXTRA2	portOut.bitfield.a4  // Вспомогательный канал
-#define EXTRA3	portOut.bitfield.a5  // Вспомогательный канал
+#define EXTRA3	portOut.bitfield.a5  // Авария
 
 #define ERROR1  errors.bitfield.a0  //
 #define ERROR2	errors.bitfield.a1  //
@@ -118,17 +119,18 @@ extern union Byte portFlag;
 #define ERROR7	errors.bitfield.a6  //
 #define ERROR8	errors.bitfield.a7  // завис датчик.
 
-#define CHECK   portFlag.bitfield.a0  // Start of all checks
-#define ALARM   portFlag.bitfield.a1  // Alarm flag
+#define REACHED0  portFlag.bitfield.a0  // Start of all checks
+#define REACHED1  portFlag.bitfield.a1  // Alarm flag
 #define VENTIL 	portFlag.bitfield.a2  // Ventilation flag
 #define EEPSAVE portFlag.bitfield.a3  // Save in EEPROM flag
-#define HIH5030	portFlag.bitfield.a4  // exist HIH5030 flag
-#define AM2301	portFlag.bitfield.a5  // exist AM2301 flag
+#define HIH5030	  portFlag.bitfield.a4  // exist HIH5030 flag
+#define AM2301	  portFlag.bitfield.a5  // exist AM2301 flag
 #define COOLING   portFlag.bitfield.a6  // охлаждение
-#define AERATION  portFlag.bitfield.a7  // 
+#define AERATION  portFlag.bitfield.a7  // проветривание
 
 #define ON 1
 #define OFF 0
+#define TRIACON 1023
 #define DISPLAYOFF 300
 
 
@@ -136,8 +138,9 @@ extern RTC_DS3231 rtc;
 extern char displStr[];
 extern bool newDispl;
 extern float editValue;
-extern uint8_t numberOfDevices, seconds, displNum, pwTriac, pvTimer, errDevice[];
+extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
 extern uint16_t xpos, ypos, txt_height, t_x, t_y;
+extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue;
 extern SpUnion settings;
 extern DallasTemperature sensors;
 extern const uint8_t tabRH[];

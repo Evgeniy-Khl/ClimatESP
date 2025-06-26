@@ -18,13 +18,11 @@ bool newDispl = true, newTxt = true;
 const char* keyLabel[15];
 uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
 uint16_t pvVadcRH, pvRH, heaterValue, humidiValue; // To store the touch coordinates;
-uint8_t displNum=0, seconds=0, pvTimer, pvFlap, beepOn;
+uint8_t displNum=0, seconds=0, displPower, pvTimer, pvFlap, beepOn;
 float editValue;
-// spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
 //---------------------------------
 Ds ds[2] = {{350,0},{280,0}};
-int8_t dpv1 = 2;
-float flT0=350, dpv0;
+float dpv0, dpv1;
 //---------------------------------
 GrafDispl grafDispl[2] = {
     { 80,80,80, 0, 0},    // Инициализация grafDispl[0]

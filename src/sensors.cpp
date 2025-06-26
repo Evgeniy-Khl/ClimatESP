@@ -12,12 +12,12 @@ void temperature_check(void){
     sprintf(buff, "TempCByIndex(%i): %5.1f °C",i,tempC);
     Serial.println(buff);
     if(tempC == DEVICE_DISCONNECTED_C) {
-      ds[i].err++;
-      if(ds[i].err > 5) {ds[i].pvT = 1990; ds[i].err = 5;}
+      ds[i].errDevice++;
+      if(ds[i].errDevice > 5) {ds[i].pvT = 1990; ds[i].errDevice = 5;}
     }
     else {
       ds[i].pvT = tempC * 10;
-      ds[i].err = 0;
+      ds[i].errDevice = 0;
     }
     //----- Коректировка датчика DS18B20 ---------
     sensors.getAddress(sensorAddress, i);
