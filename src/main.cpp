@@ -1,15 +1,6 @@
-/*
-RAM:   [====      ]  43.3% (used 35472 bytes from 81920 bytes)
-Flash: [====      ]  37.7% (used 393475 bytes from 1044464 bytes)
-
-RAM:   [====      ]  39.8% (used 32576 bytes from 81920 bytes)
-Flash: [===       ]  34.5% (used 360187 bytes from 1044464 bytes)
-*/
 
 #include "main.h"
-#include "tftArcFill.h"
 #include "display.h"
-#include "touchKeypad.h"
 #include "procedure.h"
 #include "sensors.h"
 #include "AT24C32.h"
@@ -24,15 +15,23 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
 
-
-// Создаем объекты TFT
-TFT_eSPI tft = TFT_eSPI();    // Создаем экземпляр библиотеки
-
 void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
-  
+    //--------- инициализация FS -----------------------------------------
+  if (!LittleFS.begin()) {
+    DEBUG_PRINTLN("Flash FS initialisation failed!");
+    
+  }
+  // Serial.println("\nFlash FS available!");
+  // bool font_missing = false;
+  // if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
+  // if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
+  // if (font_missing){
+  //   DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
+  // } else DEBUG_PRINTLN("\nFonts found OK.");
+
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 
