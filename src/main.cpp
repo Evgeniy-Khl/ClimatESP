@@ -82,10 +82,12 @@ void loop() {
     dpv1 = pid[1].pPart/100 + pid[1].iPart;
     ds[1].pvT += dpv1;
     //------
-    char displStr[65];
-    sprintf(displStr,"pP0 = %g; iP0 = %g",pid[0].pPart,pid[0].iPart);
+    char displStr[100];
+    sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
     DEBUG_PRINTLN(displStr);
-    sprintf(displStr,"pP1 = %g; ip1 = %g",pid[1].pPart,pid[1].iPart);
+    sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"pP0 = %g; iP0 = %g; pP1 = %g; ip1 = %g;",pid[0].pPart,pid[0].iPart,pid[1].pPart,pid[1].iPart);
     DEBUG_PRINTLN(displStr);
     sprintf(displStr,"dpv0 = %g; dpv1 = %g",dpv0,dpv1);
     DEBUG_PRINTLN(displStr);
