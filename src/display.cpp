@@ -1,5 +1,4 @@
 #include "main.h"
-#include "display.h"
 
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
 void mainDispl(void){

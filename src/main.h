@@ -14,6 +14,9 @@
 #include <DallasTemperature.h>
 #include "SoftwarePWMBit.h" // Подключаем наш новый класс
 #include "procedure.h"
+#include "display.h"
+#include "sensors.h"
+#include "AT24C32.h"
 
 #define DEBUG
 
@@ -124,11 +127,9 @@ extern union Byte portFlag;
 
 
 extern RTC_DS3231 rtc;
-extern char displStr[];
 extern bool newDispl;
 extern float editValue;
 extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
-extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 extern SpUnion settings;
 extern DallasTemperature sensors;

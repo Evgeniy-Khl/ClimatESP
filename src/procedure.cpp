@@ -1,5 +1,4 @@
 #include "main.h"
-#include "procedure.h"
 
 #define UNALTERED   2 // неизменный
 
@@ -9,25 +8,42 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 void initMyConfig(){
+  char displStr[65];
+//--------- инициализация FS -----------------------------------------
+  if (!LittleFS.begin()) {
+    DEBUG_PRINTLN("Flash FS initialisation failed!");
+    
+    saveConfig();  // значения по умолчанию
+    delay(3000);
+  }
 //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
     if(!loadConfig()){
       DEBUG_PRINTLN("Конфігурація не завантажена!");
+      
+      saveConfig();  // значения по умолчанию
+      delay(3000);
     }
   }
   else {
-    saveConfig();  // Сохраним эти значения в файл
+    saveConfig();  // значения по умолчанию
     DEBUG_PRINTLN("Конфігурація за замовчуванням!");
+    
+    delay(3000);
   }
-  xpos = 0; ypos += 25;
   DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
     printConfig();
   #endif
-  //--------- инициализация PID --------------------------------------------
+    //--------- инициализация PID --------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
-  sprintf(displStr,"Пропорц.= %g  Ітеграл.= %g", pid[0].Kp,pid[0].Ki);
+  PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
+
+  sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
   DEBUG_PRINTLN(displStr);
+  sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+  DEBUG_PRINTLN(displStr);
+
   //------------------------------------------------------------------------
   /* DEBUG_PRINTLN("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
@@ -70,8 +86,9 @@ void initMyConfig(){
   writePCF8574(0x00);         // Установить все пины в LOW (если они используются как выходы)
 
   //---------- Инициализация DS3231 ----------------------------------------
-  if (rtc.begin()) {
-    DEBUG_PRINTLN("RTC found!");
+  if(!rtc.begin()) {
+    DEBUG_PRINTLN("RTC NOT found!");
+
   }
   //------------------------------------------------------------------------------
   // testAT24C32();              // тест
@@ -89,16 +106,10 @@ void initMyConfig(){
   // Поиск устройств на шине 1-Wire
   numberOfDevices = sensors.getDeviceCount();
   if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
-  // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
+  
   DEBUG_PRINT("Found ");
   DEBUG_PRINT(numberOfDevices, DEC);
   DEBUG_PRINTLN(" devices.");
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  // tft.drawString("Датчиків температури - ", xpos, ypos, 2);
-  // xpos = 220;
-  // sprintf(displStr,"%d шт.", numberOfDevices);
-  // tft.drawString(displStr, xpos, ypos, 2);
-  // xpos = 0; ypos += 25;
 
   #ifdef DEBUG
     if (numberOfDevices == 0) {
@@ -125,8 +136,8 @@ void initMyConfig(){
     }
   #endif
   //==================================================================================
+
   delay(3000);
-  // tft.fillScreen(TFT_BLACK);
 }
 
 uint8_t UpdatePID(uint8_t cn){

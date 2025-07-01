@@ -1,9 +1,5 @@
 
 #include "main.h"
-#include "display.h"
-#include "procedure.h"
-#include "sensors.h"
-#include "AT24C32.h"
 #include "my_settings.h"
 
 PIDController pid[2];
@@ -19,19 +15,7 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
-    //--------- инициализация FS -----------------------------------------
-  if (!LittleFS.begin()) {
-    DEBUG_PRINTLN("Flash FS initialisation failed!");
-    
-  }
-  // Serial.println("\nFlash FS available!");
-  // bool font_missing = false;
-  // if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
-  // if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
-  // if (font_missing){
-  //   DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
-  // } else DEBUG_PRINTLN("\nFonts found OK.");
-
+ 
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 
@@ -51,10 +35,11 @@ void loop() {
   if (hasChanged)  writePCF8574(portOut.value);
 
   
-  //=================== НОВАЯ СЕКУНДА =================================
+  //============================= НОВАЯ СЕКУНДА =================================
   long now = millis();
   if (now - lastMsg > 1000){
-    seconds++; lastMsg = now; errors.value = 0;
+    if(++seconds > 59) seconds = 0; 
+    lastMsg = now; errors.value = 0;
     if(resetDispl) --resetDispl; 
     else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
     
@@ -73,11 +58,25 @@ void loop() {
     }
   #else
     //-----температура воздуха------
-    dpv0 = pid[0].pPart/500 + pid[0].iPart/10;
+    UpdatePID(0);            // ПИД нагреватель
+    UpdatePID(1);            // ПИД нагреватель
+    dpv0 = pid[0].pPart/100 + pid[0].iPart;
     ds[0].pvT += dpv0;
-    dpv1 = pid[1].pPart/500 + pid[1].iPart/10;
+    dpv1 = pid[1].pPart/100 + pid[1].iPart;
     ds[1].pvT += dpv1;
     //------
+    char displStr[100];
+    sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"pP0 = %g; iP0 = %g; pP1 = %g; ip1 = %g;",pid[0].pPart,pid[0].iPart,pid[1].pPart,pid[1].iPart);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"dpv0 = %g; dpv1 = %g",dpv0,dpv1);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"T0 = %5.1f; T1 = %5.1f",(float)ds[0].pvT/10,(float)ds[1].pvT/10);
+    DEBUG_PRINTLN(displStr);
+
   #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
       switch (settings.sp_structs[0].mode) {
@@ -174,9 +173,9 @@ void loop() {
       DEBUG_PRINTLN("Pin P8 is HIGH");
     }
     */
-    //================================= НОВАЯ МИНУТА ==============================
-    if(seconds > 59){
-        seconds = 0;
+    //==================== НОВАЯ МИНУТА =======================================
+    if(seconds == 0){
+
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
         if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
@@ -190,11 +189,9 @@ void loop() {
           if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; COOLING = 0;}
           // if(extendMode&1) BREAK=ON; 
         }
-    }
-  //==================================================================================
-  }
-    //-----------------------------------------------------------------------------
-}
+    }//==================== КОНЕЦ МИНУТЫ  ===================================
+  }//====================== КОНЕЦ СЕКУНДЫ ===================================
+}//-------------------------- loop() ---------------------------------------
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
