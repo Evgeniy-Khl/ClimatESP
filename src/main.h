@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <FS.h>
+#include <LittleFS.h>
+#define FlashFS LittleFS
 
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи

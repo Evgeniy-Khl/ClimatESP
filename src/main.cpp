@@ -28,7 +28,19 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
-  
+    //--------- инициализация FS -----------------------------------------
+  if (!LittleFS.begin()) {
+    DEBUG_PRINTLN("Flash FS initialisation failed!");
+    
+  }
+  // Serial.println("\nFlash FS available!");
+  // bool font_missing = false;
+  // if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
+  // if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
+  // if (font_missing){
+  //   DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
+  // } else DEBUG_PRINTLN("\nFonts found OK.");
+
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 

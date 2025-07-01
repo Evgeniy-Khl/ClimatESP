@@ -10,6 +10,7 @@ typedef struct {
 extern PIDController pid[];
 extern uint8_t seconds;
 
+void initMyConfig();
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki);
 uint8_t UpdatePID(uint8_t cn);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
@@ -22,6 +23,7 @@ void OutPulse(void);
 void printConfig();
 void saveConfig();
 bool loadConfig();
+void printAddress(DeviceAddress deviceAddress);
 void printBinary(unsigned char byte);
 
 #endif /* _PROCEDURE_H */
