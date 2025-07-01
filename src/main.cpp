@@ -52,7 +52,7 @@ void loop() {
   if (hasChanged)  writePCF8574(portOut.value);
 
   
-  //=================== НОВАЯ СЕКУНДА =================================
+  //============================= НОВАЯ СЕКУНДА =================================
   long now = millis();
   if (now - lastMsg > 1000){
     if(++seconds > 59) seconds = 0; 
@@ -61,7 +61,7 @@ void loop() {
     else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
     
   //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
-  #ifndef DEBUG  
+    #ifndef DEBUG  
     temperature_check();
   
     if (HIH5030){
@@ -73,15 +73,25 @@ void loop() {
       uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
       if(valTable>100) pvRH = 999; else pvRH = valTable;
     }
-  #else
+    #else
     //-----температура воздуха------
-    dpv0 = pid[0].pPart/500 + pid[0].iPart/10;
+    UpdatePID(0);            // ПИД нагреватель
+    UpdatePID(1);            // ПИД нагреватель
+    dpv0 = pid[0].pPart/100 + pid[0].iPart;
     ds[0].pvT += dpv0;
-    dpv1 = pid[1].pPart/500 + pid[1].iPart/10;
+    dpv1 = pid[1].pPart/100 + pid[1].iPart;
     ds[1].pvT += dpv1;
     //------
-
-  #endif
+    char displStr[65];
+    sprintf(displStr,"pP0 = %g; iP0 = %g",pid[0].pPart,pid[0].iPart);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"pP1 = %g; ip1 = %g",pid[1].pPart,pid[1].iPart);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"dpv0 = %g; dpv1 = %g",dpv0,dpv1);
+    DEBUG_PRINTLN(displStr);
+    sprintf(displStr,"T0 = %5.1f; T1 = %5.1f",(float)ds[0].pvT/10,(float)ds[1].pvT/10);
+    DEBUG_PRINTLN(displStr);
+    #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
       switch (settings.sp_structs[0].mode) {
           uint8_t val;
@@ -144,7 +154,7 @@ void loop() {
         if(val == ON) EXTRA3 = ON;                // включить канал 5
         else if(val == OFF) EXTRA3 = OFF;         // отключить канал 5
       }
-    //------- ПРОВЕТРИВАНИЕ ----------------------------------------------------------------------    
+      //------- ПРОВЕТРИВАНИЕ ----------------------------------------------------------------------    
       if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
         EXTRA1 = ON; pvFlap = 100; beepOn = 10;
         if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; AERATION =0;}
@@ -177,7 +187,7 @@ void loop() {
       DEBUG_PRINTLN("Pin P8 is HIGH");
     }
     */
-    //================================= НОВАЯ МИНУТА ==============================
+    //==================== НОВАЯ МИНУТА =======================================
     if(seconds == 0){
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
         if(settings.sp_structs[0].timer) rotate_trays();
@@ -192,11 +202,9 @@ void loop() {
           if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; COOLING = 0;}
           // if(extendMode&1) BREAK=ON; 
         }
-    }
-  //==================================================================================
-  }
-    //-----------------------------------------------------------------------------
-}
+    }//==================== КОНЕЦ МИНУТЫ  ===================================
+  }//====================== КОНЕЦ СЕКУНДЫ ===================================
+}//-------------------------- loop() ---------------------------------------
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {

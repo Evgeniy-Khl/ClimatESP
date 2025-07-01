@@ -15,6 +15,7 @@ void initMyConfig(){
     DEBUG_PRINTLN("Flash FS initialisation failed!");
     data[6] = NUMBER_FONT[14];  // "E"
     saveConfig();  // значения по умолчанию
+    delay(3000);
   }
 //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
@@ -22,13 +23,14 @@ void initMyConfig(){
       DEBUG_PRINTLN("Конфігурація не завантажена!");
       data[6] = NUMBER_FONT[12];  // "C"
       saveConfig();  // значения по умолчанию
+      delay(3000);
     }
   }
   else {
     saveConfig();  // значения по умолчанию
     DEBUG_PRINTLN("Конфігурація за замовчуванням!");
     data[6] = NUMBER_FONT[10];  // "A"
-
+    delay(3000);
   }
   DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
@@ -36,8 +38,13 @@ void initMyConfig(){
   #endif
   //--------- инициализация PID --------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
-  sprintf(displStr,"Пропорц.= %g  Ітеграл.= %g", pid[0].Kp,pid[0].Ki);
+  PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
+
+  sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
   DEBUG_PRINTLN(displStr);
+  sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+  DEBUG_PRINTLN(displStr);
+  
   //------------------------------------------------------------------------
   /* DEBUG_PRINTLN("\n");
   uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
@@ -82,7 +89,6 @@ void initMyConfig(){
   //---------- Инициализация DS3231 ----------------------------------------
   if(!rtc.begin()) {
     DEBUG_PRINTLN("RTC NOT found!");
-    
     data[7] = NUMBER_FONT[9];   // "9"
   }
   //------------------------------------------------------------------------------

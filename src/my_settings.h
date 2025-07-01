@@ -20,7 +20,7 @@ uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 uint8_t displNum=0, seconds=0, displPower, pvTimer, pvFlap, beepOn;
 float editValue;
 //---------------------------------
-Ds ds[2] = {{350,0,0,0,0},{280,0,0,0,0}};
+Ds ds[2] = {{200,0,0,0,0},{180,0,0,0,0}};
 float dpv0, dpv1;
 //---------------------------------
 uint8_t data[] = {
