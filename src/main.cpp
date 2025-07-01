@@ -1,15 +1,6 @@
-/*
-RAM:   [====      ]  43.3% (used 35472 bytes from 81920 bytes)
-Flash: [====      ]  37.7% (used 393475 bytes from 1044464 bytes)
-
-RAM:   [====      ]  39.8% (used 32576 bytes from 81920 bytes)
-Flash: [===       ]  34.5% (used 360187 bytes from 1044464 bytes)
-*/
 
 #include "main.h"
-#include "tftArcFill.h"
 #include "display.h"
-#include "touchKeypad.h"
 #include "procedure.h"
 #include "sensors.h"
 #include "AT24C32.h"
