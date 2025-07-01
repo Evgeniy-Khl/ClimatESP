@@ -35,7 +35,13 @@
 #define ONE_WIRE_BUS_PIN LEDPIN   // используется номер GPIO2
 #define MAX_DEVICE 4              // ограничение количества датчиков
 
-
+typedef struct {
+  int16_t pvT;
+  int16_t pvErr;
+  int16_t previousValue;
+  uint8_t errDevice;
+  uint16_t duration;
+} Ds;
 
 extern Ds ds[];
 
