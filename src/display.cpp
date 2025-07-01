@@ -39,5 +39,5 @@ void drawKeypad(const char* keyLabel[], uint16_t keyColor[]){
 }
 
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos){
-    
+    return false;
 }

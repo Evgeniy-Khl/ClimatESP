@@ -24,10 +24,7 @@ float editValue;
 Ds ds[2] = {{350,0},{280,0}};
 float dpv0, dpv1;
 //---------------------------------
-GrafDispl grafDispl[2] = {
-    { 80,80,80, 0, 0},    // Инициализация grafDispl[0]
-    {240,80,80, 0, 0},    // Инициализация grafDispl[1]
-};
+
 union Byte portOut;
 union Byte errors;
 union Byte portFlag;
