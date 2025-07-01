@@ -21,11 +21,7 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
-    //--------- инициализация FS -----------------------------------------
-  if (!LittleFS.begin()) {
-    DEBUG_PRINTLN("Flash FS initialisation failed!");
-    
-  }
+  
   // Serial.println("\nFlash FS available!");
   // bool font_missing = false;
   // if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
@@ -59,7 +55,8 @@ void loop() {
   //=================== НОВАЯ СЕКУНДА =================================
   long now = millis();
   if (now - lastMsg > 1000){
-    seconds++; lastMsg = now; errors.value = 0;
+    if(++seconds > 59) seconds = 0; 
+    lastMsg = now; errors.value = 0;
     if(resetDispl) --resetDispl; 
     else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
     
@@ -83,12 +80,6 @@ void loop() {
     dpv1 = pid[1].pPart/500 + pid[1].iPart/10;
     ds[1].pvT += dpv1;
     //------
-    data[0] = NUMBER_FONT[ds[0].pvT/100];
-    data[1] = NUMBER_FONT[(ds[0].pvT%100)/10] | 0b10000000;
-    data[2] = NUMBER_FONT[ds[0].pvT%10];
-    data[3] = NUMBER_FONT[keys/100];
-    data[4] = NUMBER_FONT[(keys%100)/10];// | 0b10000000;
-    data[5] = NUMBER_FONT[keys%10];
 
   #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
@@ -165,7 +156,7 @@ void loop() {
 
     //-------------------------
     
-    DateTime now = rtc.now();
+    // DateTime now = rtc.now();
     if(displNum == 0) mainDispl();
     //-----------------------------------------------------------------------------
 
@@ -187,8 +178,7 @@ void loop() {
     }
     */
     //================================= НОВАЯ МИНУТА ==============================
-    if(seconds > 59){
-        seconds = 0;
+    if(seconds == 0){
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
         if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------

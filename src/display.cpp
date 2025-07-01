@@ -3,7 +3,17 @@
 
 //--------- ОСНОВНОЙ ЭКРАН ----------------------
 void mainDispl(void){
-  
+  data[0] = NUMBER_FONT[ds[0].pvT/100];
+  data[1] = NUMBER_FONT[(ds[0].pvT%100)/10] | 0b10000000;
+  data[2] = NUMBER_FONT[ds[0].pvT%10];
+  data[3] = NUMBER_FONT[ds[1].pvT/100];
+  data[4] = NUMBER_FONT[(ds[1].pvT%100)/10] | 0b10000000;
+  data[5] = NUMBER_FONT[ds[1].pvT%10];
+
+  data[6] = NUMBER_FONT[seconds/10];
+  data[7] = NUMBER_FONT[seconds%10];
+
+  module.setDisplay(data, 8);
 }
 
 void menu_1(){

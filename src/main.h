@@ -128,7 +128,6 @@ extern uint8_t data[];
 extern bool newDispl;
 extern float editValue;
 extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
-extern uint16_t xpos, ypos, txt_height, t_x, t_y;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 extern SpUnion settings;
 extern DallasTemperature sensors;

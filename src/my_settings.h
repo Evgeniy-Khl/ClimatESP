@@ -20,7 +20,7 @@ uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
 uint8_t displNum=0, seconds=0, displPower, pvTimer, pvFlap, beepOn;
 float editValue;
 //---------------------------------
-Ds ds[2] = {{350,0},{280,0}};
+Ds ds[2] = {{350,0,0,0,0},{280,0,0,0,0}};
 float dpv0, dpv1;
 //---------------------------------
 uint8_t data[] = {
@@ -30,8 +30,8 @@ uint8_t data[] = {
   0b11101101, // 5.
   0b01011011, // 2
   0b01101101, // 5
-  0,
-  0
+  0,          // blank
+  0           // blank
 };
 
 union Byte portOut;

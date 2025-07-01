@@ -10,17 +10,26 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 
 void initMyConfig(){
   char displStr[65];
+//--------- инициализация FS -----------------------------------------
+  if (!LittleFS.begin()) {
+    DEBUG_PRINTLN("Flash FS initialisation failed!");
+    data[6] = NUMBER_FONT[14];  // "E"
+    saveConfig();  // значения по умолчанию
+  }
 //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
     if(!loadConfig()){
       DEBUG_PRINTLN("Конфігурація не завантажена!");
+      data[6] = NUMBER_FONT[12];  // "C"
+      saveConfig();  // значения по умолчанию
     }
   }
   else {
-    saveConfig();  // Сохраним эти значения в файл
+    saveConfig();  // значения по умолчанию
     DEBUG_PRINTLN("Конфігурація за замовчуванням!");
+    data[6] = NUMBER_FONT[10];  // "A"
+
   }
-  xpos = 0; ypos += 25;
   DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
     printConfig();
@@ -71,8 +80,10 @@ void initMyConfig(){
   writePCF8574(0x00);         // Установить все пины в LOW (если они используются как выходы)
 
   //---------- Инициализация DS3231 ----------------------------------------
-  if (rtc.begin()) {
-    DEBUG_PRINTLN("RTC found!");
+  if(!rtc.begin()) {
+    DEBUG_PRINTLN("RTC NOT found!");
+    
+    data[7] = NUMBER_FONT[9];   // "9"
   }
   //------------------------------------------------------------------------------
   // testAT24C32();              // тест
@@ -90,17 +101,11 @@ void initMyConfig(){
   // Поиск устройств на шине 1-Wire
   numberOfDevices = sensors.getDeviceCount();
   if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
-  // data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
+  data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
   DEBUG_PRINT("Found ");
   DEBUG_PRINT(numberOfDevices, DEC);
   DEBUG_PRINTLN(" devices.");
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  // tft.drawString("Датчиків температури - ", xpos, ypos, 2);
-  // xpos = 220;
-  // sprintf(displStr,"%d шт.", numberOfDevices);
-  // tft.drawString(displStr, xpos, ypos, 2);
-  // xpos = 0; ypos += 25;
-
+  
   #ifdef DEBUG
     if (numberOfDevices == 0) {
       DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
@@ -128,7 +133,6 @@ void initMyConfig(){
   //==================================================================================
   module.setDisplay(data, 8); // Вывод на дисплей "2d1 | 5.12"
   delay(3000);
-  // tft.fillScreen(TFT_BLACK);
 }
 
 uint8_t UpdatePID(uint8_t cn){
