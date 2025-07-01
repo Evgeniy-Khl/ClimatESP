@@ -32,26 +32,7 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
-  tft.begin();
-  tft.setRotation(3);
-  tft.fillScreen(TFT_BLACK);
-  // Calibrate the touch screen and retrieve the scaling factors
-  touch_calibrate();
-  //--------- инициализация FS -----------------------------------------
-  if (!LittleFS.begin()) {
-    DEBUG_PRINTLN("Flash FS initialisation failed!");
-    tft.setTextDatum(TC_DATUM);
-    tft.setTextColor(TFT_RED, TFT_YELLOW);
-    tft.drawString("ERROR file system!", tft.width()/2, tft.height()/2-20, 4);
-    delay(10000);
-  }
-  Serial.println("\nFlash FS available!");
-  bool font_missing = false;
-  if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
-  if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
-  if (font_missing){
-    DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
-  } else DEBUG_PRINTLN("\nFonts found OK.");
+  
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 
@@ -70,30 +51,14 @@ void loop() {
   hasChanged |= humidiPwm.update();
   if (hasChanged)  writePCF8574(portOut.value);
 
-  // Pressed will be set true is there is a valid touch on the screen
-  bool pressed = tft.getTouch(&t_x, &t_y);
-  if(pressed && !newDispl){
-    switch (displNum){
-        case 0: 
-          displNum = 1; newDispl = true;
-          menu_1();
-          break;
-        case 1: checkKeypad(MENU_1); break;
-        case 2: checkKeypad(MENU_1); break;
-        case 3: checkKeypad(MENU_2); break;
-        case 4: checkKeypad(MENU_3); break;
-
-        case 10: checkKeypad(15); break;
-    }
-  } 
+  
   //=================== НОВАЯ СЕКУНДА =================================
   long now = millis();
   if (now - lastMsg > 1000){
     seconds++; lastMsg = now; errors.value = 0;
     if(resetDispl) --resetDispl; 
-    else if(displNum){displNum = 0; newDispl = true; displOff=DISPLAYOFF;}  // возврат к главному дисплею
-    else if(displOff) --displOff;
-    // else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);       // отключение дисплея через 5 минут
+    else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
+    
   //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
   #ifndef DEBUG  
     temperature_check();

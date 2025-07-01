@@ -3,10 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <FS.h>
-#include <LittleFS.h>
-#define FlashFS LittleFS
-#include <TFT_eSPI.h> // Hardware-specific library
+
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
@@ -31,8 +28,6 @@
 #define LEDPIN 2
 #define ONE_WIRE_BUS_PIN LEDPIN   // используется номер GPIO2
 #define MAX_DEVICE 4              // ограничение количества датчиков
-#define FONT_SMALL "Arial20"
-#define FONT_LARGE "Arial28"
 
 typedef struct {
   int16_t pvT;
@@ -73,15 +68,6 @@ union SpUnion {
     // Представление 2: Как линейный массив из 32-х 16-битных значений
     int16_t flat_array[32]; // 16 полей * 2 структуры = 32
 };
-
-typedef struct
-{
-  uint16_t xpos; 
-  uint16_t ypos; 
-  uint8_t radius; 
-  int16_t value; 
-  int16_t sp;
-} GrafDispl;
 
 struct Bitfield {
     unsigned a0: 1;
