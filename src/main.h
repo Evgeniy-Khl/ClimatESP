@@ -14,6 +14,9 @@
 #include <DallasTemperature.h>
 #include "SoftwarePWMBit.h" // Подключаем наш новый класс
 #include "procedure.h"
+#include "display.h"
+#include "sensors.h"
+#include "AT24C32.h"
 
 #define DEBUG
 

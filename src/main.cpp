@@ -1,9 +1,5 @@
 
 #include "main.h"
-#include "display.h"
-#include "procedure.h"
-#include "sensors.h"
-#include "AT24C32.h"
 #include "my_settings.h"
 
 PIDController pid[2];
@@ -22,14 +18,6 @@ void setup() {
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
   #endif
   
-  // Serial.println("\nFlash FS available!");
-  // bool font_missing = false;
-  // if (LittleFS.exists("/Arial20.vlw") == false) font_missing = true;
-  // if (LittleFS.exists("/Arial28.vlw") == false) font_missing = true;
-  // if (font_missing){
-  //   DEBUG_PRINTLN("\nFont missing in Flash FS, did you upload it?");
-  // } else DEBUG_PRINTLN("\nFonts found OK.");
-
   //--------- инициализация Конфигурации --------------------------------------------
   initMyConfig();
 
