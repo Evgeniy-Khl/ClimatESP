@@ -15,6 +15,8 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
 
+TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+
 void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
@@ -43,6 +45,9 @@ void setup() {
 }
 
 void loop() {
+  byte keys = module.getButtons();
+  // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
+  module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
 
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
@@ -78,6 +83,13 @@ void loop() {
     dpv1 = pid[1].pPart/500 + pid[1].iPart/10;
     ds[1].pvT += dpv1;
     //------
+    data[0] = NUMBER_FONT[ds[0].pvT/100];
+    data[1] = NUMBER_FONT[(ds[0].pvT%100)/10] | 0b10000000;
+    data[2] = NUMBER_FONT[ds[0].pvT%10];
+    data[3] = NUMBER_FONT[keys/100];
+    data[4] = NUMBER_FONT[(keys%100)/10];// | 0b10000000;
+    data[5] = NUMBER_FONT[keys%10];
+
   #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
       switch (settings.sp_structs[0].mode) {

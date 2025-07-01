@@ -9,6 +9,7 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 void initMyConfig(){
+  char displStr[65];
 //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
     if(!loadConfig()){
@@ -125,6 +126,7 @@ void initMyConfig(){
     }
   #endif
   //==================================================================================
+  module.setDisplay(data, 8); // Вывод на дисплей "2d1 | 5.12"
   delay(3000);
   // tft.fillScreen(TFT_BLACK);
 }

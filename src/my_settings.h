@@ -11,7 +11,6 @@ uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
 long lastMsg = 0, number = 0;
 //---------------------------------
-char displStr[50];
 int16_t resetDispl, displOff = DISPLAYOFF, pvWait, pvVenting;
 bool newDispl = true, newTxt = true;
 // Глобальный массив указателей, который будет доступен всем функциям
@@ -24,6 +23,16 @@ float editValue;
 Ds ds[2] = {{350,0},{280,0}};
 float dpv0, dpv1;
 //---------------------------------
+uint8_t data[] = {
+  0b00111111, // 0
+  0b01011110, // d
+  0b00000110, // 1
+  0b11101101, // 5.
+  0b01011011, // 2
+  0b01101101, // 5
+  0,
+  0
+};
 
 union Byte portOut;
 union Byte errors;

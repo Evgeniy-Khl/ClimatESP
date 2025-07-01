@@ -6,7 +6,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 #define FlashFS LittleFS
-
+#include <TM1638.h>
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
@@ -122,9 +122,9 @@ extern union Byte portFlag;
 #define TRIACON 1023
 #define DISPLAYOFF 300
 
-
+extern TM1638 module;
 extern RTC_DS3231 rtc;
-extern char displStr[];
+extern uint8_t data[];
 extern bool newDispl;
 extern float editValue;
 extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
