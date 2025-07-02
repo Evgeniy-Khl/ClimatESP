@@ -18,7 +18,6 @@
 
 #include "procedure.h"
 #ifdef LED_DISPLAY
-  #include "TM1638.h"
   #include "display_led.h"
 #else
   #include "display_tft.h"
