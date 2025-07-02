@@ -10,7 +10,11 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
+#ifdef LED_DISPLAY
+  TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+#else
 
+#endif
 void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
@@ -27,6 +31,13 @@ void setup() {
 }
 
 void loop() {
+  #ifdef LED_DISPLAY
+    byte keys = module.getButtons();
+    // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
+    module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
+  #else
+
+  #endif
 
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
@@ -153,7 +164,9 @@ void loop() {
     //-------------------------
     
     DateTime now = rtc.now();
-    if(displNum == 0) mainDispl();
+    #ifdef LED_DISPLAY
+      if(displNum == 0) ledDispl();
+    #endif
     //-----------------------------------------------------------------------------
 
     // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---

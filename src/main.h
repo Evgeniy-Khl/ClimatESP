@@ -1,22 +1,29 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#define LED_DISPLAY
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <FS.h>
 #include <LittleFS.h>
 #define FlashFS LittleFS
-
 #include <SPI.h>
 #include <Wire.h>     // Библиотека для I2C связи
 #include <RTClib.h>   // Библиотека для работы с RTC DS3231
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "SoftwarePWMBit.h" // Подключаем наш новый класс
-#include "procedure.h"
-#include "display.h"
-#include "sensors.h"
 #include "AT24C32.h"
+
+#include "procedure.h"
+#ifdef LED_DISPLAY
+  #include "TM1638.h"
+  #include "display_led.h"
+#else
+  #include "display_tft.h"
+#endif
+#include "sensors.h"
 
 #define DEBUG
 
@@ -125,14 +132,20 @@ extern union Byte portFlag;
 #define TRIACON 1023
 #define DISPLAYOFF 300
 
+#ifdef LED_DISPLAY
+  extern TM1638 module;
+  extern uint8_t data[];
+#else
 
+#endif
 extern RTC_DS3231 rtc;
+extern SpUnion settings;
+extern DallasTemperature sensors;
+
 extern bool newDispl;
 extern float editValue;
 extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
-extern SpUnion settings;
-extern DallasTemperature sensors;
 extern const uint8_t tabRH[];
 
 byte writePCF8574(byte data);

@@ -3,7 +3,7 @@
 
 #include <main.h>
 
-void mainDispl(void);
+void ledDispl(void);
 void menu_1(void);
 void menu_2(void);
 void menu_3(void);
