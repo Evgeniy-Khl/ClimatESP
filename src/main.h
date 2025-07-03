@@ -99,7 +99,7 @@ union Byte {
 };
 
 extern union Byte portOut;
-extern union Byte errors;
+extern union Byte errorsFlag;
 extern union Byte portFlag;
 
 #define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
@@ -109,18 +109,18 @@ extern union Byte portFlag;
 #define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель
 #define EXTRA3	portOut.bitfield.a5  // Авария
 
-#define ERROR1  errors.bitfield.a0  //
-#define ERROR2	errors.bitfield.a1  //
-#define ERROR3	errors.bitfield.a2  //
-#define ERROR4	errors.bitfield.a3  //
-#define ERROR5	errors.bitfield.a4  //
-#define ERROR6	errors.bitfield.a5  //
-#define ERROR7	errors.bitfield.a6  //
-#define ERROR8	errors.bitfield.a7  // завис датчик.
+#define ERROR1    errorsFlag.bitfield.a0  //
+#define ERROR2	  errorsFlag.bitfield.a1  //
+#define ERROR4	  errorsFlag.bitfield.a2  //
+#define ERROR8	  errorsFlag.bitfield.a3  //
+#define ERROR10	  errorsFlag.bitfield.a4  //
+#define ERROR20	  errorsFlag.bitfield.a5  //
+#define ERROR40	  errorsFlag.bitfield.a6  //
+#define ERROR80	  errorsFlag.bitfield.a7  // завис датчик.
 
 #define REACHED0  portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
 #define REACHED1  portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
-#define NON1 	  portFlag.bitfield.a2  // не используется
+#define OVERHEAT  portFlag.bitfield.a2  // перегрев симистора
 #define NON2    portFlag.bitfield.a3  // не используется
 #define HIH5030	  portFlag.bitfield.a4  // exist HIH5030 flag
 #define AM2301	  portFlag.bitfield.a5  // exist AM2301 flag

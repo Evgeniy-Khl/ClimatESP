@@ -4,16 +4,35 @@
 #include <main.h>
 #include "TM1638.h"
 
+#define ERRORS	        2
+#define DAY	            3
+#define COOL	        4
+#define COMMA	        1
+#define NOCOMMA	        0
+#define BL              0x00     // пусто
+#define DEF             0x40     // -
+#define TT              0x78     // t
+#define EE              0x79     // E
+#define FF              0x71     // F
+#define RR              0x50     // r
+#define DD              0x5e     // d
+#define NN              0x54     // n
+#define hh              0x74     // h
+#define HH              0x76     // H
+#define OO              0x5C     // o
+#define CC              0x39     // С
+#define PE              0x37     // П
+#define GE              0x31     // Г
+#define YY              0x6E     // У
+#define PP              0x73     // P
+#define GR              0x63     // o
+
 void ledDispl(void);
-void menu_1(void);
-void menu_2(void);
-void menu_3(void);
-void menu_4(void);
-void calcDisplay(const char* txt);
-void drawKeypad(const char* keyLabel[], uint16_t keyColor[]);
-void drawKeypad_longName_7(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
-void drawKeypad_longName_12(const char* keyLabel[], uint16_t keyColor[], uint8_t amt_row, uint8_t amt_col);
-uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);
+void displ_top(signed int val, unsigned char comma);
+void displ_bot(signed int val, unsigned char comma);
+void clr_top(void);
+void clr_bot(void);
+void display_setup(uint8_t mode);
 void initLedConfig(void);
 
 #endif /* __DISPLAY_H */

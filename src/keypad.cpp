@@ -93,7 +93,7 @@ uint8_t checkkey(uint8_t keydata){
        {
         switch (key)
           {
-           case KEY_1:     numSetup=1; editBuff=settings.sp_structs[0].spT; resetDispl = 5; break;
+           case KEY_1:     numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 5; break;
            case KEY_2:     if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
                            else {pvTimer=settings.sp_structs[0].timer;} 
                            TURN = ON;

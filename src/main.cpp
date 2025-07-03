@@ -174,9 +174,10 @@ void loop() {
 
     //-------------------------
     
-    DateTime now = rtc.now();
+    // DateTime now = rtc.now();
     #ifdef LED_DISPLAY
-      if(displNum == 0) ledDispl();
+      if(numSetup == 0) ledDispl();
+      else display_setup(numSetup);
     #endif
     //-----------------------------------------------------------------------------
 

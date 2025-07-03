@@ -25,7 +25,7 @@ float dpv0, dpv1;
 //---------------------------------
 
 union Byte portOut;
-union Byte errors;
+union Byte errorsFlag;
 union Byte portFlag;
 //************************************************************************************************** */
 #define FLPCLOSE 9
