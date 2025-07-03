@@ -53,14 +53,18 @@ void loop() {
     if(now - counterWait > waitCheckKeyPad){
       counterWait = now;
       byte keys = module.getButtons();
-      keys = checkkey(keys);
-      if(keys){
+      
+      if(lastKey == keys && keys > 0){
+        checkkey(keys);
         if(numSetup == 0) ledDispl(displNum);
         else display_setup();
         module.setDisplay(data, 8);
-      }
-      // sprintf(displStr,"--- NOW = %lu; KEY = %u; wChKeyPad = %u; SetN = %u ---",now,keys,waitCheckKeyPad,numSetup);
-      // DEBUG_PRINTLN(displStr);
+      } 
+      else if(keys == 0) waitCheckKeyPad = WAITCHECKKEYPAD ;
+      else lastKey = keys;
+
+      sprintf(displStr,"--- NOW = %lu; KEY = %u; wChKeyPad = %u; SetN = %u; BUFF=%u ---",now,keys,waitCheckKeyPad,numSetup,editBuff);
+      DEBUG_PRINTLN(displStr);
       // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
       // module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
     }

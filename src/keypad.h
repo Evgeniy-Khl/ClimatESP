@@ -11,6 +11,6 @@
 #define KEY_7 8
 #define KEY_8 128
 
-uint8_t checkkey(uint8_t key);
+void checkkey(uint8_t key);
 
 #endif

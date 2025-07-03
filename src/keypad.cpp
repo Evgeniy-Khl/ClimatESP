@@ -1,42 +1,33 @@
 #include "keypad.h"
 
-uint8_t checkkey(uint8_t keydata){
+void checkkey(uint8_t key){
   uint8_t topUser=31, topOwner=15, botUser=16;
-  static unsigned char key, count;
-  if(key == keydata) ++count;
-  else if(key == 0){count = 6; key = keydata;}
-  else {count = 0; key = keydata;};
-  if (count>5){
-    count = 0;
-    if(key){       // если нажата любая кнопка
-      beepOn = 25; digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-      if(numSetup){   // режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ
-        resetDispl = 10; // удерживаем режим установок 10 сек.
-        switch (key){
-           case KEY_1:
-             {
-              waitCheckKeyPad = WAITCHECKKEYPAD * 5;
-              if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
-              switch (numSetup)
-                {
-                 case 1: editBuff = settings.sp_structs[0].spT; break;          // У1 уставка канал 1
-                 case 2: if(HIH5030) 
-                              editBuff = settings.sp_structs[1].spRH;           // У2 уставка канал 2 
-                         else editBuff = settings.sp_structs[1].spT; 
-                    break;
-                 case 3: editBuff = settings.sp_structs[0].timer; break;        // У3 время отключенного состояния
-                 case 4: editBuff = settings.sp_structs[1].timer; break;        // У4 время включенного состояния (если не 0 то это секунды)
-                 case 5: editBuff = settings.sp_structs[0].aeration; break;     // У5 ПАУЗА ПРОВЕТРИВАНИЯ (минут)
-                 case 6: editBuff = settings.sp_structs[1].aeration; break;     // У6 ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
-                 case 7: editBuff = settings.sp_structs[0].coolOn; break;       // У7 включение охлаждения по каналу 1
-                 case 8: editBuff = settings.sp_structs[0].coolOff; break;      // У8 включение охлаждения по каналу 1
-                 case 9: editBuff = settings.sp_structs[1].coolOn; break;       // У9 включение охлаждения по каналу 2
-                 case 10: editBuff = settings.sp_structs[1].coolOff; break;     // У10 включение охлаждения по каналу 2
-                 case 11: editBuff = settings.sp_structs[0].alarm; break;       // У11 тревога по каналу 1
-                 case 12: editBuff = settings.sp_structs[1].alarm; break;       // У12 тревога по каналу 2
-                 case 13: editBuff = settings.sp_structs[0].auxiliary; break;   // У13 включение вспомогательного канала
-                 case 14: editBuff = settings.sp_structs[1].auxiliary; break;   // У14 выключение вспомогательного канала
-                 case 15: editBuff = settings.sp_structs[0].state; break;       // У15 текущее положение заслонки
+  beepOn = 25; digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+  if(numSetup){   //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
+    resetDispl = 10; // удерживаем режим установок 10 сек.
+    switch (key){
+        case KEY_1:
+                    waitCheckKeyPad = WAITCHECKKEYPAD ;
+                    if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
+                    switch (numSetup){
+                        case 1: editBuff = settings.sp_structs[0].spT; break;          // У1 уставка канал 1
+                        case 2: if(HIH5030) 
+                                        editBuff = settings.sp_structs[1].spRH;           // У2 уставка канал 2 
+                                  else editBuff = settings.sp_structs[1].spT; 
+                          break;
+                        case 3: editBuff = settings.sp_structs[0].timer; break;        // У3 время отключенного состояния
+                        case 4: editBuff = settings.sp_structs[1].timer; break;        // У4 время включенного состояния (если не 0 то это секунды)
+                        case 5: editBuff = settings.sp_structs[0].aeration; break;     // У5 ПАУЗА ПРОВЕТРИВАНИЯ (минут)
+                        case 6: editBuff = settings.sp_structs[1].aeration; break;     // У6 ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
+                        case 7: editBuff = settings.sp_structs[0].coolOn; break;       // У7 включение охлаждения по каналу 1
+                        case 8: editBuff = settings.sp_structs[0].coolOff; break;      // У8 включение охлаждения по каналу 1
+                        case 9: editBuff = settings.sp_structs[1].coolOn; break;       // У9 включение охлаждения по каналу 2
+                        case 10: editBuff = settings.sp_structs[1].coolOff; break;     // У10 включение охлаждения по каналу 2
+                        case 11: editBuff = settings.sp_structs[0].alarm; break;       // У11 тревога по каналу 1
+                        case 12: editBuff = settings.sp_structs[1].alarm; break;       // У12 тревога по каналу 2
+                        case 13: editBuff = settings.sp_structs[0].auxiliary; break;   // У13 включение вспомогательного канала
+                        case 14: editBuff = settings.sp_structs[1].auxiliary; break;   // У14 выключение вспомогательного канала
+                        case 15: editBuff = settings.sp_structs[0].state; break;       // У15 текущее положение заслонки
                 //  case 16: editBuff = settings.sp_structs[1].state; break;       // У16 номер программы
                 //  case 17: editBuff = settings.sp_structs[0].spRH; break;        // У17 подстройка датчика HIH-5030-01
                  /* case 14:                               // У14 подстройка датчика DS18B20
@@ -54,72 +45,65 @@ uint8_t checkkey(uint8_t keydata){
                              } while (++try < 2);
                          } else editBuff=999; break;
                  case 15: editBuff=offSetRH;   break;        // У15 смещение выключения увлажнения */
-                }; 
-             } break;
-           case KEY_2:{editBuff++; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 10;} break;
-           case KEY_3:
-             {
-              waitCheckKeyPad = WAITCHECKKEYPAD * 5;
-              ++numSetup;
-              if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
-              switch (numSetup){
-                 case 16: editBuff = 0; break;                 // П0 сброс параметров
-                 case 17: editBuff = settings.sp_structs[1].mode; break;          // П1 = 0 задержка регулировки по влажному
-                 case 18: editBuff = settings.sp_structs[0].extendMode; break;        // П2 = 0 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
-                 case 19: editBuff = settings.sp_structs[0].mode; break;         // П3 = MINRELAYMODE релейный режим работы
-                 case 20: editBuff = settings.sp_structs[0].pulse; break;        // П4 = 200 - 1,0 сек.
-                //  case 21: editBuff=maxRun/DEN; break;        // П5 = 2000- 10,0 сек.
-                 case 22: editBuff = settings.sp_structs[1].pulse; break;        // П6 = 3000-  15 сек.
-                //  case 23: editBuff=offSetHeater; break;      // П7 = 5
-                 case 26: editBuff = settings.sp_structs[0].flapLimit; break;          // П10 = 40 close
-                 case 27: editBuff = settings.sp_structs[1].flapLimit; break;          // П11 = 85 open
-                 case 28: editBuff = settings.sp_structs[0].Kp; break;          // П12 = 20
-                 case 29: editBuff = settings.sp_structs[0].Ki; break;         // П13 = 500
-                 case 30: editBuff = settings.sp_structs[1].Kp; break;          // П14 = 15
-                 case 31: editBuff = settings.sp_structs[1].Ki; break;         // П15 = 900                 
-              };
-             } break;
-           case KEY_4:{editBuff--; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 10;} break;
-           default: waitCheckKeyPad = WAITCHECKKEYPAD * 5;
           }; 
-       }
+          break;
+        case KEY_2:{editBuff++; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25;} break;
+        case KEY_3:
+                    waitCheckKeyPad = WAITCHECKKEYPAD;
+                    ++numSetup;
+                    if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
+                    switch (numSetup){
+                        case 16: editBuff = 0; break;                 // П0 сброс параметров
+                        case 17: editBuff = settings.sp_structs[1].mode; break;          // П1 = 0 задержка регулировки по влажному
+                        case 18: editBuff = settings.sp_structs[0].extendMode; break;        // П2 = 0 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
+                        case 19: editBuff = settings.sp_structs[0].mode; break;         // П3 = MINRELAYMODE релейный режим работы
+                        case 20: editBuff = settings.sp_structs[0].pulse; break;        // П4 = 200 - 1,0 сек.
+                        //  case 21: editBuff=maxRun/DEN; break;        // П5 = 2000- 10,0 сек.
+                        case 22: editBuff = settings.sp_structs[1].pulse; break;        // П6 = 3000-  15 сек.
+                        //  case 23: editBuff=offSetHeater; break;      // П7 = 5
+                        case 26: editBuff = settings.sp_structs[0].flapLimit; break;          // П10 = 40 close
+                        case 27: editBuff = settings.sp_structs[1].flapLimit; break;          // П11 = 85 open
+                        case 28: editBuff = settings.sp_structs[0].Kp; break;          // П12 = 20
+                        case 29: editBuff = settings.sp_structs[0].Ki; break;         // П13 = 500
+                        case 30: editBuff = settings.sp_structs[1].Kp; break;          // П14 = 15
+                        case 31: editBuff = settings.sp_structs[1].Ki; break;         // П15 = 900                 
+                    };
+          break;
+        case KEY_4:{editBuff--; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25;} break;
+        default:    waitCheckKeyPad = WAITCHECKKEYPAD;
+      }; 
+  }
       /* else if (setprgday)       // режим СОСТАВЛЕНИЕ ПРОГРАММЫ
        {
         waitset=10;             // удерживаем режим установок
         drafting_prog(key);     // составление программы
        } */
-      else    //==================== ОСНОВНОЙ РЕЖИМ РАБОТЫ =================================
-       {
-        switch (key)
-          {
-           case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 10; break;
-           case KEY_2: errorsFlag.value = 0; break;
+  else {  //==================== ОСНОВНОЙ РЕЖИМ РАБОТЫ =================================
+    switch (key) {
+        case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 10; break;
+        case KEY_2: errorsFlag.value = 0; break;
           //  case KEY_2:     if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
           //                  else {pvTimer=settings.sp_structs[0].timer;} 
           //                  TURN = ON;
           //       break;
           //  case KEY_3:     if(errors && disableBeep==0) {disableBeep=10; key=255;} else {Check = 1; ++displmode; displmode&=3; waitset=20;}; break;
           //  case KEY_4: pvTimer=settings.sp_structs[0].timer; TURN = OFF; break;
-           case KEY_3: errorsFlag.value = 0; ERROR1 = 1; break;
-           case KEY_4: errorsFlag.value = 0; ERROR2 = 1; break;
-           case KEY_5: errorsFlag.value = 0; ERROR4 = 1; break;
-           case KEY_6: errorsFlag.value = 0; FROZE = 1; break;
-           case KEY_7: errorsFlag.value = 0; OVERHEAT = 1; break;
-           case KEY_8: 
-                       if(++displNum > 4) displNum = 0;
-                       resetDispl = 10;
-            break;
+        case KEY_3: errorsFlag.value = 0; ERROR1 = 1; break;
+        case KEY_4: errorsFlag.value = 0; ERROR2 = 1; break;
+        case KEY_5: errorsFlag.value = 0; ERROR4 = 1; break;
+        case KEY_6: errorsFlag.value = 0; FROZE = 1; break;
+        case KEY_7: errorsFlag.value = 0; OVERHEAT = 1; break;
+        case KEY_8: 
+                    if(++displNum > 4) displNum = 0;
+                    resetDispl = 10;
+          break;
           //  case KEY_4_3_2: pwTriac1=maxRun; CN2 = CN2ON; break;
           //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitCheckKeyPad = WAITCHECKKEYPAD; break;               // ПРОВЕТРИВАНИЕ начато 
           //  case KEY_5_4:   pvWait=aeration[0]; DoAeration=0; pvFlap=flpNow; break;                               // ПРОВЕТРИВАНИЕ закончено
           //  case KEY_8_6_5: date = start(); if (programm) prg_stepoint(date,1); break;                        // старт новой инкубации
           //  case KEY_7:     if(programm){setprgday=1; read_prg(setprgday, programm); waitset=15;} break;      // просмотр, редактирование пр-мы.
-          };
-       };
-     }
-    else waitCheckKeyPad = WAITCHECKKEYPAD * 5;
-   };
-  return key;
+    };
+  };
 }
 
 void saveset(void){
