@@ -1,6 +1,8 @@
 
 #include "main.h"
 #include "my_settings.h"
+char displStr[100];
+
 
 PIDController pid[2];
 SoftwarePWMBit heaterPwm(&portOut.value, 0); 
@@ -34,33 +36,40 @@ void setup() {
 }
 
 void loop() {
-  #ifdef LED_DISPLAY
-    byte keys = module.getButtons();
-    keys = checkkey(keys);
-    // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
-    module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
-  #else
-
-  #endif
-
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
   hasChanged |= heaterPwm.update();
   hasChanged |= humidiPwm.update();
   if (hasChanged)  writePCF8574(portOut.value);
 
+  //============================= ПРОВЕРКА по таймеру =================================
   
-  //============================= НОВАЯ СЕКУНДА =================================
   long now = millis();
   #ifdef LED_DISPLAY
-    if (now - counter10 > 10){
+    if(now - counter10 > 10){
       counter10 = now;
       if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
     }
+    if(now - counterWait > waitCheckKeyPad){
+      counterWait = now;
+      byte keys = module.getButtons();
+      keys = checkkey(keys);
+      if(keys){
+        if(numSetup == 0) ledDispl(displNum);
+        else display_setup();
+        module.setDisplay(data, 8);
+      }
+      // sprintf(displStr,"--- NOW = %lu; KEY = %u; wChKeyPad = %u; SetN = %u ---",now,keys,waitCheckKeyPad,numSetup);
+      // DEBUG_PRINTLN(displStr);
+      // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
+      // module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
+    }
   #endif
-  if (now - counter1s > 1000){
+  //============================= НОВАЯ СЕКУНДА =================================
+
+  if(now - counter1s > 1000){
     counter1s = now; 
-    errorsFlag.value = 0;
+    // errorsFlag.value = 0;
     if(++seconds > 59) seconds = 0; 
     if(resetDispl) --resetDispl; 
     else {displNum = 0; numSetup = 0;}  // возврат к главному дисплею
@@ -87,20 +96,24 @@ void loop() {
     dpv1 = pid[1].pPart/100 + pid[1].iPart;
     ds[1].pvT += dpv1;
     //------
-    char displStr[100];
-    sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+    DEBUG_PRINTLN();
+    sprintf(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",seconds,resetDispl,displNum,numSetup);
     DEBUG_PRINTLN(displStr);
-    sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
-    DEBUG_PRINTLN(displStr);
-    sprintf(displStr,"pP0 = %g; iP0 = %g; pP1 = %g; ip1 = %g;",pid[0].pPart,pid[0].iPart,pid[1].pPart,pid[1].iPart);
-    DEBUG_PRINTLN(displStr);
-    sprintf(displStr,"dpv0 = %g; dpv1 = %g",dpv0,dpv1);
-    DEBUG_PRINTLN(displStr);
-    sprintf(displStr,"T0 = %5.1f; T1 = %5.1f",(float)ds[0].pvT/10,(float)ds[1].pvT/10);
-    DEBUG_PRINTLN(displStr);
-
+    // sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+    // DEBUG_PRINTLN(displStr);
+    // sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+    // DEBUG_PRINTLN(displStr);
+    // sprintf(displStr,"pP0 = %g; iP0 = %g; pP1 = %g; ip1 = %g;",pid[0].pPart,pid[0].iPart,pid[1].pPart,pid[1].iPart);
+    // DEBUG_PRINTLN(displStr);
+    // sprintf(displStr,"dpv0 = %g; dpv1 = %g",dpv0,dpv1);
+    // DEBUG_PRINTLN(displStr);
+    // sprintf(displStr,"T0 = %5.1f; T1 = %5.1f",(float)ds[0].pvT/10,(float)ds[1].pvT/10);
+    // DEBUG_PRINTLN(displStr);
+    
+    //------
   #endif
     if(!COOLING){  //-------------- нормальная работа -------------------------
+      DEBUG_PRINTLN("ПИД нагреватель и реле.");
       switch (settings.sp_structs[0].mode) {
           uint8_t val;
           case 0:
@@ -146,6 +159,7 @@ void loop() {
     humidiPwm.write(humidiValue);
 
     if(!COOLING){  //-------------- нормальная работа -------------------------
+      DEBUG_PRINTLN("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ.");
       //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
       if(ERROR1 == 0){
         if (ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;       // включить вспомогательны нагреватель
@@ -177,7 +191,9 @@ void loop() {
     // DateTime now = rtc.now();
     #ifdef LED_DISPLAY
       if(numSetup == 0) ledDispl(displNum);
-      else display_setup(numSetup);
+      else display_setup();
+      module.setDisplay(data, 8);
+
     #endif
     //-----------------------------------------------------------------------------
 
@@ -200,7 +216,6 @@ void loop() {
     */
     //==================== НОВАЯ МИНУТА =======================================
     if(seconds == 0){
-
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
         if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------

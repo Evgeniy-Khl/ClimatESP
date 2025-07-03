@@ -33,7 +33,7 @@ void displ_bot(signed int val, unsigned char comma);
 void clr_top(void);
 void clr_bot(void);
 void displ_67(signed int val, unsigned char mode);
-void display_setup(uint8_t mode);
+void display_setup(void);
 void initLedConfig(void);
 
 #endif /* __DISPLAY_H */

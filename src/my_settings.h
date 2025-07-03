@@ -12,12 +12,13 @@ uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 long counter10, counter1s;
 //---------------------------------
 int16_t pvAeration, pvVenting, editBuff;
-bool newDispl = true, newTxt = true;
+// bool newDispl = true, newTxt = true;
 // Глобальный массив указателей, который будет доступен всем функциям
-const char* keyLabel[15];
-uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
-uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
-uint8_t displNum=0, resetDispl, waitkey, numSetup, seconds, displPower, pvTimer, pvFlap, beepOn;
+// const char* keyLabel[15];
+// uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
+uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, waitCheckKeyPad = WAITCHECKKEYPAD;
+uint8_t displNum=0, resetDispl, numSetup, seconds, displPower, pvTimer, pvFlap, beepOn;
+long counterWait;
 float editValue;
 //---------------------------------
 Ds ds[2] = {{200,0,0,0,0},{180,0,0,0,0}};

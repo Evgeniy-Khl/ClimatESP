@@ -12,98 +12,64 @@ uint8_t data[] = {
   0           // blank
 };
 
-
-//--------- ОСНОВНОЙ ЭКРАН ----------------------
-// void ledDispl(void){
-//   data[0] = NUMBER_FONT[ds[0].pvT/100];
-//   data[1] = NUMBER_FONT[(ds[0].pvT%100)/10] | 0b10000000;
-//   data[2] = NUMBER_FONT[ds[0].pvT%10];
-//   data[3] = NUMBER_FONT[ds[1].pvT/100];
-//   data[4] = NUMBER_FONT[(ds[1].pvT%100)/10] | 0b10000000;
-//   data[5] = NUMBER_FONT[ds[1].pvT%10];
-
-//   data[6] = NUMBER_FONT[seconds/10];
-//   data[7] = NUMBER_FONT[seconds%10];
-
-//   module.setDisplay(data, 8);
-// }
-
 void displ_top(signed int val, unsigned char comma){
- unsigned char i, neg=0;
- if((ERROR1 || ERROR4) && (seconds & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
- else
-  {
-   if (comma) comma=0x80;
-   if (val<0) {neg=1; val=-val;}
-   if (val<1000)
-    {
-     if (neg)
-      {
-       if (val<100)
-        {
+  uint8_t i = 0, neg = 0;
+  if((ERROR1 || ERROR4 || comma == 3) && (seconds & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
+  else {
+    if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
+    if(val<0) {neg = 1; val = -val;}
+    if(val<1000){
+      if (neg){
+        if (val<100){
           data[0] = DEF;
           data[1] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
           data[2] = NUMBER_FONT[(val%10)&0x0F];
-        }
-       else
-        {
+        } else {
           data[0] = DEF;
           data[1] = NUMBER_FONT[(val/100)&0x0F];
           data[2] = NUMBER_FONT[((val/10)%10)&0x0F];
         };
-      }
-     else
-      {
-       data[0] = NUMBER_FONT[(val/100)&0x0F];
-       data[1] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-       data[2] = NUMBER_FONT[(val%10)&0x0F];
+      } else {
+        if(i == 3) data[0] = YY;
+        else data[0] = NUMBER_FONT[(val/100)&0x0F];
+        data[1] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
+        data[2] = NUMBER_FONT[(val%10)&0x0F];
       };
-    }
-   else
-    {
-     data[0] = 0x06;// -> 1
-     data[1] = 0x6f;// -> 9
-     data[2] = 0x6f;// -> 9
+    } else {
+      data[0] = DEF;  // -> -
+      data[1] = DEF;  // -> -
+      data[2] = DEF;  // -> -
     };
   }
 }
 
 void displ_bot(signed int val, unsigned char comma){
- unsigned char i, neg=0;
- if((ERROR10)&&(seconds & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
- else
-  {
-   if (comma) comma=0x80;
-   if (val<0) {neg=1; val=-val;}
-   if (val<1000)
-    {
-     if (neg)
-      {
-       if (val<100)
-        {
+  uint8_t i = 0, neg = 0;
+  if((ERROR10 || comma == 3)&&(seconds & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
+  else {
+    if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
+    if(val<0) {neg = 1; val = -val;}
+    if(val<1000){
+      if (neg){
+        if (val<100) {
           data[3] = DEF;
           data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
           data[5] = NUMBER_FONT[(val%10)&0x0F];
-        }
-       else
-        {
+        } else {
           data[3] = DEF;
           data[4] = NUMBER_FONT[(val/100)&0x0F];
           data[5] = NUMBER_FONT[((val/10)%10)&0x0F];
         };
-      }
-     else
-      {
-       data[3] = NUMBER_FONT[(val/100)&0x0F];
-       data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-       data[5] = NUMBER_FONT[(val%10)&0x0F];
+      } else {
+        if(i == 3) data[3] = YY;
+        else data[3] = NUMBER_FONT[(val/100)&0x0F];
+        data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
+        data[5] = NUMBER_FONT[(val%10)&0x0F];
       };
-    }
-   else
-    {
-     data[3] = 0x06;// -> 1
-     data[4] = 0x6f;// -> 9
-     data[5] = 0x6f;// -> 9
+    } else {
+      data[3] = DEF;  // -> -
+      data[4] = DEF;  // -> -
+      data[5] = DEF;  // -> -
     };
   }
 }
@@ -118,44 +84,30 @@ void clr_bot(void){
   for (byte=3; byte<6; byte++) data[byte]=BL;
 }
 
-void displ_67(signed int val, unsigned char mode)
-{
+void displ_67(signed int val, unsigned char mode){
   uint8_t neg=0;
   if(val<0) {neg=1; val=-val;}
-  if(val<1000)
-   {
-    if(neg)
-     {
-       if(val<10)
-        {
-          data[6] = DEF;
-          data[7] = NUMBER_FONT[(val%10)&0x0F];
+  if(neg){
+    if(val<10){
+        data[6] = DEF;
+        data[7] = NUMBER_FONT[(val%10)&0x0F];
+    } else {
+        data[6] = DEF;
+        data[7] = DEF;
+    };
+  } else if(val<99){
+      data[6] = NUMBER_FONT[(val/10)&0x0F];
+      data[7] = NUMBER_FONT[(val%10)&0x0F];
+      if(val<10){
+        switch (mode){
+          case ERRORS:  data[6] = EE; break;
+          case DAY:     data[6] = DD; break;
+          case COOL:    data[6] = GR; break;
+          default:      data[6] = BL;
         }
-       else
-        {
-          data[6] = DEF;
-          data[7] = NUMBER_FONT[(val%10)&0x0F];
-        };
-     }
-    else if(val<99)
-     {
-        
-       data[6] = NUMBER_FONT[(val/100)&0x0F];
-       data[7] = NUMBER_FONT[(val%10)&0x0F];
-       if(val<100)
-        {
-         switch (mode)
-           {
-             case ERRORS:  data[6] = EE; break;
-             case DAY:     data[6] = DD; break;
-             case COOL:    data[6] = GR; break;
-             default:      data[6] = BL;
-           }
-        }
-     }
-    else {data[6] = EE; data[7] = RR;}; // Er
-   }
-  else {data[6] = 0x06; data[7] = 0x6f; /*data[8] = 0x6f;*/};// -> 199
+      }
+  }
+  else {data[6] = DEF; data[7] = DEF;}; // Er
 }
 
 //===================== ledDisplay ========================
@@ -163,30 +115,33 @@ void ledDispl(unsigned char mode){
   switch (mode){
         //-------------t0;----------------------------RH;            /              t1; --------------------Timer;-------------------
     case 0:
-          displ_top(ds[0].pvT,COMMA); 
-          if(HIH5030) displ_bot(pvRH,COMMA); else displ_bot(ds[1].pvT,COMMA);
-          if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
-          else if(COOLING || AERATION) displ_67(pvVenting, COOL);
+      displ_top(ds[0].pvT,COMMA); 
+      if(HIH5030) displ_bot(pvRH,COMMA); else displ_bot(ds[1].pvT,COMMA);
+      if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
+      else if(COOLING || AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
-          else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-          else displ_67(seconds, NOCOMMA); //pvRH
+      else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
+      else displ_67(seconds, NOCOMMA); //pvRH
       break;
        //-------------------t1;----------------------tNTC;--------------------"F2"---------
-    case 1: if(HIH5030) displ_top(ds[1].pvT, COMMA); 
-            else displ_top(pvTimer, NOCOMMA); 
-            // displ_bot(pvTTriac, NOCOMMA); 
-            data[6]=FF; data[7]=NUMBER_FONT[2]; 
+    case 1: 
+      if(HIH5030) displ_top(ds[1].pvT, COMMA); 
+      else displ_top(pvTimer, NOCOMMA); 
+      clr_bot();      // displ_bot(pvTTriac, NOCOMMA); 
+      data[6]=FF; data[7]=NUMBER_FONT[2]; 
       break;
        //-------------------Flap;--------------------date;--------------------"F3"---------
-    case 2: displ_top(settings.sp_structs[0].state, NOCOMMA); 
-            displ_bot(0,NOCOMMA); 
-            data[6]=FF; data[7]=NUMBER_FONT[3]; 
+    case 2: 
+      displ_top(settings.sp_structs[0].state, NOCOMMA); 
+      displ_bot(0,NOCOMMA); 
+      data[6]=FF; data[7]=NUMBER_FONT[3]; 
       break;
        //---------------уставка t0;-------------------------уставка RH;-----------------------уставка t1-----------------"F4"---------
-    case 3: displ_top(settings.sp_structs[0].spT, COMMA); 
-            if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
-            else displ_bot(settings.sp_structs[1].spT, COMMA);
-            data[6]=FF; data[7]=NUMBER_FONT[4];
+    case 3: 
+      displ_top(settings.sp_structs[0].spT, COMMA); 
+      if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
+      else displ_bot(settings.sp_structs[1].spT, COMMA);
+      data[6]=FF; data[7]=NUMBER_FONT[4];
       break;
  }
  if (OVERHEAT){
@@ -196,23 +151,23 @@ void ledDispl(unsigned char mode){
 }
 
 //==================== Setup ========================
-void display_setup(uint8_t mode){
+void display_setup(void){
   // errorsFlag = 0;
   if(editBuff>999) editBuff=999; else if(editBuff<-99) editBuff=-99;
-  if(mode==1||mode==7||mode==9||mode==14||mode==23){
-    displ_top(editBuff,COMMA); clr_bot();
-  }                //Верхний дисплей + Запятая
-  else if(mode==2||mode==8||mode==10||mode==13||mode==15||mode==20||mode==21){
-    clr_top(); displ_bot(editBuff,COMMA);
-  }//Нижний дисплей + Запятая
-  else if(mode==22){
-    clr_top(); displ_bot(editBuff,NOCOMMA);
-  }                                              //Нижний дисплей
+  if(numSetup==1||numSetup==7||numSetup==8||numSetup==11||numSetup==13||numSetup==14){
+    displ_top(editBuff,COMMA); displ_bot(numSetup,3);               //Верхний дисплей + Запятая
+  } 
+  else if(numSetup==2||numSetup==9||numSetup==10||numSetup==12){
+    displ_top(numSetup,3); displ_bot(editBuff,COMMA);               //Нижний дисплей + Запятая
+  }
+  else if(numSetup==4||numSetup==6){
+    displ_top(numSetup,3); displ_bot(editBuff,NOCOMMA);             //Нижний дисплей
+  }
   else {
     if(editBuff<0) editBuff=0; 
-    displ_top(editBuff,NOCOMMA); 
-    clr_bot();
-  }                                         //Верхний дисплей 
+    displ_top(editBuff,NOCOMMA); displ_bot(numSetup,3);              //Верхний дисплей 
+  }
+  data[6]=0; data[7]=0;
 }
 
 //============================== Config ========================================

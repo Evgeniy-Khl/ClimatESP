@@ -1,7 +1,7 @@
 #include "keypad.h"
 
 uint8_t checkkey(uint8_t keydata){
-  uint8_t topUser=30, topOwner=30, botUser=0;
+  uint8_t topUser=31, topOwner=15, botUser=16;
   static unsigned char key, count;
   if(key == keydata) ++count;
   else if(key == 0){count = 6; key = keydata;}
@@ -15,7 +15,7 @@ uint8_t checkkey(uint8_t keydata){
         switch (key){
            case KEY_1:
              {
-              waitkey = WAITCOUNT;
+              waitCheckKeyPad = WAITCHECKKEYPAD * 5;
               if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
               switch (numSetup)
                 {
@@ -56,14 +56,13 @@ uint8_t checkkey(uint8_t keydata){
                  case 15: editBuff=offSetRH;   break;        // У15 смещение выключения увлажнения */
                 }; 
              } break;
-           case KEY_2:{editBuff++; if (waitkey) waitkey--;} break;
+           case KEY_2:{editBuff++; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 10;} break;
            case KEY_3:
              {
-              waitkey=WAITCOUNT;
+              waitCheckKeyPad = WAITCHECKKEYPAD * 5;
               ++numSetup;
               if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
-              switch (numSetup)
-                {
+              switch (numSetup){
                  case 16: editBuff = 0; break;                 // П0 сброс параметров
                  case 17: editBuff = settings.sp_structs[1].mode; break;          // П1 = 0 задержка регулировки по влажному
                  case 18: editBuff = settings.sp_structs[0].extendMode; break;        // П2 = 0 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
@@ -78,10 +77,10 @@ uint8_t checkkey(uint8_t keydata){
                  case 29: editBuff = settings.sp_structs[0].Ki; break;         // П13 = 500
                  case 30: editBuff = settings.sp_structs[1].Kp; break;          // П14 = 15
                  case 31: editBuff = settings.sp_structs[1].Ki; break;         // П15 = 900                 
-                };
+              };
              } break;
-           case KEY_4:{editBuff--; if (waitkey) waitkey--;} break;
-           default: waitkey=WAITCOUNT;
+           case KEY_4:{editBuff--; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 10;} break;
+           default: waitCheckKeyPad = WAITCHECKKEYPAD * 5;
           }; 
        }
       /* else if (setprgday)       // режим СОСТАВЛЕНИЕ ПРОГРАММЫ
@@ -89,11 +88,11 @@ uint8_t checkkey(uint8_t keydata){
         waitset=10;             // удерживаем режим установок
         drafting_prog(key);     // составление программы
        } */
-      else                      // режим ИЗМЕРЕНИЯ
+      else    //==================== ОСНОВНОЙ РЕЖИМ РАБОТЫ =================================
        {
         switch (key)
           {
-           case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 5; break;
+           case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 10; break;
            case KEY_2: errorsFlag.value = 0; break;
           //  case KEY_2:     if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
           //                  else {pvTimer=settings.sp_structs[0].timer;} 
@@ -104,22 +103,21 @@ uint8_t checkkey(uint8_t keydata){
            case KEY_3: errorsFlag.value = 0; ERROR1 = 1; break;
            case KEY_4: errorsFlag.value = 0; ERROR2 = 1; break;
            case KEY_5: errorsFlag.value = 0; ERROR4 = 1; break;
-           case KEY_6: errorsFlag.value = 0; ERROR8 = 1; break;
+           case KEY_6: errorsFlag.value = 0; FROZE = 1; break;
            case KEY_7: errorsFlag.value = 0; OVERHEAT = 1; break;
-           case KEY_8: errorsFlag.value = 0; FROZE = 1; break;
+           case KEY_8: 
+                       if(++displNum > 4) displNum = 0;
+                       resetDispl = 10;
+            break;
           //  case KEY_4_3_2: pwTriac1=maxRun; CN2 = CN2ON; break;
-          //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitkey=WAITCOUNT*3; break;               // ПРОВЕТРИВАНИЕ начато 
+          //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitCheckKeyPad = WAITCHECKKEYPAD; break;               // ПРОВЕТРИВАНИЕ начато 
           //  case KEY_5_4:   pvWait=aeration[0]; DoAeration=0; pvFlap=flpNow; break;                               // ПРОВЕТРИВАНИЕ закончено
           //  case KEY_8_6_5: date = start(); if (programm) prg_stepoint(date,1); break;                        // старт новой инкубации
           //  case KEY_7:     if(programm){setprgday=1; read_prg(setprgday, programm); waitset=15;} break;      // просмотр, редактирование пр-мы.
           };
        };
-      if (numSetup){
-        // if(numSetup&0x10)  displ_buffer[6] = PE; else  displ_buffer[6] = YY;
-        data[7] = NUMBER_FONT[(numSetup&0x0F)/10]; data[8] = NUMBER_FONT[(numSetup&0x0F)%10];
-       };
      }
-    else waitkey=WAITCOUNT;
+    else waitCheckKeyPad = WAITCHECKKEYPAD * 5;
    };
   return key;
 }
