@@ -115,12 +115,12 @@ extern union Byte portFlag;
 #define ERROR8	  errorsFlag.bitfield.a3  //
 #define ERROR10	  errorsFlag.bitfield.a4  //
 #define ERROR20	  errorsFlag.bitfield.a5  //
-#define ERROR40	  errorsFlag.bitfield.a6  //
-#define ERROR80	  errorsFlag.bitfield.a7  // завис датчик.
+#define OVERHEAT  errorsFlag.bitfield.a6  // перегрев симистора
+#define FROZE	    errorsFlag.bitfield.a7  // завис датчик.
 
 #define REACHED0  portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
 #define REACHED1  portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
-#define OVERHEAT  portFlag.bitfield.a2  // перегрев симистора
+#define NON1    portFlag.bitfield.a2  // не используется
 #define NON2    portFlag.bitfield.a3  // не используется
 #define HIH5030	  portFlag.bitfield.a4  // exist HIH5030 flag
 #define AM2301	  portFlag.bitfield.a5  // exist AM2301 flag

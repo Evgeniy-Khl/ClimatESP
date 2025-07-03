@@ -63,7 +63,7 @@ void loop() {
     errorsFlag.value = 0;
     if(++seconds > 59) seconds = 0; 
     if(resetDispl) --resetDispl; 
-    else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
+    else {displNum = 0; numSetup = 0;}  // возврат к главному дисплею
     
   //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
   #ifndef DEBUG  

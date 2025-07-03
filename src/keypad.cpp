@@ -1,7 +1,7 @@
 #include "keypad.h"
 
 uint8_t checkkey(uint8_t keydata){
-  uint8_t byte, crc, topUser=30, topOwner=30, botUser=0;
+  uint8_t topUser=30, topOwner=30, botUser=0;
   static unsigned char key, count;
   if(key == keydata) ++count;
   else if(key == 0){count = 6; key = keydata;}
@@ -93,15 +93,20 @@ uint8_t checkkey(uint8_t keydata){
        {
         switch (key)
           {
-           case KEY_1:     numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 5; break;
-           case KEY_2:     if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
-                           else {pvTimer=settings.sp_structs[0].timer;} 
-                           TURN = ON;
-                break;
+           case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = 5; break;
+           case KEY_2: errorsFlag.value = 0; break;
+          //  case KEY_2:     if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
+          //                  else {pvTimer=settings.sp_structs[0].timer;} 
+          //                  TURN = ON;
+          //       break;
           //  case KEY_3:     if(errors && disableBeep==0) {disableBeep=10; key=255;} else {Check = 1; ++displmode; displmode&=3; waitset=20;}; break;
-           case KEY_4:     pvTimer=settings.sp_structs[0].timer; TURN = OFF; break;
-           case KEY_5:     EXTRA1 = ON; break;
-           case KEY_6:     EXTRA2 = ON; break;
+          //  case KEY_4: pvTimer=settings.sp_structs[0].timer; TURN = OFF; break;
+           case KEY_3: errorsFlag.value = 0; ERROR1 = 1; break;
+           case KEY_4: errorsFlag.value = 0; ERROR2 = 1; break;
+           case KEY_5: errorsFlag.value = 0; ERROR4 = 1; break;
+           case KEY_6: errorsFlag.value = 0; ERROR8 = 1; break;
+           case KEY_7: errorsFlag.value = 0; OVERHEAT = 1; break;
+           case KEY_8: errorsFlag.value = 0; FROZE = 1; break;
           //  case KEY_4_3_2: pwTriac1=maxRun; CN2 = CN2ON; break;
           //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitkey=WAITCOUNT*3; break;               // ПРОВЕТРИВАНИЕ начато 
           //  case KEY_5_4:   pvWait=aeration[0]; DoAeration=0; pvFlap=flpNow; break;                               // ПРОВЕТРИВАНИЕ закончено
@@ -120,7 +125,6 @@ uint8_t checkkey(uint8_t keydata){
 }
 
 void saveset(void){
- char byte;
  switch (numSetup)//---------------------- Меню пользователя ---------------------------------------
    {
     case 1: settings.sp_structs[0].spT = editBuff; break;

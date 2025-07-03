@@ -169,26 +169,27 @@ void ledDispl(unsigned char mode){
           else if(COOLING || AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
           else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-          else displ_67(pvRH, NOCOMMA);
+          else displ_67(seconds, NOCOMMA); //pvRH
       break;
        //-------------------t1;----------------------tNTC;--------------------"F2"---------
     case 1: if(HIH5030) displ_top(ds[1].pvT, COMMA); 
             else displ_top(pvTimer, NOCOMMA); 
             // displ_bot(pvTTriac, NOCOMMA); 
-            data[6]=FF; data[7]=0x5b; 
+            data[6]=FF; data[7]=NUMBER_FONT[2]; 
       break;
        //-------------------Flap;--------------------date;--------------------"F3"---------
     case 2: displ_top(settings.sp_structs[0].state, NOCOMMA); 
-            displ_bot(0,NOCOMMA); data[6]=FF; data[7]=0x4f; 
+            displ_bot(0,NOCOMMA); 
+            data[6]=FF; data[7]=NUMBER_FONT[3]; 
       break;
        //---------------уставка t0;-------------------------уставка RH;-----------------------уставка t1-----------------"F4"---------
     case 3: displ_top(settings.sp_structs[0].spT, COMMA); 
             if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
             else displ_bot(settings.sp_structs[1].spT, COMMA);
-            data[6]=FF; data[7]=0x66;
+            data[6]=FF; data[7]=NUMBER_FONT[4];
       break;
  }
- if (OVERHEAT)  {
+ if (OVERHEAT){
     data[6] = PE; data[7] = GE;
     if(seconds & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
   };
