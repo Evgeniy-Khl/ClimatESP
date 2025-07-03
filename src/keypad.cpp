@@ -181,12 +181,14 @@ void saveset(void){
     case 18: settings.sp_structs[0].extendMode = editBuff /*& MAXEXTMODE*/; break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
     // case 19: if(editBuff>MAXRELAYMODE) editBuff=MAXRELAYMODE; else if(editBuff<MINRELAYMODE) editBuff=MINRELAYMODE; relayMode=editBuff;
     //          if(relayMode==4) topUser=PULSMENU; else topUser=TOPUSER; break;//релейный режим работы
-    case 20: editBuff &= 0x3F;  
-             if(editBuff < 1) editBuff = 1; settings.sp_structs[0].pulse = editBuff/**DEN*/; 
+    case 20: if(editBuff < 1) editBuff = 1; 
+             editBuff &= 0x3F;
+             settings.sp_structs[0].pulse = editBuff/**DEN*/; 
         break;       // ограничено 0.1-6.3 секунд;
     // case 21: editBuff &= 0xFF;  if(editBuff<1) editBuff=1; maxRun=editBuff*DEN; break;       // ограничено 0.1-25.5 секунд;
-    case 22: editBuff &= 0x3FF; 
-             if(editBuff < 5) editBuff = 5; settings.sp_structs[1].pulse = editBuff/**200*/; 
+    case 22: if(editBuff < 5) editBuff = 5; 
+             editBuff &= 0x3FF;
+             settings.sp_structs[1].pulse = editBuff/**200*/; 
         break;       // ограничено 5-999 секунд (16 мин.39 сек.);
     // case 23: editBuff &= 0x1F;  
     //          if(editBuff < 2) editBuff = 2; offSetHeater=editBuff; 

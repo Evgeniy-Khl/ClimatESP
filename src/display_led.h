@@ -27,11 +27,12 @@
 #define PP              0x73     // P
 #define GR              0x63     // o
 
-void ledDispl(void);
+void ledDispl(unsigned char mode);
 void displ_top(signed int val, unsigned char comma);
 void displ_bot(signed int val, unsigned char comma);
 void clr_top(void);
 void clr_bot(void);
+void displ_67(signed int val, unsigned char mode);
 void display_setup(uint8_t mode);
 void initLedConfig(void);
 

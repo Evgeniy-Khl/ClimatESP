@@ -60,7 +60,7 @@ void loop() {
   #endif
   if (now - counter1s > 1000){
     counter1s = now; 
-    errors.value = 0;
+    errorsFlag.value = 0;
     if(++seconds > 59) seconds = 0; 
     if(resetDispl) --resetDispl; 
     else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
@@ -176,7 +176,7 @@ void loop() {
     
     // DateTime now = rtc.now();
     #ifdef LED_DISPLAY
-      if(numSetup == 0) ledDispl();
+      if(numSetup == 0) ledDispl(displNum);
       else display_setup(numSetup);
     #endif
     //-----------------------------------------------------------------------------

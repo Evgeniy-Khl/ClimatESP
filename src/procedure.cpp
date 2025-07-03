@@ -184,11 +184,11 @@ bool check_freeze(uint8_t i){
 int16_t checkPV(uint8_t cn){
   int16_t err;
   if(cn==1 && HIH5030){
-     if(pvVadcRH < 80) {errors.value |= (cn+1); err = 0;}
+     if(pvVadcRH < 80) {errorsFlag.value |= (cn+1); err = 0;}
      else err = settings.sp_structs[1].spRH - pvRH;
      ds[1].pvErr = err;         // err > 0 -> холодно
   } else {
-     if(ds[cn].pvT >= 850) {errors.value |= (cn+1); err = 0;}
+     if(ds[cn].pvT >= 850) {errorsFlag.value |= (cn+1); err = 0;}
      else err = settings.sp_structs[cn].spT - ds[cn].pvT;
      ds[cn].pvErr = err;        // err > 0 -> холодно
   };

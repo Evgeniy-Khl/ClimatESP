@@ -120,32 +120,28 @@ void clr_bot(void){
 
 void displ_67(signed int val, unsigned char mode)
 {
-  unsigned char neg=0, comma=0;
-  if(mode==1) comma=0x80;
+  uint8_t neg=0;
   if(val<0) {neg=1; val=-val;}
   if(val<1000)
    {
     if(neg)
      {
-       if(val<100)
+       if(val<10)
         {
           data[6] = DEF;
-          data[7] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-          data[8] = NUMBER_FONT[(val%10)&0x0F];
+          data[7] = NUMBER_FONT[(val%10)&0x0F];
         }
        else
         {
           data[6] = DEF;
-          data[7] = NUMBER_FONT[(val/100)&0x0F];
-          data[8] = NUMBER_FONT[((val/10)%10)&0x0F];
+          data[7] = NUMBER_FONT[(val%10)&0x0F];
         };
      }
-    else if(val<999)
+    else if(val<99)
      {
         
        data[6] = NUMBER_FONT[(val/100)&0x0F];
-       data[7] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-       data[8] = NUMBER_FONT[(val%10)&0x0F];
+       data[7] = NUMBER_FONT[(val%10)&0x0F];
        if(val<100)
         {
          switch (mode)
@@ -157,9 +153,9 @@ void displ_67(signed int val, unsigned char mode)
            }
         }
      }
-    else {data[6] = EE; data[7] = RR; data[8] = RR;}; // Err
+    else {data[6] = EE; data[7] = RR;}; // Er
    }
-  else {data[6] = 0x06; data[7] = 0x6f; data[8] = 0x6f;};// -> 199
+  else {data[6] = 0x06; data[7] = 0x6f; /*data[8] = 0x6f;*/};// -> 199
 }
 
 //===================== ledDisplay ========================
@@ -212,7 +208,9 @@ void display_setup(uint8_t mode){
     clr_top(); displ_bot(editBuff,NOCOMMA);
   }                                              //Нижний дисплей
   else {
-    if(editBuff<0) editBuff=0; displ_top(editBuff,NOCOMMA); clr_bot();
+    if(editBuff<0) editBuff=0; 
+    displ_top(editBuff,NOCOMMA); 
+    clr_bot();
   }                                         //Верхний дисплей 
 }
 
