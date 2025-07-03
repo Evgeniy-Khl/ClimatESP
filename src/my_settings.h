@@ -9,15 +9,15 @@ uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 // Стандартные адреса: 0x20-0x27 для PCF8574 и 0x38-0x3F для PCF8574A.
 // Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
 #define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
-long lastMsg = 0, number = 0;
+long counter10, counter1s;
 //---------------------------------
-int16_t resetDispl, displOff = DISPLAYOFF, pvWait, pvVenting;
+int16_t pvAeration, pvVenting, editBuff;
 bool newDispl = true, newTxt = true;
 // Глобальный массив указателей, который будет доступен всем функциям
 const char* keyLabel[15];
 uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
 uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
-uint8_t displNum=0, seconds=0, displPower, pvTimer, pvFlap, beepOn;
+uint8_t displNum=0, resetDispl, waitkey, numSetup, seconds, displPower, pvTimer, pvFlap, beepOn;
 float editValue;
 //---------------------------------
 Ds ds[2] = {{200,0,0,0,0},{180,0,0,0,0}};

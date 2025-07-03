@@ -19,6 +19,7 @@
 #include "procedure.h"
 #ifdef LED_DISPLAY
   #include "display_led.h"
+  #include "keypad.h"
 #else
   #include "display_tft.h"
 #endif
@@ -119,8 +120,8 @@ extern union Byte portFlag;
 
 #define REACHED0  portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
 #define REACHED1  portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
-#define VENTIL 	portFlag.bitfield.a2  // Ventilation flag
-#define EEPSAVE portFlag.bitfield.a3  // Save in EEPROM flag
+#define NON1 	  portFlag.bitfield.a2  // не используется
+#define NON2    portFlag.bitfield.a3  // не используется
 #define HIH5030	  portFlag.bitfield.a4  // exist HIH5030 flag
 #define AM2301	  portFlag.bitfield.a5  // exist AM2301 flag
 #define COOLING   portFlag.bitfield.a6  // охлаждение
@@ -132,6 +133,9 @@ extern union Byte portFlag;
 #define DISPLAYOFF 300
 
 #ifdef LED_DISPLAY
+  #define BEEP_PIN  0
+  #define PWMOUT    15
+  #define WAITCOUNT 17	// максимальная пауза перед реакцией на кнопку
   extern TM1638 module;
   extern uint8_t data[];
 #else
@@ -143,8 +147,9 @@ extern DallasTemperature sensors;
 
 extern bool newDispl;
 extern float editValue;
-extern uint8_t numberOfDevices, seconds, displNum, displPower, pvTimer, errDevice[];
+extern uint8_t numberOfDevices, resetDispl, waitkey, numSetup, seconds, displNum, displPower, pvTimer, errDevice[], beepOn;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse;
+extern int16_t pvAeration, pvVenting, editBuff;
 extern const uint8_t tabRH[];
 
 byte writePCF8574(byte data);

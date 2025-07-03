@@ -21,12 +21,13 @@ void setup() {
   #endif
   //---------------------------- инициализация Конфигурации -----------------------------------
   #ifdef LED_DISPLAY
+    pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход
     initLedConfig();
   #else
 
   #endif
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
-  pvWait = settings.sp_structs[0].aeration;                // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
+  pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   portOut.value = 0;
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
@@ -35,6 +36,7 @@ void setup() {
 void loop() {
   #ifdef LED_DISPLAY
     byte keys = module.getButtons();
+    keys = checkkey(keys);
     // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
     module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
   #else
@@ -50,9 +52,16 @@ void loop() {
   
   //============================= НОВАЯ СЕКУНДА =================================
   long now = millis();
-  if (now - lastMsg > 1000){
+  #ifdef LED_DISPLAY
+    if (now - counter10 > 10){
+      counter10 = now;
+      if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+    }
+  #endif
+  if (now - counter1s > 1000){
+    counter1s = now; 
+    errors.value = 0;
     if(++seconds > 59) seconds = 0; 
-    lastMsg = now; errors.value = 0;
     if(resetDispl) --resetDispl; 
     else if(displNum){displNum = 0; newDispl = true;}  // возврат к главному дисплею
     
@@ -156,7 +165,7 @@ void loop() {
     //------- ПРОВЕТРИВАНИЕ ----------------------------------------------------------------------    
       if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
         EXTRA1 = ON; pvFlap = 100; beepOn = 10;
-        if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; AERATION =0;}
+        if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0;}
       }
       // if(setup==0) alarm();
     }
@@ -195,13 +204,13 @@ void loop() {
         if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
         if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
-          if(--pvWait == 0){
+          if(--pvAeration == 0){
             pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = ON;
           //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
           }
         } else if(COOLING){
           EXTRA1 = ON; pvFlap = 100; beepOn = 50;
-          if(--pvVenting == 0){pvWait = settings.sp_structs[0].aeration; COOLING = 0;}
+          if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
           // if(extendMode&1) BREAK=ON; 
         }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
