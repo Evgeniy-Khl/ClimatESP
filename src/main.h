@@ -135,7 +135,7 @@ extern union Byte portFlag;
 #ifdef LED_DISPLAY
   #define BEEP_PIN        0
   #define PWMOUT_PIN      15
-  #define RESETDISPLAY    10  // Sec.
+  #define RESETDISPLAY    20  // 20/2=10 Sec.
   #define WAITCHECKKEYPAD 500	// mSec. максимальная пауза перед реакцией на кнопку
   extern TM1638 module;
   extern uint8_t data[8];
@@ -149,7 +149,7 @@ extern DallasTemperature sensors;
 extern bool newDispl;
 extern long counterWait;
 extern float editValue;
-extern uint8_t numberOfDevices, resetDispl, numSetup, seconds, displNum, displPower, pvTimer, errDevice[], beepOn;
+extern uint8_t numberOfDevices, resetDispl, numSetup, doubleSeconds, displNum, displPower, pvTimer, errDevice[], beepOn;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, waitCheckKeyPad;
 extern int16_t pvAeration, pvVenting, editBuff;
 extern const uint8_t tabRH[];

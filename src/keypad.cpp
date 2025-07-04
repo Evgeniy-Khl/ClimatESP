@@ -1,7 +1,7 @@
 #include "keypad.h"
 
 void checkkey(uint8_t key){
-  uint8_t topUser=31, topOwner=15, botUser=16;
+  uint8_t topUser=29, topOwner=15, botUser=16;
   beepOn = 25; digitalWrite(BEEP_PIN, LOW); // Включаем бипер
   if(numSetup){   //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
@@ -169,7 +169,7 @@ void saveset(void){
       case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // close->ограничено 0 - 63
       case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// open ->ограничено 0 - 127
       case 25: if(editBuff<1) editBuff=1; settings.sp_structs[0].Kp = editBuff;
-              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki);
+              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/10; Ki/1000;
         break;  // ограничено 1 - 999;
       case 26: settings.sp_structs[0].Ki = editBuff; 
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki)

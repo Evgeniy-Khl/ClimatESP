@@ -17,11 +17,11 @@ int16_t pvAeration, pvVenting, editBuff;
 // const char* keyLabel[15];
 // uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
 uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, waitCheckKeyPad = WAITCHECKKEYPAD;
-uint8_t displNum=0, resetDispl, numSetup, seconds, displPower, pvTimer, pvFlap, beepOn, lastKey;
+uint8_t displNum=0, resetDispl, numSetup, doubleSeconds, displPower, pvTimer, pvFlap, beepOn, lastKey;
 long counterWait;
 float editValue;
 //---------------------------------
-Ds ds[2] = {{200,0,0,0,0},{180,0,0,0,0}};
+Ds ds[2] = {{150,0,0,0,0},{100,0,0,0,0}};
 float dpv0, dpv1;
 //---------------------------------
 

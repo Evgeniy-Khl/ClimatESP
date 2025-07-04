@@ -3,8 +3,8 @@
 #define UNALTERED   2 // неизменный
 
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
-    pid->Kp = (float)Kp/10;
-    pid->Ki = (float)Ki/1000;
+    pid->Kp = (float)Kp/4;
+    pid->Ki = (float)Ki/10000;
 }
 
 void initMyConfig(){
@@ -153,10 +153,10 @@ uint8_t UpdatePID(uint8_t cn){
   // Суммарное управляющее воздействие
   output = pid[cn].pPart + pid[cn].iPart;
   // Ограничение выходного значения и антивиндовинг
-  if (output > 100) output = 110;
+  if (output > 255) output = 255;
   else if (output < 0) output = 0;
-  if (pid[cn].pPart >= 100) pid[cn].iPart = 0; // Сброс интеграла
-  else if (pid[cn].pPart <= -50) pid[cn].iPart = 0; // Сброс интеграла
+  if (pid[cn].pPart >= 255) pid[cn].iPart = 0; // Сброс интеграла
+  else if (pid[cn].pPart <= -150) pid[cn].iPart = 0; // Сброс интеграла
 
   error = output;
   return (uint8_t)error;

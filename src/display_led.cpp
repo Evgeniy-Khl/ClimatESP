@@ -14,7 +14,7 @@ uint8_t data[] = {
 
 void displ_top(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR1 || ERROR4 || comma == 3) && (seconds & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
+  if((ERROR1 || ERROR4 || comma == 3) && (doubleSeconds & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
     if(val<0) {neg = 1; val = -val;}
@@ -45,9 +45,9 @@ void displ_top(signed int val, unsigned char comma){
 
 void displ_bot(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR10 || comma == 3)&&(seconds & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
+  if((ERROR10 || comma > 1)&&(doubleSeconds & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
   else {
-    if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
+    if(comma == 1) comma=0x80; else {i = comma; comma = 0;}
     if(val<0) {neg = 1; val = -val;}
     if(val<1000){
       if (neg){
@@ -61,7 +61,7 @@ void displ_bot(signed int val, unsigned char comma){
           data[5] = NUMBER_FONT[((val/10)%10)&0x0F];
         };
       } else {
-        if(i == 3) data[3] = YY;
+        if(i == 2) data[3] = NN;  // "n"
         else data[3] = NUMBER_FONT[(val/100)&0x0F];
         data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
         data[5] = NUMBER_FONT[(val%10)&0x0F];
@@ -121,7 +121,7 @@ void ledDispl(unsigned char mode){
       else if(COOLING || AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-      else displ_67(seconds, NOCOMMA); //pvRH
+      else displ_67(doubleSeconds/2, NOCOMMA); //pvRH
       break;
        //-------------------t1;----------------------tNTC;--------------------"F2"---------
     case 1: 
@@ -146,7 +146,7 @@ void ledDispl(unsigned char mode){
  }
  if (OVERHEAT){
     data[6] = PE; data[7] = GE;
-    if(seconds & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
+    if(doubleSeconds & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
   };
 }
 
@@ -154,20 +154,14 @@ void ledDispl(unsigned char mode){
 void display_setup(void){
   // errorsFlag = 0;
   if(editBuff>999) editBuff=999; else if(editBuff<-99) editBuff=-99;
-  if(numSetup==1||numSetup==7||numSetup==8||numSetup==11||numSetup==13||numSetup==14){
-    displ_top(editBuff,COMMA); displ_bot(numSetup,3);               //Верхний дисплей + Запятая
+  if(numSetup==3||numSetup==4||numSetup==5||numSetup==6||numSetup>=15){
+    displ_top(editBuff,NOCOMMA); displ_bot(numSetup,2);               //Верхний дисплей + Запятая
   } 
-  else if(numSetup==2||numSetup==9||numSetup==10||numSetup==12){
-    displ_top(numSetup,3); displ_bot(editBuff,COMMA);               //Нижний дисплей + Запятая
-  }
-  else if(numSetup==4||numSetup==6){
-    displ_top(numSetup,3); displ_bot(editBuff,NOCOMMA);             //Нижний дисплей
-  }
   else {
-    if(editBuff<0) editBuff=0; 
-    displ_top(editBuff,NOCOMMA); displ_bot(numSetup,3);              //Верхний дисплей 
+    displ_top(editBuff,COMMA); displ_bot(numSetup,2);              //Верхний дисплей 
   }
-  data[6]=0; data[7]=0;
+  if(numSetup > 15) {data[6] = PE; data[7] = NUMBER_FONT[10];}  // "ПА"
+  else {data[6] = YY; data[7] = NUMBER_FONT[12];}  // "УС"
 }
 
 //============================== Config ========================================
