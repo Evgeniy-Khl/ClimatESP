@@ -61,3 +61,18 @@ float val;
   // PVold1 = val;
   return val;
 }; */
+
+/* case 14:                               // У14 подстройка датчика DS18B20
+if(devices==1)
+{ 
+  try = 0;
+  do {
+    w1_init(); w1_write(0xCC);// 1 Wire Bus initialization; Skip ROM [CCH] command
+    w1_write(0xBE); // Read Scratchpad command [BE]
+    ptr_to_ram = ds_buffer;
+    for (byte=0; byte < 8; byte++){*ptr_to_ram++ = w1_readnew();}
+    crc = w1_readnew(); // Read CRC byte
+    ptr_to_ram = ds_buffer;
+    if(w1_dow_crc8(ptr_to_ram, 8)==crc){try = 2; if(ds_buffer[2]==TUNING) editBuff=(signed char)ds_buffer[3]; else editBuff=0;}
+  } while (++try < 2);
+} else editBuff=999; break;*/

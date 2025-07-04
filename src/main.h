@@ -56,22 +56,22 @@ extern Ds ds[];
 // В данном случае все поля одного типа, и проблема маловероятна, но это хорошая практика.
 #pragma pack(push, 1)
 struct Sp{
-    int16_t spT; 	      // Уставка температуры
+    int16_t spT; 	      // Уставка температуры  0 1
     int16_t spRH;	      // Уставка относительной влажности (sp[0].spRH->ПОДСТРОЙКА HIH)
-    int16_t alarm;      // дельта 5 = 0.5 гр.C
-    int16_t coolOn;     // включение охлаждения
-    int16_t coolOff;    // выключение охлаждения
+    int16_t alarm;      // дельта 5 = 0.5 гр.C 01
+    int16_t coolOn;     // включение охлаждения 01
+    int16_t coolOff;    // выключение охлаждения 01
     int16_t timer;      // длительность [0]-отключ.состояниe [1]-включ.состояниe
     int16_t aeration;   // [0]-ПАУЗА ПРОВЕТРИВАНИЯ (минут); [1]-ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
     int16_t auxiliary;  // [0]-включение форсированного; [1]-выключение форсированного
-    int16_t state;      // [0]-заслонка текущее; [1]-программа текущая
-    int16_t flapLimit;  // [0]-закрыта; [1]-открыта
-    int16_t pulse;      // [0]-MIN; [1]-Период импульсов
+    int16_t state;      // [0]-заслонка текущее; [1]-программа текущая 01
+    int16_t flapLimit;  // [0]-закрыта; [1]-открыта 01
+    int16_t pulse;      // [0]-MIN; [1]-Период импульсов 01
     int16_t mode;       // [0]-релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное по кан.1; [1]-задержка регулировки по влажному
     int16_t extendMode; // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; [1]-???????????????
     int16_t Kp;         // Пропорциональный
     int16_t Ki;         // Интегральный
-};
+};                      // 30 уставок
 #pragma pack(pop)
 
 // Определяем union
@@ -133,9 +133,10 @@ extern union Byte portFlag;
 #define DISPLAYOFF 300
 
 #ifdef LED_DISPLAY
-  #define BEEP_PIN  0
-  #define PWMOUT    15
-  #define WAITCHECKKEYPAD 500	// максимальная пауза перед реакцией на кнопку
+  #define BEEP_PIN        0
+  #define PWMOUT_PIN      15
+  #define RESETDISPLAY    10  // Sec.
+  #define WAITCHECKKEYPAD 500	// mSec. максимальная пауза перед реакцией на кнопку
   extern TM1638 module;
   extern uint8_t data[8];
 #else
@@ -158,3 +159,4 @@ byte readPCF8574();
 void testAT24C32();
 
 #endif /* __MAIN_H */
+
