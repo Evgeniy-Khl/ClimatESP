@@ -25,5 +25,6 @@ void saveConfig();
 bool loadConfig();
 void printAddress(DeviceAddress deviceAddress);
 void printBinary(unsigned char byte);
+uint8_t tableRH(int16_t maxT, int16_t minT);
 
 #endif /* _PROCEDURE_H */

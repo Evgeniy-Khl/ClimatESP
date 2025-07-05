@@ -53,12 +53,12 @@ void loop() {
     if(now - counter10 > 10){//--------------- 10 mSec. -----------------------------
       counter10 = now;
       if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){
+      if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
         HUMIDI = OFF;
         writePCF8574(portOut.value);
       }
     }
-    if(now - counterWait > waitCheckKeyPad){
+    if(now - counterWait > waitCheckKeyPad){//----------- КЛАВИАТУРА ----------------
       counterWait = now;
       byte keys = module.getButtons();
       
@@ -77,7 +77,7 @@ void loop() {
       // module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
     }
   #endif
-  //============================= НОВАЯ СЕКУНДА =================================
+  //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
 
   if(now - counter1s > 500){
     counter1s = now; 
@@ -87,7 +87,7 @@ void loop() {
     else if(numSetup) saveset();  // сохраняем установки
     else displNum = 0;            // возврат к главному дисплею
     if(halfSecond & 2){
-      //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
+  //================================ НОВАЯ СЕКУНДА =================================
       #ifndef DEBUG  
         temperature_check();
       
@@ -98,7 +98,7 @@ void loop() {
           else pvRH = 1990;
         } else {
           uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
-          if(valTable>100) pvRH = 999; else pvRH = valTable;
+          if(valTable>100) pvRH = 100; else pvRH = valTable;
         }
       #else
         //-----температура воздуха------
@@ -209,7 +209,7 @@ void loop() {
         // if((setup+setprgday)==0) display(displmode);// вывод на дисплей
 
         //-------------------------
-    }
+    }//============================== КОНЕЦ ПОЛ-СЕКУНДЫ =================================
     // DateTime now = rtc.now();
     #ifdef LED_DISPLAY
       if(numSetup == 0) ledDispl(displNum);
