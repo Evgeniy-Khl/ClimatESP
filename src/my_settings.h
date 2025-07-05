@@ -16,7 +16,7 @@ int16_t pvAeration, pvVenting, editBuff;
 // Глобальный массив указателей, который будет доступен всем функциям
 // const char* keyLabel[15];
 // uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
-uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, waitCheckKeyPad = WAITCHECKKEYPAD;
+uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, pvPeriod, waitCheckKeyPad = WAITCHECKKEYPAD;
 uint8_t displNum=0, resetDispl, numSetup, halfSecond, displPower, pvTimer, pvFlap, beepOn, lastKey;
 long counterWait;
 float editValue;

@@ -50,9 +50,13 @@ void loop() {
   
   
   #ifdef LED_DISPLAY
-    if(now - counter10 > 10){
+    if(now - counter10 > 10){//--------------- 10 mSec. -----------------------------
       counter10 = now;
       if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+      if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){
+        HUMIDI = OFF;
+        writePCF8574(portOut.value);
+      }
     }
     if(now - counterWait > waitCheckKeyPad){
       counterWait = now;
@@ -164,6 +168,11 @@ void loop() {
               case 4:
                 heaterValue = UpdatePID(0);           // ПИД нагреватель
                 OutPulse();                           // импульсное управление увлажнителем
+                if (pvPeriod) --pvPeriod;
+                else {
+                  pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
+                  if(pvPulse) HUMIDI = ON;                  // включить канал 2 (импульсный режим)
+                };
                 break;
           }
         } else {heaterValue = 0; displPower = 0;}      //-- идет ОХЛАЖДЕНИЕ!--

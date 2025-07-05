@@ -157,28 +157,28 @@ void saveset(void){
       case 17: if(editBuff) settings.sp_structs[1].mode = 1;    // НЕ ограничено задержка регулировки по влажному
                else settings.sp_structs[1].mode = 0; 
         break;
-      case 18: settings.sp_structs[0].mode = editBuff;          // ограничено 0 - 4/ релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное
+      case 18: settings.sp_structs[0].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
               //  if(editBuff == 4) topUser=PULSMENU; else topUser=TOPUSER; 
         break;
       case 19: if(editBuff) settings.sp_structs[0].extendMode = 1;
                else settings.sp_structs[0].extendMode = 0;
         break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
       case 20: settings.sp_structs[1].extendMode = editBuff; break; // ?????????????????????????????????
-      case 21: settings.sp_structs[0].pulse = editBuff; break;      // ограничено 0.1-6.3 секунд;
+      case 21: settings.sp_structs[0].pulse = editBuff; break;      // ограничено 100 - 999 (0.1 - 1.0) секунд;
       case 22: settings.sp_structs[1].pulse = editBuff; break;      // ограничено 5-999 секунд (16 мин.39 сек.);
       case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // close->ограничено 0 - 63
       case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// open ->ограничено 0 - 127
       case 25: if(editBuff<1) editBuff=1; settings.sp_structs[0].Kp = editBuff;
-              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/10; Ki/1000;
+              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
       case 26: settings.sp_structs[0].Ki = editBuff; 
-              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki)
+              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
       case 27: if(editBuff<1) editBuff=1; settings.sp_structs[1].Kp = editBuff; 
-              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki)
+              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
       case 28: settings.sp_structs[1].Ki = editBuff; 
-              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki)
+              //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
       case 29: settings.sp_structs[0].spRH = editBuff; break;   // ограничено -99 до 99 (-9,9 до 9,9 Ц.)
   };
