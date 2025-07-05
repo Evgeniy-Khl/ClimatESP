@@ -8,8 +8,12 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 uint8_t UpdatePID(uint8_t cn){
- int16_t error;
- float output;
+  int16_t error, max = 255, min = -127;
+  float output;
+  if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
+    max = settings.sp_structs[1].pulse * 1000 / 2; 
+    min = -max / 2;
+  }
   // Вычисление ошибки
   error = settings.sp_structs[cn].spT - ds[cn].pvT;
   ds[cn].pvErr = error;         // error > 0 -> холодно
@@ -20,10 +24,8 @@ uint8_t UpdatePID(uint8_t cn){
   // Суммарное управляющее воздействие
   output = pid[cn].pPart + pid[cn].iPart;
   // Ограничение выходного значения и антивиндовинг
-  if (output > 255) output = 255;
-  else if (output < 0) output = 0;
-  if (pid[cn].pPart >= 255) pid[cn].iPart = 0; // Сброс интеграла
-  else if (pid[cn].pPart <= -150) pid[cn].iPart = 0; // Сброс интеграла
+  if (pid[cn].pPart >= max) pid[cn].iPart = 0; // Сброс интеграла
+  else if (pid[cn].pPart <= min) pid[cn].iPart = 0; // Сброс интеграла
 
   error = output;
   return (uint8_t)error;
@@ -80,7 +82,7 @@ uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 �
 
 void OutPulse(void){
   int16_t err = checkPV(1);                     // err > 0 -> холодно
-  uint16_t maxPulse = settings.sp_structs[1].pulse * 1000;// период не должен превышать 60 сек.
+  uint16_t maxPulse = settings.sp_structs[1].pulse * 1000 / 2;// длительность впрыска не должна превышать пол периода
   if(err == 0){pvPulse = 0; return;};
   if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
   pvPulse = UpdatePID(1);                       // определение длительности ВКЛ. состояния
