@@ -78,11 +78,11 @@ void loop() {
   if(now - counter1s > 500){
     counter1s = now; 
     // errorsFlag.value = 0;
-    if(++doubleSeconds > 119) doubleSeconds = 0; 
+    if(++halfSecond > 119) halfSecond = 0; 
     if(resetDispl) --resetDispl;
     else if(numSetup) saveset();  // сохраняем установки
     else displNum = 0;            // возврат к главному дисплею
-    if(doubleSeconds & 2){
+    if(halfSecond & 2){
       //------------------------ ЗНАЧЕНИЯ ТЕМПЕРАТУРЫ --------------------------
       #ifndef DEBUG  
         temperature_check();
@@ -106,7 +106,7 @@ void loop() {
         ds[1].pvT += dpv1;
         //------
         DEBUG_PRINTLN();
-        sprintf(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",doubleSeconds/2,resetDispl,displNum,numSetup);
+        sprintf(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",halfSecond/2,resetDispl,displNum,numSetup);
         DEBUG_PRINTLN(displStr);
         sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
         DEBUG_PRINTLN(displStr);
@@ -228,7 +228,7 @@ void loop() {
     }
     */
     //==================== НОВАЯ МИНУТА =======================================
-    if(doubleSeconds == 0){
+    if(halfSecond == 0){
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
         if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------

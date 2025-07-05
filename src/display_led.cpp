@@ -14,7 +14,7 @@ uint8_t data[] = {
 
 void displ_top(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR1 || ERROR4 || comma == 3) && (doubleSeconds & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
+  if((ERROR1 || ERROR4 || comma == 3) && (halfSecond & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
     if(val<0) {neg = 1; val = -val;}
@@ -45,7 +45,7 @@ void displ_top(signed int val, unsigned char comma){
 
 void displ_bot(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR10 || comma > 1)&&(doubleSeconds & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
+  if((ERROR10 || comma > 1)&&(halfSecond & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80; else {i = comma; comma = 0;}
     if(val<0) {neg = 1; val = -val;}
@@ -121,7 +121,7 @@ void ledDispl(unsigned char mode){
       else if(COOLING || AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-      else displ_67(doubleSeconds/2, NOCOMMA); //pvRH
+      else displ_67(halfSecond/2, NOCOMMA); //pvRH
       break;
        //-------------------t1;----------------------tNTC;--------------------"F2"---------
     case 1: 
@@ -146,7 +146,7 @@ void ledDispl(unsigned char mode){
  }
  if (OVERHEAT){
     data[6] = PE; data[7] = GE;
-    if(doubleSeconds & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
+    if(halfSecond & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
   };
 }
 

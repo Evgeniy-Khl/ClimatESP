@@ -149,7 +149,7 @@ extern DallasTemperature sensors;
 extern bool newDispl;
 extern long counterWait;
 extern float editValue;
-extern uint8_t numberOfDevices, resetDispl, numSetup, doubleSeconds, displNum, displPower, pvTimer, errDevice[], beepOn;
+extern uint8_t numberOfDevices, resetDispl, numSetup, halfSecond, displNum, displPower, pvTimer, errDevice[], beepOn;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, waitCheckKeyPad;
 extern int16_t pvAeration, pvVenting, editBuff;
 extern const uint8_t tabRH[];
