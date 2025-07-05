@@ -6,8 +6,7 @@ void checkkey(uint8_t key){
   if(numSetup){   //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
-        case KEY_1:
-                    waitCheckKeyPad = WAITCHECKKEYPAD ;
+        case KEY_1: waitCheckKeyPad = WAITCHECKKEYPAD ;
                     if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
                     switch (numSetup){
                         case 1: editBuff = settings.sp_structs[0].spT; break;          // У1 уставка канал 1
@@ -29,9 +28,41 @@ void checkkey(uint8_t key){
                         case 15: editBuff = settings.sp_structs[1].state; break;       // У15 номер программы
                       }; 
           break;
-        case KEY_2:{editBuff++; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25;} break;
-        case KEY_3:
-                    waitCheckKeyPad = WAITCHECKKEYPAD;
+        case KEY_2: editBuff++; 
+                    if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25; 
+                    switch (numSetup){
+                      case 1:  if(editBuff > 999) editBuff = 999;  break;
+                      case 2:  if(editBuff > 999) editBuff = 999;  break;
+                      case 3:  if(editBuff > 999) editBuff = 999;  break;
+                      case 4:  if(editBuff > 999) editBuff = 999;  break;
+                      case 5:  if(editBuff > 999) editBuff = 999;  break;
+                      case 6:  if(editBuff > 999) editBuff = 999;  break;
+                      case 7:  if(editBuff > 100) editBuff = 100;  break;
+                      case 8:  if(editBuff >  50) editBuff =  50;  break;
+                      case 9:  if(editBuff > 100) editBuff = 100;  break;
+                      case 10: if(editBuff >  50) editBuff =  50;  break;
+                      case 11: if(editBuff > 500) editBuff = 500;  break;
+                      case 12: if(editBuff > 500) editBuff = 500;  break;
+                      case 13: if(editBuff > 500) editBuff = 500;  break;
+                      case 14: if(editBuff > 999) editBuff = 999;  break;
+                      case 15: if(editBuff >   4) editBuff =   4;  break;
+                      case 16: if(editBuff > 100) editBuff = 100;  break;
+                      case 17: if(editBuff >   1) editBuff =   1;  break;
+                      case 18: if(editBuff >   4) editBuff =   4;  break;
+                      case 19: if(editBuff >   1) editBuff =   1;  break;
+                      case 20: if(editBuff > 999) editBuff = 999;  break;
+                      case 21: if(editBuff > 999) editBuff = 999;  break;
+                      case 22: if(editBuff >  60) editBuff =  60;  break;
+                      case 23: if(editBuff > 999) editBuff = 999;  break;
+                      case 24: if(editBuff > 999) editBuff = 999;  break;
+                      case 25: if(editBuff > 999) editBuff = 999;  break;
+                      case 26: if(editBuff > 999) editBuff = 999;  break;
+                      case 27: if(editBuff > 999) editBuff = 999;  break;
+                      case 28: if(editBuff > 999) editBuff = 999;  break;
+                      case 29: if(editBuff > 999) editBuff = 999;  break;
+                    }
+          break;
+        case KEY_3: waitCheckKeyPad = WAITCHECKKEYPAD;
                     ++numSetup;
                     if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
                     switch (numSetup){
@@ -52,7 +83,40 @@ void checkkey(uint8_t key){
                         case 30: editBuff = 0; break;                 // П0 сброс параметров
                     };
           break;
-        case KEY_4:{editBuff--; if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25;} break;
+        case KEY_4: editBuff--; 
+                    if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25; 
+                    switch (numSetup){
+                      case 1:   if(editBuff <  10) editBuff =  10;  break;
+                      case 2:   if(editBuff <  10) editBuff =  10;  break;
+                      case 3:   if(editBuff <   0) editBuff =   0;  break;
+                      case 4:   if(editBuff <   0) editBuff =   0;  break;
+                      case 5:   if(editBuff <   0) editBuff =   0;  break;
+                      case 6:   if(editBuff <   0) editBuff =   0;  break;
+                      case 7:   if(editBuff <   1) editBuff =   1;  break;
+                      case 8:   if(editBuff <   0) editBuff =   0;  break;
+                      case 9:   if(editBuff <   1) editBuff =   1;  break;
+                      case 10:  if(editBuff <   0) editBuff =   0;  break;
+                      case 11:  if(editBuff <   2) editBuff =   2;  break;
+                      case 12:  if(editBuff <   2) editBuff =   2;  break;
+                      case 13:  if(editBuff <   5) editBuff =   5;  break;
+                      case 14:  if(editBuff <   0) editBuff =   0;  break;
+                      case 15:  if(editBuff <   0) editBuff =   0;  break;
+                      case 16:  if(editBuff <   0) editBuff =   0;  break;
+                      case 17:  if(editBuff <   0) editBuff =   0;  break;
+                      case 18:  if(editBuff <   0) editBuff =   0;  break;
+                      case 19:  if(editBuff <   0) editBuff =   0;  break;
+                      case 20:  if(editBuff <   0) editBuff =   0;  break;
+                      case 21:  if(editBuff < 100) editBuff = 100;  break;
+                      case 22:  if(editBuff <   5) editBuff =   5;  break;
+                      case 23:  if(editBuff <   0) editBuff =   0;  break;
+                      case 24:  if(editBuff <   0) editBuff =   0;  break;
+                      case 25:  if(editBuff <   1) editBuff =   1;  break;
+                      case 26:  if(editBuff <   0) editBuff =   0;  break;
+                      case 27:  if(editBuff <   1) editBuff =   1;  break;
+                      case 28:  if(editBuff <   0) editBuff =   0;  break;
+                      case 29:  if(editBuff < -99) editBuff = -99;  break;
+                    }
+          break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 
   }
@@ -111,10 +175,10 @@ void saveset(void){
       case 6: settings.sp_structs[1].aeration = editBuff;         // ограничено 0 до 999 сек.
               if(editBuff){pvVenting = editBuff; pvAeration = 0; AERATION=1;} 
         break;  // ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
-      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // ограничено 2 до 50 (0,2 до 5,0 Ц.)
+      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // ограничено 2 до 100 (0,2 до 10,0 Ц.)
       case 8: settings.sp_structs[0].coolOff = editBuff; break;   // ограничено 0 до 50 (0,0 до 5,0 Ц.)
       case 9:  settings.sp_structs[1].coolOn =  editBuff; break;  // ограничено 2 до 100 (0,2 до 10,0 Ц. 0,2% до 10%)
-      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // ограничено 0 до 100 (0,0 до 10,0 Ц. 0,0% до 10%)
+      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // ограничено 0 до 50 (0,0 до 5,0 Ц. 0,0% до 10%)
       case 11: settings.sp_structs[0].alarm = editBuff;  break;   // ограничено 5 до 200 (0,5 до 20,0 Ц.)
       case 12: settings.sp_structs[1].alarm = editBuff;  break;   // ограничено 5 до 300 (0,5 до 30,0 Ц. 0,5% до 30%)
       case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // ограничено 5 до 200 (0,5 до 20,0 Ц.)
@@ -154,27 +218,23 @@ void saveset(void){
     //                       }; 
     // break;//--------------------------- Меню специалиста ---------------------------------------------------------
       case 16: settings.sp_structs[0].state = editBuff; break;  // ограничено 0 - 100% текущее положение заслонки
-      case 17: if(editBuff) settings.sp_structs[1].mode = 1;    // НЕ ограничено задержка регулировки по влажному
-               else settings.sp_structs[1].mode = 0; 
-        break;
+      case 17: settings.sp_structs[1].mode = editBuff;  break;  // НЕ ограничено задержка регулировки по влажному
       case 18: settings.sp_structs[0].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
               //  if(editBuff == 4) topUser=PULSMENU; else topUser=TOPUSER; 
         break;
-      case 19: if(editBuff) settings.sp_structs[0].extendMode = 1;
-               else settings.sp_structs[0].extendMode = 0;
-        break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
+      case 19: settings.sp_structs[0].extendMode = editBuff; break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
       case 20: settings.sp_structs[1].extendMode = editBuff; break; // ?????????????????????????????????
       case 21: settings.sp_structs[0].pulse = editBuff; break;      // ограничено 100 - 999 (0.1 - 1.0) секунд;
-      case 22: settings.sp_structs[1].pulse = editBuff; break;      // ограничено 5-999 секунд (16 мин.39 сек.);
+      case 22: settings.sp_structs[1].pulse = editBuff; break;      // ограничено 5-60 секунд
       case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // close->ограничено 0 - 63
       case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// open ->ограничено 0 - 127
-      case 25: if(editBuff<1) editBuff=1; settings.sp_structs[0].Kp = editBuff;
+      case 25: settings.sp_structs[0].Kp = editBuff;
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
       case 26: settings.sp_structs[0].Ki = editBuff; 
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
-      case 27: if(editBuff<1) editBuff=1; settings.sp_structs[1].Kp = editBuff; 
+      case 27: settings.sp_structs[1].Kp = editBuff; 
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
       case 28: settings.sp_structs[1].Ki = editBuff; 

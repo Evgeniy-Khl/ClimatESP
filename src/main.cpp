@@ -63,10 +63,14 @@ void loop() {
       byte keys = module.getButtons();
       
       if(lastKey == keys && keys > 0){
+        byte color = 0;
         checkkey(keys);
         if(numSetup == 0) ledDispl(displNum);
         else display_setup();
         module.setDisplay(data, 8);
+        module.setLED(color|HEATER, 0);
+        module.setLED(color|HUMIDI, 1);
+        // module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
       } 
       else if(keys == 0) waitCheckKeyPad = WAITCHECKKEYPAD ;
       else lastKey = keys;
@@ -106,7 +110,7 @@ void loop() {
         humidiValue = UpdatePID(1);            // ПИД увлажнитель
         dpv0 = heaterValue/100;
         ds[0].pvT += dpv0;
-        dpv1 = pid[1].pPart/255 + pid[1].iPart/100;
+        dpv1 = humidiValue/100;
         ds[1].pvT += dpv1;
         //------
         DEBUG_PRINTLN();
@@ -184,7 +188,7 @@ void loop() {
           DEBUG_PRINTLN("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ.");
           //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
           if(ERROR1 == 0){
-            if (ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;       // включить вспомогательны нагреватель
+            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;       // включить вспомогательны нагреватель
             else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = OFF; // отключить вспомогательны нагреватель
           } else EXTRA2 = OFF;                                                      // отключить вспомогательны нагреватель
           //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
@@ -217,25 +221,7 @@ void loop() {
       module.setDisplay(data, 8);
 
     #endif
-    //-----------------------------------------------------------------------------
-
-    // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
-    // writePCF8574(now.second()%10);
-    /* -- Пример 2: Чтение входов PCF8574 ---
-          Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
-          чтобы перевести их в режим "квази-входа" с высоким импедансом.
-          Если к пину ничего не подключено или подключено к VCC, вы прочитаете '1'.
-          Если пин замкнут на GND, вы прочитаете '0'. 
-    writePCF8574(0x80); // Устанавливаем  пин в режим "квази-входа"
-    delay(100); // Небольшая задержка для стабилизации
-    byte inputData = readPCF8574();
-    // Пример проверки состояния конкретного пина (например, P8)
-    if (!(inputData & 0x80)) { // Если P8 равен 0
-      DEBUG_PRINTLN("Pin P8 is LOW");
-    } else {
-      DEBUG_PRINTLN("Pin P8 is HIGH");
-    }
-    */
+    
     //==================== НОВАЯ МИНУТА =======================================
     if(halfSecond == 0){
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------

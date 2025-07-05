@@ -80,11 +80,12 @@ uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 �
 
 void OutPulse(void){
   int16_t err = checkPV(1);                     // err > 0 -> холодно
+  uint16_t maxPulse = settings.sp_structs[1].pulse * 1000;// период не должен превышать 60 сек.
   if(err == 0){pvPulse = 0; return;};
   if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
   pvPulse = UpdatePID(1);                       // определение длительности ВКЛ. состояния
   if(pvPulse < settings.sp_structs[0].pulse) pvPulse = settings.sp_structs[0].pulse;
-  else if(pvPulse > settings.sp_structs[1].pulse) pvPulse = settings.sp_structs[1].pulse;      // длит. впрыска не должна превыщать длит.переода
+  else if(pvPulse > maxPulse) pvPulse = maxPulse;   // длит. впрыска не должна превыщать длит.переода
   if(ds[1].pvErr < 0) pvPulse = 0;                  // отключение впрыска по 2 каналу если перелив
 }
 

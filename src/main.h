@@ -169,7 +169,7 @@ extern union Byte portFlag;
 #define AUXILIARY_1 2   // допоміж. вимкн. = 2 (0,2 °C)
 #define STATE_1     0   // задана програма = 0
 #define FLPOPEN     100 // заслінка закр.
-#define PULSE_1     15  // імпульс період = 15 (Sec.)
+#define PULSE_1     15  // імпульс період = 15 (sec.) MAX = 60 sec.
 #define MODE_1      0   // аварійн. режим = 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
 #define EXTMODE_1   0   // затрим. зволож. = 0
 
