@@ -88,20 +88,6 @@ void OutPulse(void){
   if(ds[1].pvErr < 0) pvPulse = 0;                  // отключение впрыска по 2 каналу если перелив
 }
 
-uint8_t tableRH(int16_t maxT, int16_t minT){
-  int16_t dT;
-   if (maxT>199 && maxT<410){ // maxT> 19.9 и maxT< 41.0
-     dT = (maxT-minT)*16/10;    //?????????????????????????????????????
-     if (dT<0) dT = 240;        // задаем число при котором dT >>=3; выполняется -> dT>20
-     maxT /=10;
-     dT >>=3;
-     if (dT>20) dT = 255;
-     else if (dT==0) dT = 100;
-     else {maxT -= 20; maxT *= 20; maxT += (dT-1); dT = tabRH[maxT];};
-   } else dT = 255;
-   return dT;
- }
-
 //-------- Функция для печати текущих значений структуры в Serial порт --------
 #ifdef DEBUG
 void printConfig() {
@@ -262,5 +248,38 @@ uint8_t tableRH(int16_t maxT, int16_t minT){
 //   }
 // }
 
-// void reset(void){
-// }
+void reset(void){
+  settings.sp_structs[0].spT = SPT_0;
+  settings.sp_structs[0].spRH = SPRH_0;
+  settings.sp_structs[0].alarm = ALARM_0;
+  settings.sp_structs[0].coolOn = COOLON_0;
+  settings.sp_structs[0].coolOff = COOLOFF_0;
+  settings.sp_structs[0].timer = TIMER_0;
+  settings.sp_structs[0].aeration = AERATION_0;
+  settings.sp_structs[0].auxiliary = AUXILIARY_0;
+  settings.sp_structs[0].flapLimit = FLPCLOSE;
+  settings.sp_structs[0].state = STATE_0;
+  settings.sp_structs[0].pulse = PULSE_0;
+  settings.sp_structs[0].mode = MODE_0;
+  settings.sp_structs[0].extendMode = EXTMODE_0;
+  settings.sp_structs[0].Kp = KP_0_1;
+  settings.sp_structs[0].Ki = KI_0_1;
+
+  settings.sp_structs[1].spT = SPT_1;
+  settings.sp_structs[1].spRH = SPRH_1;
+  settings.sp_structs[1].alarm = ALARM_1;
+  settings.sp_structs[1].coolOn = COOLON_1;
+  settings.sp_structs[1].coolOff = COOLOFF_1;
+  settings.sp_structs[1].timer = TIMER_1;
+  settings.sp_structs[1].aeration = AERATION_1;
+  settings.sp_structs[1].auxiliary = AUXILIARY_1;
+  settings.sp_structs[1].flapLimit = FLPOPEN;
+  settings.sp_structs[1].state = STATE_1;
+  settings.sp_structs[1].pulse = PULSE_1;
+  settings.sp_structs[1].mode = MODE_1;
+  settings.sp_structs[1].extendMode = EXTMODE_1;
+  settings.sp_structs[1].Kp = KP_0_1;
+  settings.sp_structs[1].Ki = KI_0_1;
+
+  saveConfig();
+}
