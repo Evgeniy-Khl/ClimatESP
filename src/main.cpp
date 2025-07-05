@@ -77,8 +77,6 @@ void loop() {
 
       sprintf(displStr,"--- NOW = %lu; KEY = %u; wChKeyPad = %u; SetN = %u; BUFF=%u ---",now,keys,waitCheckKeyPad,numSetup,editBuff);
       DEBUG_PRINTLN(displStr);
-      // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
-      // module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
     }
   #endif
   //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
