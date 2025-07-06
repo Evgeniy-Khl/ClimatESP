@@ -14,7 +14,7 @@ uint8_t data[] = {
 
 void displ_top(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR1 || ERROR4 || comma == 3) && (halfSecond & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
+  if((ERROR4 || comma == 3) && (halfSecond & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80; else if(comma == 3){comma = 0; i = 3;}
     if(val<0) {neg = 1; val = -val;}
@@ -45,7 +45,7 @@ void displ_top(signed int val, unsigned char comma){
 
 void displ_bot(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0;
-  if((ERROR10 || comma > 1)&&(halfSecond & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
+  if((ERROR8 || comma > 1)&&(halfSecond & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80; else {i = comma; comma = 0;}
     if(val<0) {neg = 1; val = -val;}

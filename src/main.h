@@ -43,11 +43,12 @@
 #define MAX_DEVICE 4              // ограничение количества датчиков
 
 typedef struct {
-  int16_t pvT;
-  int16_t pvErr;
-  int16_t previousValue;
-  uint8_t errDevice;
-  uint16_t duration;
+  int16_t pvT;              // текущее значение
+  int16_t pvErr;            // текущая ошибка
+  int16_t previousValue;    // предыдущее значение
+  uint8_t errDevice;        // нет ответа датчика
+  uint8_t deviation;        // отклонение от заданного значения
+  uint16_t duration;        // длительность зависания
 } Ds;
 
 extern Ds ds[];
@@ -107,14 +108,14 @@ extern union Byte portFlag;
 #define TURN		portOut.bitfield.a2  // Поворот лотков
 #define EXTRA1	portOut.bitfield.a3  // Заслонка/вентилятор охлаждения
 #define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель
-#define EXTRA3	portOut.bitfield.a5  // Авария
+#define EXTRA3 	portOut.bitfield.a5  // Авария
 
-#define ERROR1    errorsFlag.bitfield.a0  //
-#define ERROR2	  errorsFlag.bitfield.a1  //
-#define ERROR4	  errorsFlag.bitfield.a2  //
-#define ERROR8	  errorsFlag.bitfield.a3  //
-#define ERROR10	  errorsFlag.bitfield.a4  //
-#define ERROR20	  errorsFlag.bitfield.a5  //
+#define ERROR1    errorsFlag.bitfield.a0  // ОШИБКА ДАТЧИКА 0  --- потерян; 66,0-завис [E01]
+#define ERROR2	  errorsFlag.bitfield.a1  // ОШИБКА ДАТЧИКА 1  --- потерян; 66,0-завис [E02]
+#define ERROR4	  errorsFlag.bitfield.a2  // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
+#define ERROR8	  errorsFlag.bitfield.a3  // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
+#define ERROR10	  errorsFlag.bitfield.a4  // отказ одного из двух датчиков температуры
+#define ERROR20	  errorsFlag.bitfield.a5  // отказ вспомогательного датчика температуры
 #define OVERHEAT  errorsFlag.bitfield.a6  // перегрев симистора
 #define FROZE	    errorsFlag.bitfield.a7  // завис датчик.
 
@@ -180,7 +181,7 @@ extern DallasTemperature sensors;
 extern bool newDispl;
 extern long counterWait;
 extern float editValue;
-extern uint8_t numberOfDevices, resetDispl, numSetup, halfSecond, displNum, displPower, pvTimer, errDevice[], beepOn;
+extern uint8_t numberOfDevices, resetDispl, numSetup, halfSecond, displNum, displPower, pvTimer, errDevice[], beepOn, disableBeep;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, pvPeriod, waitCheckKeyPad;
 extern int16_t pvAeration, pvVenting, editBuff;
 extern const uint8_t tabRH[];

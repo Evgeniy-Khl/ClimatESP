@@ -93,12 +93,11 @@ void loop() {
         module.setLED(color&1, i);
         color >>= 1;
       }
-      sprintf(displStr,"pP0=%8.2f; Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Period=%u; Aera=%u; Vent=%u; Timer=%u; Flap=%u",
-        pid[0].pPart,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvPeriod,pvAeration,pvVenting,pvTimer,pvFlap);
-      DEBUG_PRINTLN(displStr);
+      
       // Serial.flush();
     #endif
     if(halfSecond & 2){
+      errorsFlag.value = 0;
   //================================ НОВАЯ СЕКУНДА =================================
       #ifndef DEBUG  
         temperature_check();
@@ -115,12 +114,17 @@ void loop() {
       #else
         //-----температура воздуха------
         heaterValue = UpdatePID(0);            // ПИД нагреватель
-        humidiValue = UpdatePID(1);            // ПИД увлажнитель
+        // humidiValue = UpdatePID(1);            // ПИД увлажнитель
+        //-----
+        // sprintf(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
+        //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
+        // DEBUG_PRINTLN(displStr);
+        //-----
         heaterPwm.write(heaterValue);
         humidiPwm.write(humidiValue);
-        dpv0 = heaterValue/100;
+        dpv0 = pid[0].pPart/250 + pid[0].iPart*8;
         ds[0].pvT += dpv0;
-        dpv1 = humidiValue/100;
+        dpv1 = pid[1].pPart/250 + pid[1].iPart*8;
         ds[1].pvT += dpv1;
         //------
         // DEBUG_PRINTLN();
@@ -208,7 +212,7 @@ void loop() {
                   val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
           if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
           //------ АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ ---------------------------------------------------------------
-          if(settings.sp_structs[0].extendMode&1){    // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
+          if(settings.sp_structs[0].extendMode == 1){    // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
             uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // канал 5 АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
             if(val == ON) EXTRA3 = ON;                // включить канал 5
             else if(val == OFF) EXTRA3 = OFF;         // отключить канал 5
@@ -229,7 +233,14 @@ void loop() {
           pvTimer = settings.sp_structs[0].timer; 
           TURN = OFF;
         }
-      } 
+      }
+      if(numSetup == 0){
+        uint8_t res = alarm();
+        if(settings.sp_structs[0].extendMode == 0){
+          EXTRA3 = res;
+          writePCF8574(portOut.value);
+        }
+      }
     }//============================== КОНЕЦ СЕКУНДЫ =================================
     // DateTime now = rtc.now();
 
@@ -237,19 +248,20 @@ void loop() {
     //==================== НОВАЯ МИНУТА =======================================
     if(halfSecond == 0){
       // DEBUG_PRINTLN("=== НОВАЯ МИНУТА ===");
+      if(disableBeep) disableBeep--;
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
-        if(settings.sp_structs[0].timer) rotate_trays();
+      if(settings.sp_structs[0].timer) rotate_trays();
       //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
-        if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
-          if(--pvAeration == 0){
-            pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = ON;
+      if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
+        if(--pvAeration == 0){
+          pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = ON;
           //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
-          }
-        } else if(COOLING){
-          EXTRA1 = ON; pvFlap = 100; beepOn = 50;
-          if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
-          // if(extendMode&1) BREAK=ON; 
         }
+      } else if(COOLING){
+        EXTRA1 = ON; pvFlap = 100; beepOn = 50;
+        if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
+          // if(extendMode&1) BREAK=ON; 
+      }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
   }//=================== КОНЕЦ ПОЛ СЕКУНДЫ ===================================
 }//-------------------------- loop() ---------------------------------------

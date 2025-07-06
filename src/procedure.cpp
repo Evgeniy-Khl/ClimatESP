@@ -9,7 +9,7 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 
 int16_t UpdatePID(uint8_t cn){
   int16_t error, max = 255, min = -127;
-  float output;
+  // float output;
   if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
     max = settings.sp_structs[1].pulse * 1000 / 2; 
     min = -max / 2;
@@ -21,13 +21,17 @@ int16_t UpdatePID(uint8_t cn){
   pid[cn].pPart = (float)error * pid[cn].Kp;
   // Интегральная составляющая
   pid[cn].iPart += (float)error * pid[cn].Ki;// * dt;
-  // Суммарное управляющее воздействие
-  output = pid[cn].pPart + pid[cn].iPart;
   // Ограничение выходного значения и антивиндовинг
   if (pid[cn].pPart >= max) pid[cn].iPart = 0; // Сброс интеграла
   else if (pid[cn].pPart <= min) pid[cn].iPart = 0; // Сброс интеграла
-
-  error = output;
+  // Суммарное управляющее воздействие
+  pid[cn].output = pid[cn].pPart + pid[cn].iPart;
+  if(pid[cn].output < 0) pid[cn].output = 0;
+  // Serial.print("Current value of pid[cn].output before cast: ");
+  // Serial.println(pid[cn].output); // Эта строка покажет вам реальное значение переменной
+  error = (int16_t)pid[cn].output;
+  // Serial.print("Value of error after cast: ");
+  // Serial.println(error);
   return error;
 }
 //------------- симистричный таймер -------------------
@@ -242,6 +246,47 @@ uint8_t tableRH(int16_t maxT, int16_t minT){
      else {maxT -= 20; maxT *= 20; maxT += (dT-1); dT = tabRH[maxT];};
   }
   return dT;
+}
+
+/*
+errors = 0x01   // ОШИБКА ДАТЧИКА 0  199-потерян; 66,0-завис [E01]
+errors = 0x02   // ОШИБКА ДАТЧИКА 1  199-потерян; 66,0-завис [E02]
+errors = 0x04   // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
+errors = 0x08   // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
+errors = 0x10   // отказ одного из двух датчиков температуры
+errors = 0x20   // отказ вспомогательного датчика температуры
+errors = 0x40   // ПЕРЕГРЕВ СИМИСТОРА ! [ПГ]
+*/
+uint8_t alarm(void){
+  uint8_t cn;
+  int16_t err, above, lower;
+  for (cn=0; cn<2; cn++){
+    lower = settings.sp_structs[cn].alarm;          // ниже
+    above = lower;                                  // выше
+    // above += sp[cn].offSet;                      // если режим ОХЛАЖДЕНИЕ или ОСУШЕНИЕ
+    err = ds[cn].pvErr;
+    if(abs(err) < lower) ds[cn].deviation = 1;      // вышли на заданную температуру
+    if(ds[0].deviation == 0) ds[1].deviation = 0;   // отключение тревоги по 2 каналу
+    if(ds[cn].deviation){
+      if (err > lower){                             // ПЕРЕОХЛАЖДЕНИЕ
+          ds[cn].deviation = 2;                     // мигают цифры
+          errorsFlag.value |= ((cn+1)<<2);          // включить сигнал АВАРИЯ
+      }
+    };
+    if (err < -above){                              // ПЕРЕГРЕВ
+        ds[cn].deviation = 3;                       // мигают цифры
+        errorsFlag.value |= ((cn+1)<<2);            // включить сигнал АВАРИЯ
+    };
+  };
+  cn = OFF;   
+  if(errorsFlag.value){
+    if(errorsFlag.value & 0x03) lower = 100;
+    else lower = 50;
+    if(disableBeep==0) {beepOn = lower; cn = ON;};// длительность звукового сигнала и включить канал 4 (6 А)
+  }
+  else disableBeep = 0;
+  return cn;
+  // if(settings.sp_structs[0].extendMode == 0) EXTRA3 = cn;
 }
 
 // // Вспомогательная функция для печати

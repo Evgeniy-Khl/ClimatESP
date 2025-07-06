@@ -3,7 +3,7 @@
 #include "main.h"
 
 typedef struct {
-    float Ki, iPart, Kp, pPart;
+    float Ki, iPart, Kp, pPart, output;
 } PIDController;
 
 
@@ -25,6 +25,7 @@ bool loadConfig();
 void printAddress(DeviceAddress deviceAddress);
 void printBinary(unsigned char byte);
 uint8_t tableRH(int16_t maxT, int16_t minT);
+uint8_t alarm(void);
 void reset(void);
 
 #endif /* _PROCEDURE_H */
