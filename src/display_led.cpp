@@ -61,7 +61,10 @@ void displ_bot(signed int val, unsigned char comma){
           data[5] = NUMBER_FONT[((val/10)%10)&0x0F];
         };
       } else {
-        if(i == 2) data[3] = NN;  // "n"
+        if(i == 2){
+          if(val < 16) data[3] = YY;  // "У"
+          else {data[3] = PE; val -= 15;}  // "П"
+        } 
         else data[3] = NUMBER_FONT[(val/100)&0x0F];
         data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
         data[5] = NUMBER_FONT[(val%10)&0x0F];
@@ -121,7 +124,7 @@ void ledDispl(unsigned char mode){
       else if(COOLING || AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-      else displ_67(halfSecond/2, NOCOMMA); //pvRH
+      else displ_67(halfSecond / 2, NOCOMMA); //pvRH
       break;
        //-------------------t1;----------------------tNTC;--------------------"F2"---------
     case 1: 
@@ -154,7 +157,7 @@ void ledDispl(unsigned char mode){
 void display_setup(void){
   // errorsFlag = 0;
   if(editBuff>999) editBuff=999; else if(editBuff<-99) editBuff=-99;
-  if(numSetup==3||numSetup==4||numSetup==5||numSetup==6||numSetup>=15){
+  if(numSetup==3||numSetup==4||numSetup==5||numSetup==6||(numSetup>=15 && numSetup<21)||numSetup>21){
     displ_top(editBuff,NOCOMMA); displ_bot(numSetup,2);               //Верхний дисплей + Запятая
   } 
   else {

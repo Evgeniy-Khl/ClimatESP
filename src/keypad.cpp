@@ -37,12 +37,12 @@ void checkkey(uint8_t key){
                       case 4:  if(editBuff > 999) editBuff = 999;  break;
                       case 5:  if(editBuff > 999) editBuff = 999;  break;
                       case 6:  if(editBuff > 999) editBuff = 999;  break;
-                      case 7:  if(editBuff > 100) editBuff = 100;  break;
-                      case 8:  if(editBuff >  50) editBuff =  50;  break;
-                      case 9:  if(editBuff > 100) editBuff = 100;  break;
-                      case 10: if(editBuff >  50) editBuff =  50;  break;
-                      case 11: if(editBuff > 500) editBuff = 500;  break;
-                      case 12: if(editBuff > 500) editBuff = 500;  break;
+                      case 7:  if(editBuff > 200) editBuff = 200;  break;
+                      case 8:  if(editBuff > 150) editBuff = 150;  break;
+                      case 9:  if(editBuff > 200) editBuff = 200;  break;
+                      case 10: if(editBuff > 150) editBuff = 150;  break;
+                      case 11: if(editBuff > 400) editBuff = 400;  break;
+                      case 12: if(editBuff > 400) editBuff = 400;  break;
                       case 13: if(editBuff > 500) editBuff = 500;  break;
                       case 14: if(editBuff > 999) editBuff = 999;  break;
                       case 15: if(editBuff >   4) editBuff =   4;  break;
@@ -51,7 +51,7 @@ void checkkey(uint8_t key){
                       case 18: if(editBuff >   4) editBuff =   4;  break;
                       case 19: if(editBuff >   1) editBuff =   1;  break;
                       case 20: if(editBuff > 999) editBuff = 999;  break;
-                      case 21: if(editBuff > 999) editBuff = 999;  break;
+                      case 21: if(editBuff > 100) editBuff = 100;  break;
                       case 22: if(editBuff >  60) editBuff =  60;  break;
                       case 23: if(editBuff > 999) editBuff = 999;  break;
                       case 24: if(editBuff > 999) editBuff = 999;  break;
@@ -67,11 +67,11 @@ void checkkey(uint8_t key){
                     if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
                     switch (numSetup){
                         case 16: editBuff = settings.sp_structs[0].state; break;          // У15 текущее положение заслонки
-                        case 17: editBuff = settings.sp_structs[1].mode; break;           // П1 = 0 задержка регулировки по влажному
-                        case 18: editBuff = settings.sp_structs[0].mode; break;           // П3 = MINRELAYMODE релейный режим работы
+                        case 17: editBuff = settings.sp_structs[0].mode; break;           // П1 = 0 задержка регулировки по влажному
+                        case 18: editBuff = settings.sp_structs[1].mode; break;           // П3 = MINRELAYMODE релейный режим работы
                         case 19: editBuff = settings.sp_structs[0].extendMode; break;     // П2 = 0 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
                         case 20: editBuff = settings.sp_structs[1].extendMode; break;     // П2 = 0 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; 2-УПРАВЛЕНИЕ ВСПОМОГАТЕЛЬНЫМ НАГРЕВАТЕЛЕМ
-                        case 21: editBuff = settings.sp_structs[0].pulse; break;          // П4 = 200 - 1,0 сек.
+                        case 21: editBuff = settings.sp_structs[0].pulse / 10; break;     // П4 = 0.1 - 10,0 сек.
                         case 22: editBuff = settings.sp_structs[1].pulse; break;          // П6 = 3000-  15 сек.
                         case 23: editBuff = settings.sp_structs[0].flapLimit; break;      // П10 = 40 close
                         case 24: editBuff = settings.sp_structs[1].flapLimit; break;      // П11 = 85 open
@@ -90,14 +90,14 @@ void checkkey(uint8_t key){
                       case 2:   if(editBuff <  10) editBuff =  10;  break;
                       case 3:   if(editBuff <   0) editBuff =   0;  break;
                       case 4:   if(editBuff <   0) editBuff =   0;  break;
-                      case 5:   if(editBuff <   0) editBuff =   0;  break;
+                      case 5:   if(editBuff <   1) editBuff =   1;  break;
                       case 6:   if(editBuff <   0) editBuff =   0;  break;
                       case 7:   if(editBuff <   1) editBuff =   1;  break;
                       case 8:   if(editBuff <   0) editBuff =   0;  break;
                       case 9:   if(editBuff <   1) editBuff =   1;  break;
                       case 10:  if(editBuff <   0) editBuff =   0;  break;
-                      case 11:  if(editBuff <   2) editBuff =   2;  break;
-                      case 12:  if(editBuff <   2) editBuff =   2;  break;
+                      case 11:  if(editBuff <   5) editBuff =   5;  break;
+                      case 12:  if(editBuff <   5) editBuff =   5;  break;
                       case 13:  if(editBuff <   5) editBuff =   5;  break;
                       case 14:  if(editBuff <   0) editBuff =   0;  break;
                       case 15:  if(editBuff <   0) editBuff =   0;  break;
@@ -106,7 +106,7 @@ void checkkey(uint8_t key){
                       case 18:  if(editBuff <   0) editBuff =   0;  break;
                       case 19:  if(editBuff <   0) editBuff =   0;  break;
                       case 20:  if(editBuff <   0) editBuff =   0;  break;
-                      case 21:  if(editBuff < 100) editBuff = 100;  break;
+                      case 21:  if(editBuff <   1) editBuff =   1;  break;
                       case 22:  if(editBuff <   5) editBuff =   5;  break;
                       case 23:  if(editBuff <   0) editBuff =   0;  break;
                       case 24:  if(editBuff <   0) editBuff =   0;  break;
@@ -162,27 +162,27 @@ void checkkey(uint8_t key){
 
 void saveset(void){
   switch (numSetup){ //---------------------- Меню пользователя ---------------------------------------
-      case 1: settings.sp_structs[0].spT = editBuff; break;       // НЕ ограничено
+      case 1: settings.sp_structs[0].spT = editBuff; break;       // 0.1 - 99.9 °C
       case 2: if(HIH5030) 
-                 settings.sp_structs[1].spRH = editBuff;          // ограничено +9.9 до 99,9
-              else settings.sp_structs[1].spT = editBuff;         // ограничено +9.9 до 99,9
+                 settings.sp_structs[1].spRH = editBuff;          // 0.1 - 99.9 %
+              else settings.sp_structs[1].spT = editBuff;         // 0.1 - 99.9 °C
         break;
-      case 3: settings.sp_structs[0].timer = editBuff;            // ограничено 0 до 999 мин.
-              pvTimer = settings.sp_structs[0].timer; 
+      case 3: settings.sp_structs[0].timer = editBuff;            // 0 - 999 мин.
+              pvTimer = editBuff; 
         break;  // длительность выключенного состояния таймера
-      case 4: settings.sp_structs[1].timer = editBuff; break;     // ограничено 0 до 999 сек.
-      case 5: settings.sp_structs[0].aeration = editBuff; break;  // ограничено 0 до 999 мин. ПАУЗА ПРОВЕТРИВАНИЯ
-      case 6: settings.sp_structs[1].aeration = editBuff;         // ограничено 0 до 999 сек.
+      case 4: settings.sp_structs[1].timer = editBuff; break;     // 0 - 999 сек.
+      case 5: settings.sp_structs[0].aeration = editBuff; break;  // 1 - 999 мин. ПАУЗА ПРОВЕТРИВАНИЯ
+      case 6: settings.sp_structs[1].aeration = editBuff;         // 0 - 999 сек.
               if(editBuff){pvVenting = editBuff; pvAeration = 0; AERATION=1;} 
         break;  // ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
-      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // ограничено 2 до 100 (0,2 до 10,0 Ц.)
-      case 8: settings.sp_structs[0].coolOff = editBuff; break;   // ограничено 0 до 50 (0,0 до 5,0 Ц.)
-      case 9:  settings.sp_structs[1].coolOn =  editBuff; break;  // ограничено 2 до 100 (0,2 до 10,0 Ц. 0,2% до 10%)
-      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // ограничено 0 до 50 (0,0 до 5,0 Ц. 0,0% до 10%)
-      case 11: settings.sp_structs[0].alarm = editBuff;  break;   // ограничено 5 до 200 (0,5 до 20,0 Ц.)
-      case 12: settings.sp_structs[1].alarm = editBuff;  break;   // ограничено 5 до 300 (0,5 до 30,0 Ц. 0,5% до 30%)
-      case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // ограничено 5 до 200 (0,5 до 20,0 Ц.)
-      case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // ограничено 0 до 200 (0,0 до 20,0 Ц.)
+      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // 0,1 - 20,0 °C
+      case 8: settings.sp_structs[0].coolOff = editBuff; break;   // 0,0 - 15,0 °C
+      case 9:  settings.sp_structs[1].coolOn =  editBuff; break;  // 0,1 - 20,0 °C/%
+      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // 0,0 - 15,0 °C/%
+      case 11: settings.sp_structs[0].alarm = editBuff;  break;   // 0,5 - 40,0 °C
+      case 12: settings.sp_structs[1].alarm = editBuff;  break;   // 0,5 - 40,0 °C/%
+      case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
+      case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
       case 15: settings.sp_structs[1].state = editBuff; break;    // НЕ ограничено программа текущая
     // case 12:
     //   {
@@ -218,13 +218,13 @@ void saveset(void){
     //                       }; 
     // break;//--------------------------- Меню специалиста ---------------------------------------------------------
       case 16: settings.sp_structs[0].state = editBuff; break;  // ограничено 0 - 100% текущее положение заслонки
-      case 17: settings.sp_structs[1].mode = editBuff;  break;  // НЕ ограничено задержка регулировки по влажному
-      case 18: settings.sp_structs[0].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
+      case 17: settings.sp_structs[0].mode = editBuff;  break;  // НЕ ограничено задержка регулировки по влажному
+      case 18: settings.sp_structs[1].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
               //  if(editBuff == 4) topUser=PULSMENU; else topUser=TOPUSER; 
         break;
       case 19: settings.sp_structs[0].extendMode = editBuff; break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
       case 20: settings.sp_structs[1].extendMode = editBuff; break; // ?????????????????????????????????
-      case 21: settings.sp_structs[0].pulse = editBuff; break;      // ограничено 100 - 999 (0.1 - 1.0) секунд;
+      case 21: settings.sp_structs[0].pulse = editBuff * 10; break;      // ограничено 1 - 100 (0.1 - 10.0) секунд;
       case 22: settings.sp_structs[1].pulse = editBuff; break;      // ограничено 5-60 секунд
       case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // close->ограничено 0 - 63
       case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// open ->ограничено 0 - 127
