@@ -30,7 +30,7 @@ void temperature_check(void){
     }
     if(check_freeze(i)){
       ds[i].pvT = 660;    // индикация 66,0 - завис датчик.
-      ERROR8 = 1;
+      FROZE = 1;
     }
   }
   sensors.requestTemperatures();

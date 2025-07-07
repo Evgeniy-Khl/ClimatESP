@@ -32,7 +32,8 @@ void displ_top(signed int val, unsigned char comma){
       } else {
         if(val/100) data[0] = NUMBER_FONT[val/100];
         else data[0] = 0;
-        data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        if(comma || val > 99) data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        else if(val < 10) data[1] = 0;
         data[2] = NUMBER_FONT[val%10];
       };
     } else {
