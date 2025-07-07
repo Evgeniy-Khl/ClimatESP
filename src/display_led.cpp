@@ -22,18 +22,18 @@ void displ_top(signed int val, unsigned char comma){
       if (neg){
         if (val<100){
           data[0] = DEF;
-          data[1] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-          data[2] = NUMBER_FONT[(val%10)&0x0F];
+          data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+          data[2] = NUMBER_FONT[val%10];
         } else {
-          data[0] = DEF;
-          data[1] = NUMBER_FONT[(val/100)&0x0F];
-          data[2] = NUMBER_FONT[((val/10)%10)&0x0F];
+          data[0] = GR;  // -> -
+          data[1] = GR;  // -> -
+          data[2] = GR;  // -> -
         };
       } else {
-        if(i == 3) data[0] = YY;
-        else data[0] = NUMBER_FONT[(val/100)&0x0F];
-        data[1] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-        data[2] = NUMBER_FONT[(val%10)&0x0F];
+        if(val/100) data[0] = NUMBER_FONT[val/100];
+        else data[0] = 0;
+        data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        data[2] = NUMBER_FONT[val%10];
       };
     } else {
       data[0] = DEF;  // -> -
@@ -53,21 +53,22 @@ void displ_bot(signed int val, unsigned char comma){
       if (neg){
         if (val<100) {
           data[3] = DEF;
-          data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-          data[5] = NUMBER_FONT[(val%10)&0x0F];
+          data[4] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+          data[5] = NUMBER_FONT[val%10];
         } else {
-          data[3] = DEF;
-          data[4] = NUMBER_FONT[(val/100)&0x0F];
-          data[5] = NUMBER_FONT[((val/10)%10)&0x0F];
+          data[0] = GR;  // -> o
+          data[1] = GR;  // -> o
+          data[2] = GR;  // -> o
         };
       } else {
         if(i == 2){
           if(val < 16) data[3] = YY;  // "У"
           else {data[3] = PE; val -= 15;}  // "П"
         } 
-        else data[3] = NUMBER_FONT[(val/100)&0x0F];
-        data[4] = NUMBER_FONT[((val/10)%10)&0x0F]|comma; // запятая
-        data[5] = NUMBER_FONT[(val%10)&0x0F];
+        else if(val/100) data[3] = NUMBER_FONT[val/100];
+        else data[3] = 0;
+        data[4] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        data[5] = NUMBER_FONT[val%10];
       };
     } else {
       data[3] = DEF;  // -> -
@@ -93,10 +94,10 @@ void displ_67(signed int val, unsigned char mode){
   if(neg){
     if(val<10){
         data[6] = DEF;
-        data[7] = NUMBER_FONT[(val%10)&0x0F];
+        data[7] = NUMBER_FONT[val%10];
     } else {
-        data[6] = DEF;
-        data[7] = DEF;
+        data[6] = GR; // o
+        data[7] = GR; // o
     };
   } else if(val<99){
       data[6] = NUMBER_FONT[(val/10)&0x0F];
@@ -110,7 +111,7 @@ void displ_67(signed int val, unsigned char mode){
         }
       }
   }
-  else {data[6] = DEF; data[7] = DEF;}; // Er
+  else {data[6] = DEF; data[7] = DEF;}; // --
 }
 
 //===================== ledDisplay ========================

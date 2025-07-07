@@ -286,7 +286,6 @@ uint8_t alarm(void){
   }
   else disableBeep = 0;
   return cn;
-  // if(settings.sp_structs[0].extendMode == 0) EXTRA3 = cn;
 }
 
 // // Вспомогательная функция для печати

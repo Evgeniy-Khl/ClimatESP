@@ -50,36 +50,38 @@ void loop() {
   
   
   #ifdef LED_DISPLAY
-    if(now - counter10 > 10){//-------------------------- 10 mSec. -----------------------------
+  //-------------------------------------------- 10 mSec. --------------------------------------
+    if(now - counter10 > 10){
       counter10 = now;
       if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
       if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
         HUMIDI = OFF;
         writePCF8574(portOut.value);
       }
+      keys = module.getButtons();
+      if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
     }
-    if(now - counterWait > waitCheckKeyPad){//----------- КЛАВИАТУРА --------------------------
+
+  //-------------------------------------------- КЛАВИАТУРА --------------------------------------
+    if(now - counterWait > waitCheckKeyPad){
       counterWait = now;
-      byte keys = module.getButtons();
+      keys = module.getButtons();
       
       if(lastKey == keys && keys > 0){
+        keyCount++;
         checkkey(keys);
         if(numSetup == 0) ledDispl(displNum);
         else display_setup();
         module.setDisplay(data, 8);
       } 
-      else if(keys == 0) waitCheckKeyPad = WAITCHECKKEYPAD ;
+      else if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
       else lastKey = keys;
-
-      // sprintf(displStr,"--- NOW = %lu; KEY = %u; wChKeyPad = %u; SetN = %u; BUFF=%u ---",now,keys,waitCheckKeyPad,numSetup,editBuff);
-      // DEBUG_PRINTLN(displStr);
     }
   #endif
   //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
 
   if(now - counter1s > 500){
     counter1s = now; 
-    // errorsFlag.value = 0;
     if(++halfSecond > 119) halfSecond = 0; 
     if(resetDispl) --resetDispl;
     else if(numSetup) saveset();  // сохраняем установки
@@ -88,13 +90,7 @@ void loop() {
       if(numSetup == 0) ledDispl(displNum);
       else display_setup();
       module.setDisplay(data, 8);
-      byte color = portOut.value & 0x0F;
-      for (uint8_t i = 0; i < 4; i++){
-        module.setLED(color&1, i);
-        color >>= 1;
-      }
       
-      // Serial.flush();
     #endif
     if(halfSecond & 2){
       errorsFlag.value = 0;
@@ -130,20 +126,11 @@ void loop() {
         // DEBUG_PRINTLN();
         // sprintf(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",halfSecond/2,resetDispl,displNum,numSetup);
         // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+        
+        // sprintf(displStr,"pP0 = %g; iP0 = %g; out = %g;",pid[0].pPart,pid[0].iPart,pid[0].output);
         // DEBUG_PRINTLN(displStr);
-        // // sprintf(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
-        // // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"error0 = %i", ds[0].pvErr);
-        // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"pP0 = %g; iP0 = %g; out = %g;",pid[0].pPart,pid[0].iPart,pid[0].pPart+pid[0].iPart);
-        // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"dpv0 = %g;",dpv0);
-        // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"heaterValue = %u; humidiValue = %u",heaterValue,humidiValue);
-        // DEBUG_PRINTLN(displStr);
-        // sprintf(displStr,"T0 = %5.1f; T1 = %5.1f",(float)ds[0].pvT/10,(float)ds[1].pvT/10);
-        // DEBUG_PRINTLN(displStr);
+        
+        
         // Serial.flush();
         //------
       #endif
@@ -211,21 +198,16 @@ void loop() {
           if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
                   val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
           if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
-          //------ АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ ---------------------------------------------------------------
-          if(settings.sp_structs[0].extendMode == 1){    // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
-            uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // канал 5 АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
-            if(val == ON) EXTRA3 = ON;                // включить канал 5
-            else if(val == OFF) EXTRA3 = OFF;         // отключить канал 5
-          }
-        //------- ПРОВЕТРИВАНИЕ ----------------------------------------------------------------------    
+          
+        //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
           if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
             EXTRA1 = ON; pvFlap = 100; beepOn = 10;
             if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0;}
           }
-          // if(setup==0) alarm();
         }
+      
+      //------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ ---------------------------
         // setflap();                            // задание положения заслонки 
-        // if((setup+setprgday)==0) display(displmode);// вывод на дисплей
 
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
       if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
@@ -234,13 +216,19 @@ void loop() {
           TURN = OFF;
         }
       }
+      //--------------------------------- АВАРИЯ ---------------------------------
       if(numSetup == 0){
         uint8_t res = alarm();
-        if(settings.sp_structs[0].extendMode == 0){
-          EXTRA3 = res;
-          writePCF8574(portOut.value);
+        switch (settings.sp_structs[0].extendMode){
+        case 0: EXTRA3 = res; break;                  // [0]-0-СИРЕНА;
+        case 1:
+            uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // 1-АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
+            if(val == ON) EXTRA3 = ON;                // включить
+            else if(val == OFF) EXTRA3 = OFF;         // отключить
+          break;
         }
       }
+      
     }//============================== КОНЕЦ СЕКУНДЫ =================================
     // DateTime now = rtc.now();
 
@@ -260,11 +248,18 @@ void loop() {
       } else if(COOLING){
         EXTRA1 = ON; pvFlap = 100; beepOn = 50;
         if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
-          // if(extendMode&1) BREAK=ON; 
       }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
+      sprintf(displStr,"T0 = %5.1f; T1 = %5.1f; OUT=0x%02x; ERR=0x%02x;",(float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,errorsFlag.value);
+      DEBUG_PRINTLN(displStr);
+      byte led = portOut.value;
+      for (uint8_t i = 0; i < 8; i++){
+        module.setLED(led&1, i);
+        led >>= 1;
+      }
   }//=================== КОНЕЦ ПОЛ СЕКУНДЫ ===================================
-}//-------------------------- loop() ---------------------------------------
+}
+//----------------------------------- loop() ----------------------------------------------------------------------
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {

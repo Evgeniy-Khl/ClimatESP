@@ -6,7 +6,7 @@ void checkkey(uint8_t key){
   if(numSetup){   //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
-        case KEY_1: waitCheckKeyPad = WAITCHECKKEYPAD ;
+        case KEY_1: waitCheckKeyPad = WAITCHECKKEYPAD;
                     if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
                     switch (numSetup){
                         case 1: editBuff = settings.sp_structs[0].spT; break;          // У1 уставка канал 1
@@ -28,8 +28,9 @@ void checkkey(uint8_t key){
                         case 15: editBuff = settings.sp_structs[1].state; break;       // У15 номер программы
                       }; 
           break;
-        case KEY_2: editBuff++; 
-                    if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25; 
+        case KEY_2: if(keyCount == 1) waitCheckKeyPad = WAITCHECKKEYPAD;
+                    editBuff++; 
+                    if(waitCheckKeyPad > MINWAIT) waitCheckKeyPad -= 100; 
                     switch (numSetup){
                       case 1:  if(editBuff > 999) editBuff = 999;  break;
                       case 2:  if(editBuff > 999) editBuff = 999;  break;
@@ -83,8 +84,9 @@ void checkkey(uint8_t key){
                         case 30: editBuff = 0; break;                 // П0 сброс параметров
                     };
           break;
-        case KEY_4: editBuff--; 
-                    if(waitCheckKeyPad > 100) waitCheckKeyPad -= 25; 
+        case KEY_4: if(keyCount == 1) waitCheckKeyPad = WAITCHECKKEYPAD;
+                    editBuff--; 
+                    if(waitCheckKeyPad > MINWAIT) waitCheckKeyPad -= 100; 
                     switch (numSetup){
                       case 1:   if(editBuff <  10) editBuff =  10;  break;
                       case 2:   if(editBuff <  10) editBuff =  10;  break;
@@ -126,6 +128,7 @@ void checkkey(uint8_t key){
         drafting_prog(key);     // составление программы
        } */
   else {  //==================== ОСНОВНОЙ РЕЖИМ РАБОТЫ =================================
+    waitCheckKeyPad = WAITCHECKKEYPAD;
     switch (key) {
         case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = RESETDISPLAY; break;
         case KEY_2: if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
@@ -183,7 +186,7 @@ void saveset(void){
       case 12: settings.sp_structs[1].alarm = editBuff;  break;   // 0,5 - 40,0 °C/%
       case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
       case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
-      case 15: settings.sp_structs[1].state = editBuff; break;    // НЕ ограничено программа текущая
+      case 15: settings.sp_structs[1].state = editBuff; break;    // 0 - 4
     // case 12:
     //   {
     //    if(editBuff>4) editBuff=4; else if(editBuff<0) editBuff=0;// № программы->ограничено 0 - 4
@@ -194,10 +197,7 @@ void saveset(void){
     //    rw_twi(WRITE,DS1307N,0,clock_buffer);
     //    if (programm) prg_stepoint(date,1);
     //   } break;                    
-    // case 13: if(editBuff>100) editBuff=100; 
-    //          else if(editBuff<-100) editBuff=-100; 
-    //          settings.sp_structs[0].spRH=editBuff; 
-    //     break;      // подстройка датчика HIH
+    
     // case 14:                                  // подстройка датчика DS18B20
     //  if(devices==1)// только если подключен 1 датчик 
     //   {
@@ -207,16 +207,8 @@ void saveset(void){
     //    w1_write(0xAA); w1_write(byte); w1_write(0x7F);// TH; TL; Configuration Register.
     //    w1_init(); w1_write(0xCC); w1_write(0x48); // Copy Scratchpad command [48]
     //   } break;
-    // case 15: editBuff&=0x7F; offSetRH = editBuff; break; // смещение выключения увлажнения (ограничено 0 - 127-> 12,7 грд.С. или 12,7% RH)
-    //------------------------------------ П00 -------------------------------------------------------------------
-    // case 16: switch (editBuff) {
-    //           case  1: topOwner=MAXOWNER1; break;// разрешение вводить У11 текущее положение заслонки и У12 номер программы
-    //           case  5: topOwner=MAXOWNER5; break;// разрешение вводить У13 подстройка HIH-5030-01 и У14 подстройка DS18B20
-    //           case 10: topUser=MAXOWNER10; break;// разрешение вводить П7 
-    //           case 15: topUser=TOPKOFF; botUser=BOTKOFF; break;// разрешение вводить корекцию коэфициентов cof[3];
-    //           case 31: reset();                break;// сброс параметров
-    //                       }; 
-    // break;//--------------------------- Меню специалиста ---------------------------------------------------------
+    
+    //--------------------------- Меню специалиста ---------------------------------------------------------
       case 16: settings.sp_structs[0].state = editBuff; break;  // ограничено 0 - 100% текущее положение заслонки
       case 17: settings.sp_structs[0].mode = editBuff;  break;  // НЕ ограничено задержка регулировки по влажному
       case 18: settings.sp_structs[1].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
