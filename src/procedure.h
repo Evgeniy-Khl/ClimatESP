@@ -10,7 +10,7 @@ typedef struct {
 extern PIDController pid[];
 extern uint8_t seconds;
 
-void initMyConfig();
+void beeperOn(uint8_t val);
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki);
 int16_t UpdatePID(uint8_t cn);
 uint16_t lampUpdate(uint16_t xpos, uint16_t ypos);

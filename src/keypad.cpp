@@ -2,8 +2,8 @@
 
 void checkkey(uint8_t key){
   uint8_t topUser=29, topOwner=15, botUser=16;
-  beepOn = 25; digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-  if(numSetup){   //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
+  beeperOn(25);     // Включаем бипер
+  if(numSetup){     //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
         case KEY_1: waitCheckKeyPad = WAITCHECKKEYPAD;

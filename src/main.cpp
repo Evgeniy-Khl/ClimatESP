@@ -201,7 +201,7 @@ void loop() {
           
         //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
           if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
-            EXTRA1 = ON; pvFlap = 100; beepOn = 10;
+            EXTRA1 = ON; pvFlap = 100; beeperOn(10);
             if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0;}
           }
         }
@@ -246,14 +246,14 @@ void loop() {
           //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
         }
       } else if(COOLING){
-        EXTRA1 = ON; pvFlap = 100; beepOn = 50;
+        EXTRA1 = ON; pvFlap = 100; beeperOn(50);
         if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
       }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
       sprintf(displStr,"T0 = %5.1f; T1 = %5.1f; OUT=0x%02x; ERR=0x%02x;",(float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,errorsFlag.value);
       DEBUG_PRINTLN(displStr);
       byte led = portOut.value;
-      for (uint8_t i = 0; i < 8; i++){
+      for (uint8_t i = 0; i < 6; i++){
         module.setLED(led&1, i);
         led >>= 1;
       }

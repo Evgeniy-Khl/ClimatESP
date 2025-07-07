@@ -2,6 +2,11 @@
 
 #define UNALTERED   2 // неизменный
 
+void beeperOn(uint8_t val){
+  beepOn = val;
+  digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+}
+
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
     pid->Kp = (float)Kp/4;
     pid->Ki = (float)Ki/10000;
@@ -282,7 +287,7 @@ uint8_t alarm(void){
   if(errorsFlag.value){
     if(errorsFlag.value & 0x03) lower = 100;
     else lower = 50;
-    if(disableBeep==0) {beepOn = lower; cn = ON;};// длительность звукового сигнала и включить канал 4 (6 А)
+    if(disableBeep==0) {beeperOn(lower); cn = ON;};// длительность звукового сигнала и включить канал 4 (6 А)
   }
   else disableBeep = 0;
   return cn;
