@@ -3,7 +3,6 @@
 #include "my_settings.h"
 char displStr[200];
 
-
 PIDController pid[2];
 SoftwarePWMBit heaterPwm(&portOut.value, 0); 
 SoftwarePWMBit humidiPwm(&portOut.value, 1);
@@ -12,8 +11,11 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
+
 #ifdef LED_DISPLAY
   TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+  void ledDisplKeypad(long now);
+  void ledSet(void);
 #else
 
 #endif
@@ -30,9 +32,9 @@ void setup() {
   #endif
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
-  portOut.value = 0;
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
+  portOut.value = 0;
 }
 
 void loop() {
@@ -47,55 +49,13 @@ void loop() {
     // DEBUG_PRINTLN(displStr);
   }
   //============================= ПРОВЕРКА по таймеру =================================
-  
-  
   #ifdef LED_DISPLAY
-  //-------------------------------------------- 10 mSec. --------------------------------------
-    if(now - counter10 > 10){
-      counter10 = now;
-      if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
-        HUMIDI = OFF;
-        writePCF8574(portOut.value);
-      }
-      keys = module.getButtons();
-      if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
-    }
-
-  //-------------------------------------------- КЛАВИАТУРА --------------------------------------
-    if(now - counterWait > waitCheckKeyPad){
-      counterWait = now;
-      keys = module.getButtons();
-      
-      if(lastKey == keys && keys > 0){
-        keyCount++;
-        checkkey(keys);
-        if(numSetup == 0) ledDispl(displNum);
-        else display_setup();
-        module.setDisplay(data, 8);
-      } 
-      else if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
-      else lastKey = keys;
-    }
+    ledDisplKeypad(now);
   #endif
-  //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
-
-  if(now - counter1s > 500){
-    counter1s = now; 
-    if(++halfSecond > 119) halfSecond = 0; 
-    if(resetDispl) --resetDispl;
-    else if(numSetup) saveset();  // сохраняем установки
-    else displNum = 0;            // возврат к главному дисплею
-    #ifdef LED_DISPLAY
-      if(numSetup == 0) ledDispl(displNum);
-      else display_setup();
-      module.setDisplay(data, 8);
-      
-    #endif
-    if(halfSecond & 2){
-      errorsFlag.value = 0;
   //================================ НОВАЯ СЕКУНДА =================================
-      #ifndef DEBUG  
+    if(halfSecond & 2){
+        errorsFlag.value = 0;
+  #ifndef DEBUG  
         temperature_check();
       
         if (HIH5030){
@@ -107,7 +67,7 @@ void loop() {
           uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
           if(valTable>100) pvRH = 100; else pvRH = valTable;
         }
-      #else
+  #else
         //-----температура воздуха------
         heaterValue = UpdatePID(0);            // ПИД нагреватель
         // humidiValue = UpdatePID(1);            // ПИД увлажнитель
@@ -133,15 +93,16 @@ void loop() {
         
         // Serial.flush();
         //------
-      #endif
+  #endif
         if(!COOLING){  //-------------- нормальная работа -------------------------
-          // DEBUG_PRINTLN("ПИД нагреватель и реле.");
           //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
           switch (settings.sp_structs[1].mode) {
               uint8_t val;
               case 0:
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
+                DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
+                DEBUG_PRINTLN("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 1:
                 val = RelayPos(0,2);
@@ -149,15 +110,19 @@ void loop() {
                     case ON: heaterValue = TRIACON; break;
                     case OFF: heaterValue = OFF;    break;
                 }
+                DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
+                DEBUG_PRINTLN("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 2:
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
+                DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
                     case ON: humidiValue = TRIACON; break;
                     case OFF: humidiValue = OFF;    break;
                 }
+                DEBUG_PRINTLN("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 3:
                 val = RelayPos(0,2);
@@ -165,49 +130,59 @@ void loop() {
                     case ON: heaterValue = TRIACON; break;
                     case OFF: heaterValue = OFF;    break;
                 }
+                DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
                     case ON: humidiValue = TRIACON; break;
                     case OFF: humidiValue = OFF;    break;
                 }
+                DEBUG_PRINTLN("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 4:
                 heaterValue = UpdatePID(0);           // ПИД нагреватель
+                DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 OutPulse();                           // импульсное управление увлажнителем
                 if (pvPeriod) --pvPeriod;
                 else {
                   pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
-                  if(pvPulse) HUMIDI = ON;                  // включить канал 2 (импульсный режим)
+                  if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
                 };
+                DEBUG_PRINTLN("ИМПУЛЬС увлажнитель pvPulse:"); DEBUG_PRINTLN(pvPulse);
+                break;
+              default: DEBUG_PRINT("НЕТ нагреватель НЕТ увлажнитель");
                 break;
           }
-        } else {heaterValue = 0; displPower = 0;}      //-- идет ОХЛАЖДЕНИЕ!--
+        } else {heaterValue = 0; displPower = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
+
         if(settings.sp_structs[0].mode == 1 && !REACHED0) humidiValue=OFF; // задержка регулирования по 2 каналу до прогрева инкубатора
+
         // heaterPwm.write(heaterValue);
         // humidiPwm.write(humidiValue);
 
         if(!COOLING){  //-------------- нормальная работа -------------------------
-          // DEBUG_PRINTLN("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ.");
           //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
           if(ERROR1 == 0){
-            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;       // включить вспомогательны нагреватель
+            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;        // включить вспомогательны нагреватель
             else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = OFF; // отключить вспомогательны нагреватель
           } else EXTRA2 = OFF;                                                      // отключить вспомогательны нагреватель
-          //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
-          uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
-          if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
-                  val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
-          if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
-          
+          DEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); DEBUG_PRINTLN(EXTRA2);
         //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
           if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
             EXTRA1 = ON; pvFlap = 100; beeperOn(10);
-            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0;}
+            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = OFF;}
+            DEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); DEBUG_PRINTLN(EXTRA1);
+          } else {
+          //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
+            uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
+            if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
+                    val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
+            if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
+            DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1);
           }
         }
-      
       //------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ ---------------------------
         // setflap();                            // задание положения заслонки 
+        // DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1);
 
       //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
       if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
@@ -250,14 +225,11 @@ void loop() {
         if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
       }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
-      sprintf(displStr,"T0 = %5.1f; T1 = %5.1f; OUT=0x%02x; ERR=0x%02x;",(float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,errorsFlag.value);
-      DEBUG_PRINTLN(displStr);
-      byte led = portOut.value;
-      for (uint8_t i = 0; i < 6; i++){
-        module.setLED(led&1, i);
-        led >>= 1;
-      }
-  }//=================== КОНЕЦ ПОЛ СЕКУНДЫ ===================================
+    sprintf(displStr,"T0 = %5.1f; T1 = %5.1f; OUT=0x%02x; ERR=0x%02x;",(float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,errorsFlag.value);
+    DEBUG_PRINTLN(displStr);
+  #ifdef LED_DISPLAY
+    ledSet();
+  #endif
 }
 //----------------------------------- loop() ----------------------------------------------------------------------
 

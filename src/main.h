@@ -128,10 +128,10 @@ extern union Byte portFlag;
 #define COOLING   portFlag.bitfield.a6  // охлаждение
 #define AERATION  portFlag.bitfield.a7  // проветривание
 
-#define ON 1
+#define ON  1
 #define OFF 0
-#define TRIACON 1023
-#define DISPLAYOFF 300
+#define TRIACON     999
+#define DISPLAYOFF  300
 
 #ifdef LED_DISPLAY
   #define BEEP_PIN        0
@@ -180,9 +180,10 @@ extern SpUnion settings;
 extern DallasTemperature sensors;
 
 extern bool newDispl;
-extern long counterWait;
+extern long counterWait, counter10, counter1s;
 extern float editValue;
-extern uint8_t numberOfDevices, resetDispl, numSetup, halfSecond, displNum, displPower, pvTimer, errDevice[], beepOn, disableBeep, keyCount;
+extern uint8_t numberOfDevices, resetDispl, numSetup, halfSecond, displNum, displPower, pvTimer, errDevice[], 
+                beepOn, disableBeep, lastKey, keys, keyCount;
 extern uint16_t pvVadcRH, pvRH, heaterValue, humidiValue, pvPulse, pvPeriod, waitCheckKeyPad;
 extern int16_t pvAeration, pvVenting, editBuff;
 extern const uint8_t tabRH[];
