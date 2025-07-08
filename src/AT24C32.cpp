@@ -1,3 +1,4 @@
+#include "main.h"
 #include <AT24C32.h>
 
 // ----- Функции для работы с EEPROM -----
@@ -14,8 +15,8 @@ void eepromWriteByte(uint16_t memoryAddress, uint8_t data) {
   Wire.write(data);
   uint8_t status = Wire.endTransmission();
   if (status != 0) {
-    Serial.print("I2C Write Error for byte at addr "); Serial.print(memoryAddress);
-    Serial.print(". Status: "); Serial.println(status);
+    DEBUG_PRINT("I2C Write Error for byte at addr "); DEBUG_PRINT(memoryAddress);
+    DEBUG_PRINT(". Status: "); DEBUG_PRINTLN(status);
     // Коды ошибок: 0:success, 1:data too long, 2:NACK on address, 3:NACK on data, 4:other
   }
   delay(EEPROM_WRITE_DELAY);
@@ -47,9 +48,10 @@ uint8_t eepromReadByte(uint16_t memoryAddress) {
  * @param length Количество байт для записи.
  * Примечание: Эта функция записывает байты последовательно.
  * AT24C32 имеет страницы по 32 байта. Для оптимальной записи больших блоков
- * следует учитывать границы страниц, но эта функция для простоты этого не делает явно.
+ * следует учитывать границы страниц, эта функция делает явно.
  * Однако, последовательная запись через Wire.write() для AT24C32 обычно работает корректно
  * в пределах страницы. Для записи через границы страниц может потребоваться несколько транзакций.
+ * AT24C32 адреса страниц: 0-31, 32-63, ...
  */
 void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length) {
   uint16_t currentBufferIndex = 0;
@@ -72,8 +74,8 @@ void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t l
 
     byte status = Wire.endTransmission();
     if (status != 0) {
-      Serial.print("I2C Write Error in buffer (addr "); Serial.print(memoryAddress);
-      Serial.print("). Status: "); Serial.println(status);
+      DEBUG_PRINT("I2C Write Error in buffer (addr "); DEBUG_PRINT(memoryAddress);
+      DEBUG_PRINT("). Status: "); DEBUG_PRINTLN(status);
       // Прервать дальнейшую запись этого буфера, если есть ошибка
       return; 
     }
