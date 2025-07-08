@@ -2,7 +2,7 @@
 Complete project details at https://RandomNerdTutorials.com/telegram-control-esp32-esp8266-nodemcu-outputs/
 https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 */
-#include <Arduino.h>
+#include <main.h>
 #include <MyTelegramBot.h>
 #include "server.h"
 // Определите язык

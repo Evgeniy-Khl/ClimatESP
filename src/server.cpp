@@ -1,7 +1,6 @@
 // server.cpp
-#include <ArduinoJson.h>
+#include <main.h>
 #include "server.h"
-#include "usart.h"
 
 extern uint8_t dataLed[5], seconds, mode, quarter;
 extern long lastSendTime;
@@ -170,7 +169,7 @@ void acceptEeprom() {
 
   server.send(200); // Отправляем только статус 200
 
-  saveEeprom();
+  // saveEeprom();
 }
 
   void respondsProgram(){

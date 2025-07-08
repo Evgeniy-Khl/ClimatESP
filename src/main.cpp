@@ -17,6 +17,10 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
 
+#ifdef ESP8266
+  X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+#endif
+
 #ifdef LED_DISPLAY
   TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
   void ledDisplKeypad(long now);
@@ -32,6 +36,39 @@ void setup() {
     configTime(0, 0, "pool.ntp.org");   // get UTC time via NTP
     client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
   #endif
+  //------------------------- read configuration from FS json ----------------------------------------
+    Serial.println("mounting FS...");
+
+    if(LittleFS.begin()) {
+      Serial.println("mounted file system");
+      if(LittleFS.exists("/config.json")) {
+        //file exists, reading and loading
+        Serial.println("reading config file");
+        File configFile = LittleFS.open("/config.json", "r");
+        if (configFile) {
+          Serial.println("opened config file");
+          size_t size = configFile.size();
+          // Allocate a buffer to store contents of the file.
+          std::unique_ptr<char[]> buf(new char[size]);
+
+          configFile.readBytes(buf.get(), size);
+
+          JsonDocument json;
+          auto deserializeError = deserializeJson(json, buf.get());
+          serializeJson(json, Serial);
+          if ( ! deserializeError ) {
+            Serial.println("\nparsed json");
+            strcpy(botToken, json["botToken"]);
+            strcpy(chatID, json["chatID"]);
+          } else {
+            Serial.println("failed to load json config");
+          }
+          configFile.close();
+        }
+      }
+    } else {
+      Serial.println("failed to mount FS");
+    }
   //---------------------------- инициализация Конфигурации -----------------------------------
   #ifdef LED_DISPLAY
     pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход
@@ -44,6 +81,7 @@ void setup() {
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
   portOut.value = 0;
+  delay(3000);
 }
 
 void loop() {

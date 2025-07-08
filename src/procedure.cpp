@@ -131,14 +131,14 @@ void saveConfig() {
     DEBUG_PRINTLN("Сохранение конфигурации...");
 
     // Создаем JSON документ. Размер 512 байт более чем достаточен.
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
 
     // Создаем корневой JSON массив
     JsonArray jsonArray = doc.to<JsonArray>();
 
     // Проходим по массиву структур и добавляем данные в JSON
     for (int i = 0; i < 2; i++) {
-        JsonObject obj = jsonArray.createNestedObject();
+        JsonObject obj = jsonArray.add<JsonObject>();
         obj["spT"] = settings.sp_structs[i].spT;
         obj["spRH"] = settings.sp_structs[i].spRH;
         obj["alarm"] = settings.sp_structs[i].alarm;
@@ -185,7 +185,7 @@ bool loadConfig() {
     }
 
     // Создаем JSON документ для десериализации
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
 
     // Десериализуем JSON из файла
     DeserializationError error = deserializeJson(doc, configFile);
