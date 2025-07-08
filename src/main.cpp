@@ -37,9 +37,9 @@ void setup() {
     client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
   #endif
   //------------------------- read configuration from FS json ----------------------------------------
-    Serial.println("mounting FS...");
-
-    if(LittleFS.begin()) {
+  Serial.println("mounting FS...");
+  bool lFS = LittleFS.begin();
+    if(lFS) {
       Serial.println("mounted file system");
       if(LittleFS.exists("/config.json")) {
         //file exists, reading and loading
@@ -69,10 +69,31 @@ void setup() {
     } else {
       Serial.println("failed to mount FS");
     }
-  //---------------------------- инициализация Конфигурации -----------------------------------
+  //---------------------------------------------------------------------------------------clean LittleFS, for testing-----------------
+// **Здесь вы можете разместить LittleFS.format();  но ОЧЕНЬ ВАЖНО ПОНИМАТЬ КОГДА ЭТО ДЕЛАТЬ!**
+// Например, вы можете отформатировать файловую систему только при первом запуске или при определенном условии.
+// **ВНИМАНИЕ: Раскомментирование следующей строки приведет к форматированию LittleFS при каждом запуске!**
+// Проверка и форматирование, если необходимо
+    // if (LittleFS.format()) {
+    //   Serial.println("LittleFS formatted successfully");
+    // } else {
+    //   Serial.println("Failed to format LittleFS");
+    // }
+//-------------------------------------------------------
+    // Получение информации о файловой системе
+    FSInfo fs_info;
+    LittleFS.info(fs_info);
+
+    Serial.printf("Total space: %u bytes\n", fs_info.totalBytes);
+    Serial.printf("Used space: %u bytes\n", fs_info.usedBytes);
+    Serial.printf("Free space: %u bytes\n", fs_info.totalBytes - fs_info.usedBytes);
+    //end read
+    //---------------------------- инициализация WiFiManager -----------------------------------
+    initWiFiManag();
+    //------------------------------------------------------------------------------------------
   #ifdef LED_DISPLAY
     pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход
-    initLedConfig();
+    initLedConfig(lFS);
   #else
 
   #endif

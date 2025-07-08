@@ -170,10 +170,10 @@ void display_setup(void){
 }
 
 //============================== Config ========================================
-void initLedConfig(void){
+void initLedConfig(bool lFS){
   char displStr[65];
 //--------- инициализация FS -----------------------------------------
-  if (!LittleFS.begin()) {
+  if (!lFS) {
     DEBUG_PRINTLN("Flash FS initialisation failed!");
     data[6] = NUMBER_FONT[14];  // "E"
     saveConfig();  // значения по умолчанию

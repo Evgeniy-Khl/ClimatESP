@@ -34,6 +34,6 @@ void clr_top(void);
 void clr_bot(void);
 void displ_67(signed int val, unsigned char mode);
 void display_setup(void);
-void initLedConfig(void);
+void initLedConfig(bool lFS);
 
 #endif /* __DISPLAY_H */

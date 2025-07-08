@@ -24,6 +24,12 @@ uint8_t displNum=0, resetDispl, numSetup, halfSecond, displPower, pvTimer, pvFla
 long counterWait, counter10, counter1s;
 float editValue;
 //---------------------------------
+uint8_t earlyMode = 0, mode = READEEPROM, tmrResetMode = 0, quarter = GET_PROG1, errors, seconds = 0;
+int tableData[32][4] = {0}, tmrTelegramOff = 30;
+uint16_t begHeapSize, previousHeapSize;
+long lastSendTime = 0, allTime = 0; 
+Interval interval = INTERVAL_1000;
+//---------------------------------
 Ds ds[2] = {{150,0,0,0,0},{100,0,0,0,0}};
 float dpv0, dpv1;
 //---------------------------------

@@ -4,7 +4,6 @@
 #define LED_DISPLAY
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <MyTelegramBot.h>  // Universal Telegram Bot Library written by Brian Lough: 
 #include <WiFiManager.h>    //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>
@@ -199,6 +198,18 @@ extern union Byte portFlag;
 #define MODE_1      0   // режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс
 #define EXTMODE_1   0   // ???????????
 
+extern char botToken[50];
+extern char chatID [15];
+extern MyTelegramBot bot;
+extern bool shouldSaveConfig;
+//-------------
+extern uint8_t earlyMode = 0, mode = READEEPROM, tmrResetMode = 0, quarter = GET_PROG1, errors, seconds = 0;
+extern int tableData[32][4] = {0}, tmrTelegramOff = 30;
+extern uint16_t begHeapSize, previousHeapSize;
+extern long lastSendTime = 0, allTime = 0; 
+extern Interval interval = INTERVAL_1000;
+//-------------
+
 extern RTC_DS3231 rtc;
 extern SpUnion settings;
 extern DallasTemperature sensors;
@@ -215,7 +226,7 @@ extern const uint8_t tabRH[];
 byte writePCF8574(byte data);
 byte readPCF8574();
 void testAT24C32();
+void initWiFiManag(void);
 
 #endif /* __MAIN_H */
-
 
