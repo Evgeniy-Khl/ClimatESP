@@ -55,7 +55,7 @@ void loop() {
   //================================ НОВАЯ СЕКУНДА =================================
     if(halfSecond & 2){
         errorsFlag.value = 0;
-  #ifndef DEBUG  
+      #ifndef DEBUG  
         temperature_check();
       
         if (HIH5030){
@@ -67,7 +67,7 @@ void loop() {
           uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
           if(valTable>100) pvRH = 100; else pvRH = valTable;
         }
-  #else
+      #else
         //-----температура воздуха------
         heaterValue = UpdatePID(0);            // ПИД нагреватель
         // humidiValue = UpdatePID(1);            // ПИД увлажнитель
@@ -93,7 +93,7 @@ void loop() {
         
         // Serial.flush();
         //------
-  #endif
+      #endif
         if(!COOLING){  //-------------- нормальная работа -------------------------
           //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
           switch (settings.sp_structs[1].mode) {
@@ -102,7 +102,7 @@ void loop() {
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
                 DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                DEBUG_PRINTLN("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                DEBUG_PRINT("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 1:
                 val = RelayPos(0,2);
@@ -112,7 +112,7 @@ void loop() {
                 }
                 DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                DEBUG_PRINTLN("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                DEBUG_PRINT("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 2:
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
@@ -122,7 +122,7 @@ void loop() {
                     case ON: humidiValue = TRIACON; break;
                     case OFF: humidiValue = OFF;    break;
                 }
-                DEBUG_PRINTLN("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 3:
                 val = RelayPos(0,2);
@@ -136,7 +136,7 @@ void loop() {
                     case ON: humidiValue = TRIACON; break;
                     case OFF: humidiValue = OFF;    break;
                 }
-                DEBUG_PRINTLN("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 4:
                 heaterValue = UpdatePID(0);           // ПИД нагреватель
@@ -147,9 +147,9 @@ void loop() {
                   pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
                   if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
                 };
-                DEBUG_PRINTLN("ИМПУЛЬС увлажнитель pvPulse:"); DEBUG_PRINTLN(pvPulse);
+                DEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); DEBUG_PRINTLN(pvPulse);
                 break;
-              default: DEBUG_PRINT("НЕТ нагреватель НЕТ увлажнитель");
+              default: DEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель");
                 break;
           }
         } else {heaterValue = 0; displPower = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
@@ -203,7 +203,6 @@ void loop() {
           break;
         }
       }
-      
     }//============================== КОНЕЦ СЕКУНДЫ =================================
     // DateTime now = rtc.now();
 
@@ -225,6 +224,7 @@ void loop() {
         if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
       }
     }//==================== КОНЕЦ МИНУТЫ  ===================================
+
     sprintf(displStr,"T0 = %5.1f; T1 = %5.1f; OUT=0x%02x; ERR=0x%02x;",(float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,errorsFlag.value);
     DEBUG_PRINTLN(displStr);
   #ifdef LED_DISPLAY
