@@ -4,6 +4,9 @@
 #define LED_DISPLAY
 
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+#include <MyTelegramBot.h>  // Universal Telegram Bot Library written by Brian Lough: 
+#include <WiFiManager.h>    //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>
 #include <FS.h>
 #include <LittleFS.h>
@@ -15,6 +18,12 @@
 #include <DallasTemperature.h>
 #include "SoftwarePWMBit.h" // Подключаем наш новый класс
 #include "AT24C32.h"
+#include "server.h"
+#include "telegram.h"
+
+#ifdef ESP8266
+  X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+#endif
 
 #include "procedure.h"
 #ifdef LED_DISPLAY

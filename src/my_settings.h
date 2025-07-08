@@ -1,8 +1,12 @@
 #include "main.h"
 
+char botToken[50] = "";  // your Bot Token (Get from Botfather);
+char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+//flag for saving data
+bool shouldSaveConfig = false;
+bool enabledListen = false;
 
 // Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-
 uint8_t numberOfDevices, errDevice[MAX_DEVICE];
 
 // Адрес PCF8574. Может быть разным в зависимости от конфигурации A0, A1, A2.

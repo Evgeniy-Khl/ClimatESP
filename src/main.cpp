@@ -3,6 +3,11 @@
 #include "my_settings.h"
 char displStr[200];
 
+// AsyncWebServer server(80);      // Create AsyncWebServer object on port 80
+ESP8266WebServer server(80);
+WiFiClientSecure client;
+MyTelegramBot bot(botToken, client);
+
 PIDController pid[2];
 SoftwarePWMBit heaterPwm(&portOut.value, 0); 
 SoftwarePWMBit humidiPwm(&portOut.value, 1);
@@ -22,6 +27,10 @@ DallasTemperature sensors(&oneWire);// Передаем ссылку на объ
 void setup() {
   #ifdef DEBUG
     Serial.begin(115200);       // Инициализация последовательного порта для отладки
+  #endif
+  #ifdef ESP8266
+    configTime(0, 0, "pool.ntp.org");   // get UTC time via NTP
+    client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
   #endif
   //---------------------------- инициализация Конфигурации -----------------------------------
   #ifdef LED_DISPLAY
