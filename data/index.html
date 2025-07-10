@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!-- 
+  Rui Santos
+  Complete project details at https://RandomNerdTutorials.com  
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <!--link rel="icon" href="https://www.flaticon.com/packs/metaverse-18872723" type="image/png"-->
+  <!--link rel="stylesheet" type="text/css" href="style.css"-->
+  <title>Клімат-5</title>
+  <!-- Стилі для елементів сторінки -->
+  <style>
+	html {
+	  font-family: Arial;
+	  display: inline-block;
+	  margin: 0px auto;
+	  text-align: center;
+	}
+    #grad1 {
+      height: 0px auto;
+      background-color: #9d9e9b; /* For browsers that do not support gradients */
+      background-image: linear-gradient(to bottom right, #585957, #db9951);
+    }
+    h1 {
+  	  color: white;
+  	  text-align: center;
+	}
+	p {
+	  font-size: 1.5rem;
+	}
+	#rcorners0, #rcorners1, #rcorners2 {
+	  border-radius: 15px;
+	  padding: 5px;
+	  width: 300px;
+	  height: 0px auto;
+	  margin: 0px auto;
+	}
+	#rcorners0 { background: #89f594; }
+	#rcorners1 { background: #89f594; }
+	#rcorners2 { background: #bbdff2; }
+	
+	.container {
+	  display: grid;
+	  grid-template-columns: 1fr auto; /* Первый элемент занимает доступное пространство, второй — по содержимому */
+	  align-items: center; /* Выравнивает элементы по вертикали */
+	  border-radius: 10px;
+	  padding: 5px;
+	  width: 300px; /* Занимает всю доступную ширину */
+	  height: 0px auto;
+	  margin: 0px auto;
+	  background: LightGray;
+	}
+   
+	button {
+	  display: inline-block;
+	  background-color: #008CBA;
+	  border: none;
+	  border-radius: 4px;
+	  color: white;
+	  padding: 10px 10px;
+	  text-decoration: none;
+	  font-size: 30px;
+	  margin: 2px;
+	  cursor: pointer;
+	}
+
+	.units {
+	  font-size: 1.2rem;
+	 }
+	.sensor-labels {
+	  font-size: 1.5rem;
+	}
+	.set-labels {
+	  font-size: 1.9rem;
+	}
+
+	#ledsTable {
+        width: 300px;
+        height: 0px auto;
+		margin: 0px auto;
+        border: 0px solid black;
+        border-radius: 10px;       
+    }
+    #ledsTable td {
+        border: 1px solid black;
+		border-radius: 20px;
+        padding: 8px;
+        text-align: center;
+		background-color: #6e6e6e;
+    }
+	/*
+    .sun { background-color: #ffdd00; }
+    .water { background-color: #00aaff; }
+    .cyclone { background-color: #cccccc; }
+    .siren { background-color: #ff0000; }
+	*/
+  </style>
+</head>
+<body>
+  <div id="grad1">
+  <h1>Слава Україні! 
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" alt="Прапор України" width="40"></h1>
+    <h1 id="model">Клімат-5</h1>
+    <p id="rcorners0">
+      <span class="sensor-labels">Тепература №1</span><br/>
+      <span style="font-size:2.0em; color:#000000" id="temperature0">--.-</span>
+      <sup style="font-size:1.3em; color:#000000" id="settemp0">[--.-]</sup>
+      <sup class="units">&deg;C</sup>
+    </p>
+	<p></p>
+    <p id="rcorners1">
+      <span class="sensor-labels">Тепература №2</span><br/>
+      <span style="font-size:2.0em; color:#000000" id="temperature1">--.-</span>
+      <sup style="font-size:1.3em; color:#000000" id="settemp1">[--.-]</sup>
+      <sup class="units">&deg;C</sup>
+    </p>
+	<p></p>
+    <p id="rcorners2">
+      <span class="sensor-labels">Вологість</span><br/>
+      <span style="font-size:2.0em; color:#000000" id="humidity">--</span>
+      <sup style="font-size:1.3em; color:#000000" id="sethum">[--]</sup>
+      <sup class="units">&#37;</sup>
+    </p>
+	<p></p>
+    <table id="ledsTable">
+      <tr>
+        <td id="led0">&#127774; <!-- Солнце с лицом --></td>
+        <td id="led1">&#128167; <!-- Капля воды --></td>
+        <td id="led2">&#128260; <!-- Горизонтальные стрелки по кругу --></td>
+        <td id="led3">&#127744; <!-- Вихрь (Cyclone) --></td>
+        <td id="led4">&#128170;	<!-- Согнутые бицепсы --></td>
+        <td id="led5">&#128680; <!-- Вращающийся маячок --></td>
+      </tr>
+    </table>
+	<p></p>
+    <div class="container">
+	  <span class="sensor-labels">Вентилятор</span>
+      <span style="font-size:1.2em; color:#000000" id="ventmode">охлаждение</span>
+	  <span class="sensor-labels">Додактовий</span>
+      <span style="font-size:1.2em; color:#000000" id="extmode">сирена</span>
+	  <span class="sensor-labels">Режим реле</span>
+      <span style="font-size:1.2em; color:#000000" id="relaymode">канал №1</span>
+	  <span class="sensor-labels">Очікування</span>
+      <span style="font-size:1.2em; color:#000000" id="checkDry">НЕТ</span>
+      <span class="sensor-labels">Поворот</span>
+      <span style="font-size:2.0em; color:#000000" id="rotation">--- мин.</span>
+      <span class="sensor-labels">Нагрів;</span>
+      <span style="font-size:2.0em; color:#000000" id="power">--- %</span>
+      <span class="sensor-labels">Заслінка</span>
+      <span style="font-size:2.0em; color:#000000" id="flap">--- %</span>
+	  <span class="sensor-labels">Програма</span>
+      <span style="font-size:1.5em; color:#000000" id="program">---</span>
+      <span class="sensor-labels">Інкубація</span>
+      <span style="font-size:2.0em; color:#000000" id="currDay">--- сут.</span>
+    </div>
+    <p><a href="/setup"><button>Налаштування</button></a></p>
+	<!--p><a href="/table"><button>Програма</button></a></p-->
+	<p><a id="programLink" href="/table"><button id="programButton" disabled>Програма</button></a></p>
+  </div>
+</body>
+<script>
+function fetchData() {
+    // Запрос данных о температуре и влажности
+    var xhttp = new XMLHttpRequest();
+    
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(this.responseText);
+            console.log("Отримані дані:", jsonResponse);
+            
+			document.getElementById("model").innerHTML = jsonResponse.model;
+            document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
+            document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
+            document.getElementById("humidity").innerHTML = jsonResponse.humidity;
+            document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
+            document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
+            document.getElementById("sethum").innerHTML = jsonResponse.sethum;
+			
+			document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
+			document.getElementById("extmode").innerHTML = jsonResponse.extmode;
+			document.getElementById("relaymode").innerHTML = jsonResponse.relaymode;
+			document.getElementById("checkDry").innerHTML = jsonResponse.checkDry;
+            document.getElementById("rotation").innerHTML = jsonResponse.rotation;
+            document.getElementById("power").innerHTML = jsonResponse.power;
+            document.getElementById("flap").innerHTML = jsonResponse.flap;
+			document.getElementById("program").innerHTML = jsonResponse.program;
+            document.getElementById("currDay").innerHTML = jsonResponse.currDay;
+
+            // Обновление цвета LED
+            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#ffdd00" : "transparent";
+            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#00aaff" : "transparent";
+            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00ff00" : "transparent";
+            document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "transparent";
+            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#ff0000" : "transparent";
+			
+			// Управление кнопкой "Програма"
+            const programButton = document.getElementById("programButton");
+            if (jsonResponse.program == "немає") {
+                programButton.disabled = true; // Деактивировать кнопку
+                programButton.innerText = "Програми немає"; // Изменить текст (по желанию)
+            } else {
+                programButton.disabled = false; // Активировать кнопку
+                programButton.innerText = "Програма"; // Вернуть текст
+            }
+        }
+    };
+
+    console.log("Надсилаємо запит на отримання даних");
+    xhttp.open("GET", "/getvalues", true);
+    xhttp.send();
+}
+
+// Первичное заполнение данных при загрузке страницы
+window.onload = function() {
+    fetchData(); // Первоначальный запрос
+    setInterval(fetchData, 2000); // Периодические обновления
+};
+</script>
+</html>
