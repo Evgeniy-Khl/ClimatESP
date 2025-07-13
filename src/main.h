@@ -198,7 +198,7 @@ extern union Byte portFlag;
 #define FLPOPEN     100 // заслінка закр.
 #define PULSE_1     15  // імпульс період = 15 (sec.) MAX = 60 sec.
 #define MODE_1      0   // режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс
-#define EXTMODE_1   0   // ???????????
+#define EXTMODE_1   1   // 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
 
 extern char botToken[50];
 extern char chatID [15];

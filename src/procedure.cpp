@@ -395,7 +395,16 @@ void reset(void){
   settings.sp_structs[1].Kp = KP_0_1;
   settings.sp_structs[1].Ki = KI_0_1;
 
+  for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  delay(500);
+  for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  delay(500);
+  for (uint8_t i = 0; i < 8; i++) { data[i] = BOT;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
   saveConfig();
+  delay(3000);
 }
 
 //============================== Config ========================================

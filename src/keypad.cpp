@@ -44,8 +44,8 @@ void checkkey(uint8_t key){
                       case 10: if(editBuff > 150) editBuff = 150;  break;
                       case 11: if(editBuff > 400) editBuff = 400;  break;
                       case 12: if(editBuff > 400) editBuff = 400;  break;
-                      case 13: if(editBuff > 500) editBuff = 500;  break;
-                      case 14: if(editBuff > 999) editBuff = 999;  break;
+                      case 13: if(editBuff > 400) editBuff = 400;  break;
+                      case 14: if(editBuff > 400) editBuff = 400;  break;
                       case 15: if(editBuff >   4) editBuff =   4;  break;
                       case 16: if(editBuff > 100) editBuff = 100;  break;
                       case 17: if(editBuff >   1) editBuff =   1;  break;
@@ -90,7 +90,7 @@ void checkkey(uint8_t key){
                     switch (numSetup){
                       case 1:   if(editBuff <  10) editBuff =  10;  break;
                       case 2:   if(editBuff <  10) editBuff =  10;  break;
-                      case 3:   if(editBuff <   0) editBuff =   0;  break;
+                      case 3:   if(editBuff <   1) editBuff =   1;  break;
                       case 4:   if(editBuff <   0) editBuff =   0;  break;
                       case 5:   if(editBuff <   1) editBuff =   1;  break;
                       case 6:   if(editBuff <   0) editBuff =   0;  break;
@@ -101,7 +101,7 @@ void checkkey(uint8_t key){
                       case 11:  if(editBuff <   5) editBuff =   5;  break;
                       case 12:  if(editBuff <   5) editBuff =   5;  break;
                       case 13:  if(editBuff <   5) editBuff =   5;  break;
-                      case 14:  if(editBuff <   0) editBuff =   0;  break;
+                      case 14:  if(editBuff <   5) editBuff =   5;  break;
                       case 15:  if(editBuff <   0) editBuff =   0;  break;
                       case 16:  if(editBuff <   0) editBuff =   0;  break;
                       case 17:  if(editBuff <   0) editBuff =   0;  break;
@@ -175,7 +175,7 @@ void saveset(void){
                  settings.sp_structs[1].spRH = editBuff;          // 0.1 - 99.9 %
               else settings.sp_structs[1].spT = editBuff;         // 0.1 - 99.9 °C
         break;
-      case 3: settings.sp_structs[0].timer = editBuff;            // 0 - 999 мин.
+      case 3: settings.sp_structs[0].timer = editBuff;            // 1 - 999 мин.
               pvTimer = editBuff; 
         break;  // длительность выключенного состояния таймера
       case 4: settings.sp_structs[1].timer = editBuff; break;     // 0 - 999 сек.

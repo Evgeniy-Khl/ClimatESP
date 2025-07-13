@@ -11,7 +11,9 @@
 #define ENDCOMMA	    3
 #define NOCOMMA	        0
 #define BL              0x00     // пусто
+#define TOP             0x01     // -
 #define DEF             0x40     // -
+#define BOT             0x08     // -
 #define TT              0x78     // t
 #define EE              0x79     // E
 #define FF              0x71     // F
