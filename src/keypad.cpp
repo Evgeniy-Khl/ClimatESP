@@ -2,7 +2,7 @@
 
 void checkkey(uint8_t key){
   uint8_t topUser=30, topOwner=15, botUser=16;
-  beeperOn(25);     // Включаем бипер
+  beeperOn(5);     // Включаем бипер
   if(numSetup){     //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
@@ -119,9 +119,9 @@ void checkkey(uint8_t key){
                       case 29:  if(editBuff < -99) editBuff = -99;  break;
                     }
           break;
-        case KEY_5_4_6: reset(); break;
-        case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveConfig(); break;
-        case KEY_7_4_6_8: LittleFS.format(); break; // Проверка и форматирование, если необходимо
+        case KEY_5_4_6: reset(); beeperOn(100); break;
+        case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveConfig(); beeperOn(50); break;
+        case KEY_7_4_6_8: LittleFS.format(); beeperOn(100); break; // Проверка и форматирование, если необходимо
         case KEY_8: saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 

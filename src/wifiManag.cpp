@@ -17,28 +17,29 @@ void initWiFiManag(void){
     wifiManager.addParameter(&custom_botToken);
     wifiManager.addParameter(&custom_chatID);
 
-    //------------------reset settings - for testing------------------------
-    // if(settings.sp_structs[1].extendMode & 0x10) wifiManager.resetSettings();
-    //-----------------------------------------------------
+    //------------------ reset settings ------------------------
+    if(settings.sp_structs[1].extendMode & 0x10){
+      settings.sp_structs[1].extendMode &= 0xEF;
+      saveConfig();
+      wifiManager.resetSettings();
+    } 
+    //----------------------------------------------------------
     //set minimu quality of signal so it ignores AP's under that quality
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
-
+    //----------------------------------------------------------
     //sets timeout until configuration portal gets turned off
     //useful to make it all retry or go to sleep
     //in seconds
-    // wifiManager.setTimeout(20);
-
-    //fetches ssid and pass and tries to connect
-    //if it does not connect it starts an access point with the specified name
-    //here  "AutoConnectAP"
-    //and goes into a blocking loop awaiting configuration
+    wifiManager.setTimeout(20);
+    //----------------------------------------------------------
+    //получает SSID и пароль и пытается подключиться
+    //если подключение не удаётся, запускает точку доступа с указанным именем "AutoConnectAP"
+    //и переходит в блокирующий цикл ожидания настройки
     if (!wifiManager.autoConnect("AutoConnectAP")) {
       DEBUG_PRINTLN("failed to connect and hit timeout");
-      // delay(3000);
       //reset and try again, or maybe put it to deep sleep
       ESP.restart();
-      // delay(5000);
     }
 
     //------- if you get here you have connected to the WiFi -----------

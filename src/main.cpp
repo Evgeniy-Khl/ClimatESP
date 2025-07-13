@@ -78,6 +78,7 @@ void setup() {
   initEnvironment();
   //------------------------------------------------------------------------------------------
   #ifdef LED_DISPLAY
+    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
     pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
     displ_IP();
   #else

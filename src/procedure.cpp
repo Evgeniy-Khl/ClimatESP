@@ -135,7 +135,7 @@ uint8_t checkConfig(void){
     //file exists, reading and loading
     DEBUG_PRINTLN("reading config file");
     File configFile = LittleFS.open("/config.json", "r");
-    if (configFile){
+    if(configFile){
       DEBUG_PRINTLN("opened config file");
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
