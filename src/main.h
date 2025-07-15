@@ -128,9 +128,9 @@ extern union Byte portOut;
 extern union Byte errorsFlag;
 extern union Byte portFlag;
 
-#define HEATER  portOut.bitfield.a0  // НАГРЕВАТЕЛЬ
-#define HUMIDI	portOut.bitfield.a1  // УВЛАЖНИТЕЛЬ
-#define TURN		portOut.bitfield.a2  // Поворот лотков
+#define TURN		portOut.bitfield.a0  // Поворот лотков
+#define HEATER  portOut.bitfield.a1  // НАГРЕВАТЕЛЬ
+#define HUMIDI	portOut.bitfield.a2  // УВЛАЖНИТЕЛЬ
 #define EXTRA1	portOut.bitfield.a3  // Заслонка/вентилятор охлаждения
 #define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель
 #define EXTRA3 	portOut.bitfield.a5  // Авария

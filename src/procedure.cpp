@@ -42,12 +42,17 @@ int16_t UpdatePID(uint8_t cn){
 //------------- симистричный таймер -------------------
 void rotate_trays(void){
   if(!TURN){
-    if(--pvTimer == 0){pvTimer = settings.sp_structs[0].timer; TURN = PCF_OFF;}
+    if(--pvTimer == 0){
+      pvTimer = settings.sp_structs[0].timer; 
+      TURN = PCF_OFF;
+      DEBUG_PRINTLN("TURN = PCF_OFF");
+    }
   } else {
     if(--pvTimer == 0){
       if(settings.sp_structs[1].timer) pvTimer = settings.sp_structs[1].timer;
       else pvTimer = settings.sp_structs[0].timer;
       TURN = PCF_ON;
+      DEBUG_PRINTLN("TURN = PCF_ON");
     }
   }
 }

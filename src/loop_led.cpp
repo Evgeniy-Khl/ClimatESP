@@ -1,6 +1,6 @@
 #include "main.h"
 
-void ledDisplKeypad(long now){
+/* void ledDisplKeypad(long now){
     //-------------------------------------------- 10 mSec. --------------------------------------
     if(now - counter10 > 10){
       counter10 = now;
@@ -40,16 +40,18 @@ void ledDisplKeypad(long now){
         else display_setup();
         module.setDisplay(data, 8);
     }
-}
+} */
 
 void ledSet(void){
-    byte led = ~portOut.value;
+    byte led = 0;
     if(pctHeater == 100) led |= 1;
-    else if(pctHeater > 10){led &= 0xFE; led |= halfSecond&1;}
-    else led &= 0xFE;
+    else if(pctHeater > 10) led |= halfSecond&1;
     if(pctHimidifier == 100) led |= 2;
-    else if(pctHimidifier > 10){led &= 0xFD; led |= (halfSecond&1)<<1;}
-    else led &= 0xFD;
+    else if(pctHimidifier > 10) led |= (halfSecond&1)<<1;
+    if(!TURN) led |= 4;
+    if(!EXTRA1) led |= 8;
+    if(!EXTRA2) led |= 0x10;
+    if(!EXTRA3) led |= 0x20;
     // if(errorsFlag.value) led
     for (uint8_t i = 0; i < 6; i++){
         module.setLED(led&1, i);

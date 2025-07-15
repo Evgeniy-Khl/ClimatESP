@@ -138,11 +138,15 @@ void checkkey(uint8_t key){
         case KEY_2: if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
                     else {pvTimer=settings.sp_structs[0].timer;} 
                     TURN = PCF_ON;
+                    writePCF8574(portOut.value);
             break;
         case KEY_3: if(++displNum > 4) displNum = 0;
                     resetDispl = RESETDISPLAY;
             break;
-        case KEY_4: pvTimer=settings.sp_structs[0].timer; TURN = OFF; break;
+        case KEY_4: pvTimer=settings.sp_structs[0].timer; 
+                    TURN = PCF_OFF;
+                    writePCF8574(portOut.value);
+            break;
         case KEY_5: break;
         case KEY_6: break;
         case KEY_7: break;

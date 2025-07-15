@@ -15,8 +15,8 @@ WiFiClientSecure client;
 MyTelegramBot bot(botToken, client);
 
 PIDController pid[2];
-SoftwarePWMBit heaterPwm(&portOut.value, 0); 
-SoftwarePWMBit humidiPwm(&portOut.value, 1);
+SoftwarePWMBit heaterPwm(&portOut.value, 1); 
+SoftwarePWMBit humidiPwm(&portOut.value, 2);
 
 RTC_DS3231 rtc;                     // Создаем объект RTC для DS3231
 
@@ -111,7 +111,7 @@ void loop() {
     if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
     if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
       humidiValue = TRIACOFF;
-      writePCF8574(portOut.value);
+      // writePCF8574(portOut.value);
     }
     #ifdef LED_DISPLAY
     keys = module.getButtons();
@@ -189,8 +189,8 @@ void loop() {
         //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
         // DEBUG_PRINTLN(displStr);
         //-----
-        heaterPwm.write(heaterValue);
-        humidiPwm.write(humidiValue);
+        // heaterPwm.write(heaterValue);
+        // humidiPwm.write(humidiValue);
         dpv0 = pid[0].pPart/250 + pid[0].iPart*8;
         ds[0].pvT += dpv0;
         dpv1 = pid[1].pPart/250 + pid[1].iPart*8;
@@ -309,6 +309,7 @@ void loop() {
           DEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
           pvTimer = settings.sp_structs[0].timer; 
           TURN = PCF_OFF; TURNSECOND = OFF;
+          writePCF8574(portOut.value);
         }
       } else {
         TURNSECOND = OFF;
@@ -324,6 +325,7 @@ void loop() {
             else if(val == OFF) EXTRA3 = PCF_OFF;         // отключить
           break;
         }
+        writePCF8574(portOut.value);
       }
       pctHeater = constrain(heaterValue, 0, 255);
       pctHeater = map(pctHeater,0,255,0,100);
@@ -332,6 +334,7 @@ void loop() {
       DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; OUT=0x%02x; PW=%u; HU=%u; Tim=%u;  ERR=0x%02x; time: %u;",
         (float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,pctHeater,pctHimidifier,pvTimer,errorsFlag.value,halfSecond);
       DEBUG_PRINTLN(displStr);
+      // printBinary(portOut.value);
       DEBUG_PRINTLN("==============================================================================");
       DEBUG_PRINTLN();
       OutStatusLed();  // для HTML страницы
@@ -340,6 +343,7 @@ void loop() {
     #ifdef LED_DISPLAY
       ledSet();     // светодиоды панели
     #endif
+    writePCF8574(portOut.value);
   }//============================== КОНЕЦ ПОЛ-СЕКУНДЫ =================================
     
  
@@ -402,9 +406,21 @@ byte readPCF8574() {
 }
 
 // Вспомогательная функция для печати байта в двоичном формате
-void printBinary(byte inByte) {
+/* void printBinary(byte inByte) {
   for (int b = 7; b >= 0; b--) {
-    DEBUG_PRINT(bitRead(inByte, b));
+    switch (b) {
+    case 7: DEBUG_PRINT("N7="); break;
+    case 6: DEBUG_PRINT("N6="); break;
+    case 5: DEBUG_PRINT("E3="); break;
+    case 4: DEBUG_PRINT("E2="); break;
+    case 3: DEBUG_PRINT("E1="); break;
+    case 2: DEBUG_PRINT("TU="); break;
+    case 1: DEBUG_PRINT("HU="); break;
+    case 0: DEBUG_PRINT("HE="); break;
+    }
+    if(b>1) DEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
+    else DEBUG_PRINT(bitRead(inByte, b)? "ON" : "OF");
+    DEBUG_PRINTLN();
   }
-}
+} */
 
