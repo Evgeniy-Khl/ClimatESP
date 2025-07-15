@@ -137,7 +137,7 @@ void checkkey(uint8_t key){
         case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = RESETDISPLAY; break;
         case KEY_2: if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
                     else {pvTimer=settings.sp_structs[0].timer;} 
-                    TURN = ON;
+                    TURN = PCF_ON;
             break;
         case KEY_3: if(++displNum > 4) displNum = 0;
                     resetDispl = RESETDISPLAY;

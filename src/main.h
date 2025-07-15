@@ -154,7 +154,9 @@ extern union Byte portFlag;
 #define AERATION    portFlag.bitfield.a7  // проветривание
 
 #define ON  1
+#define PCF_ON  0
 #define OFF 0
+#define PCF_OFF 1
 #define TRIACON     999
 #define DISPLAYOFF  300
 

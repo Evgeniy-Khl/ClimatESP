@@ -160,11 +160,11 @@ void loop() {
           //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
           if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
             if(--pvAeration == 0){
-              pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = ON;
+              pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = PCF_ON;
               //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
             }
           } else if(COOLING){
-            EXTRA1 = ON; pvFlap = 100; beeperOn(50);
+            EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(50);
             if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
           }
         } //==================== КОНЕЦ МИНУТЫ  ===================================
@@ -280,22 +280,22 @@ void loop() {
         if(!COOLING){  //-------------- нормальная работа -------------------------
           //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
           if(ERROR1 == 0){
-            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = ON;        // включить вспомогательны нагреватель
-            else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = OFF; // отключить вспомогательны нагреватель
-          } else EXTRA2 = OFF;                                                      // отключить вспомогательны нагреватель
-          DEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); DEBUG_PRINTLN(EXTRA2);
+            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
+            else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
+          } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
+          DEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); DEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
         //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
           if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
-            EXTRA1 = ON; pvFlap = 100; beeperOn(10);
-            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = OFF;}
-            DEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); DEBUG_PRINTLN(EXTRA1);
+            EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(10);
+            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = PCF_OFF;}
+            DEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); DEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
           } else {
           //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
             uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
             if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
                     val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
-            if(val == ON){EXTRA1 = ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = OFF; pvFlap = settings.sp_structs[0].state;}
-            DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1);
+            if(val == ON){EXTRA1 = PCF_ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = PCF_OFF; pvFlap = settings.sp_structs[0].state;}
+            DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
           }
         }
       //------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ ---------------------------
@@ -308,7 +308,7 @@ void loop() {
         if(--pvTimer==0){
           DEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
           pvTimer = settings.sp_structs[0].timer; 
-          TURN = OFF; TURNSECOND = OFF;
+          TURN = PCF_OFF; TURNSECOND = OFF;
         }
       } else {
         TURNSECOND = OFF;
@@ -317,11 +317,11 @@ void loop() {
       if(numSetup == 0){
         uint8_t res = alarm();
         switch (settings.sp_structs[0].extendMode){
-        case 0: EXTRA3 = res; break;                  // [0]-0-СИРЕНА;
+        case 0: EXTRA3 = !res; break;                  // [0]-0-СИРЕНА;
         case 1:
             uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // 1-АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
-            if(val == ON) EXTRA3 = ON;                // включить
-            else if(val == OFF) EXTRA3 = OFF;         // отключить
+            if(val == ON) EXTRA3 = PCF_ON;                // включить
+            else if(val == OFF) EXTRA3 = PCF_OFF;         // отключить
           break;
         }
       }
