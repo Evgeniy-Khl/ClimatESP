@@ -462,10 +462,7 @@ void initEnvironment(void){
   */
 
   //---------- Инициализация DS3231 ----------------------------------------
-  if(!rtc.begin()) {
-    DEBUG_PRINTLN("RTC NOT found!");
-    FROZE |= 1;
-  }
+  if(rtc.begin()) RTCENABLE = 1;
   //------------------------------------------------------------------------------
   // testAT24C32();              // тест
   // tft.drawString("AT24C32 test complete.", xpos, ypos, 2);

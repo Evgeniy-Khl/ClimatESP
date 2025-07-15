@@ -36,12 +36,11 @@ DallasTemperature sensors(&oneWire);// Передаем ссылку на объ
 #endif
 void setup() {
   #ifdef DEBUG
-    Serial.begin(115200);       // Инициализация последовательного порта для отладки
+    Serial.begin(115200);               // Инициализация последовательного порта для отладки
   #endif
-  // pinMode(ledPin, OUTPUT);
 
-  Wire.begin();                 // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
-  uint8_t temp = writePCF8574(0x00);           // Установить все пины в LOW (если они используются как выходы)
+  Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
+  uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   #ifdef LED_DISPLAY
     for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
@@ -78,6 +77,7 @@ void setup() {
   initEnvironment();
   //------------------------------------------------------------------------------------------
   #ifdef LED_DISPLAY
+    if(RTCENABLE) data[1] = NUMBER_FONT[1]; //"o1o ooo oo"
     digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
     pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
     displ_IP();
