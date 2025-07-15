@@ -88,7 +88,7 @@ void setup() {
   pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
-  portOut.value = 0;
+  portOut.value = 0xFF;
   delay(3000);
 }
 
@@ -110,7 +110,7 @@ void loop() {
     counter10 = now;
     if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
     if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
-      HUMIDI = OFF;
+      humidiValue = TRIACOFF;
       writePCF8574(portOut.value);
     }
     #ifdef LED_DISPLAY
@@ -226,7 +226,7 @@ void loop() {
                 val = RelayPos(0,2);
                 switch (val){
                     case ON: heaterValue = TRIACON; break;
-                    case OFF: heaterValue = OFF;    break;
+                    case OFF: heaterValue = TRIACOFF;    break;
                 }
                 DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
@@ -238,7 +238,7 @@ void loop() {
                 val = RelayPos(1,3);
                 switch (val){
                     case ON: humidiValue = TRIACON; break;
-                    case OFF: humidiValue = OFF;    break;
+                    case OFF: humidiValue = TRIACOFF;    break;
                 }
                 DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
@@ -246,13 +246,13 @@ void loop() {
                 val = RelayPos(0,2);
                 switch (val){
                     case ON: heaterValue = TRIACON; break;
-                    case OFF: heaterValue = OFF;    break;
+                    case OFF: heaterValue = TRIACOFF;    break;
                 }
                 DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
                     case ON: humidiValue = TRIACON; break;
-                    case OFF: humidiValue = OFF;    break;
+                    case OFF: humidiValue = TRIACOFF;    break;
                 }
                 DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
@@ -270,9 +270,9 @@ void loop() {
               default: DEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель");
                 break;
           }
-        } else {heaterValue = 0; pctHeater = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
+        } else {heaterValue = TRIACOFF; pctHeater = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
 
-        if(settings.sp_structs[0].mode == 1 && !REACHED0) humidiValue=OFF; // задержка регулирования по 2 каналу до прогрева инкубатора
+        if(settings.sp_structs[0].mode == 1 && !REACHED0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
 
         // heaterPwm.write(heaterValue);
         // humidiPwm.write(humidiValue);

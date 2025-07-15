@@ -104,7 +104,7 @@ void OutPulse(void){
 void OutStatusLed(void){
     for(uint8_t i = 0; i < 6; i++){
       uint8_t numBit = 1 << i;
-      dataLed[i] = portOut.value & numBit;
+      dataLed[i] = (~portOut.value) & numBit;
     }
 }
 

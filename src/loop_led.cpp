@@ -6,7 +6,7 @@ void ledDisplKeypad(long now){
       counter10 = now;
       if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
       if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
-        HUMIDI = OFF;
+        humidiValue = TRIACOFF;
         writePCF8574(portOut.value);
       }
       keys = module.getButtons();
@@ -43,7 +43,7 @@ void ledDisplKeypad(long now){
 }
 
 void ledSet(void){
-    byte led = portOut.value;
+    byte led = ~portOut.value;
     if(pctHeater == 100) led |= 1;
     else if(pctHeater > 10){led &= 0xFE; led |= halfSecond&1;}
     else led &= 0xFE;
