@@ -13,7 +13,7 @@ private:
     unsigned char bitMask;          
     int dutyCycle;                  
     
-    unsigned long periodMicros;     
+    unsigned long periodMillis;     
     unsigned long lastCycleStartMicros; 
 
 public:

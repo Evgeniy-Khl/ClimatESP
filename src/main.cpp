@@ -29,7 +29,7 @@ DallasTemperature sensors(&oneWire);// Передаем ссылку на объ
 
 #ifdef LED_DISPLAY
   TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
-  void ledDisplKeypad(long now);
+  // void ledDisplKeypad(long now);
   void ledSet(void);
 #else
 
@@ -96,26 +96,34 @@ void loop() {
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
   long now = millis();
-  hasChanged |= heaterPwm.update();
-  hasChanged |= humidiPwm.update();
-  if(hasChanged){
-    // writePCF8574(portOut.value);
-    // DEBUG_SPRINTF(displStr,"*** NOW = %lu; VAL = %u; **",now,portOut.value);
-    // DEBUG_PRINTLN(displStr);
-  }
-
+  
   server.handleClient(); // Обработка входящих запросов
   //-------------------------------------------- 10 mSec. --------------------------------------
   if(now - counter10 > 10){
     counter10 = now;
-    if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){ // импульсный режим увлажнения
-      humidiValue = TRIACOFF;
-      // writePCF8574(portOut.value);
+    hasChanged |= heaterPwm.update();
+    hasChanged |= humidiPwm.update();
+
+    if(hasChanged) {
+      writePCF8574(portOut.value);
+      #ifdef LED_DISPLAY
+      ledSet();
+      #endif
     }
+
+    if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH);   // Выключаем бипер
+
+    if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){   // импульсный режим увлажнения
+      humidiValue = TRIACOFF;
+      writePCF8574(portOut.value);
+      #ifdef LED_DISPLAY
+      ledSet();
+      #endif
+    }
+
     #ifdef LED_DISPLAY
     keys = module.getButtons();
-    if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
+    if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}  // если не удерживается ни одна кнопка то сброс времени ожидания.
     #endif
   }
   #ifdef LED_DISPLAY
@@ -135,14 +143,16 @@ void loop() {
       else lastKey = keys;
     }
   #endif
-  //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
 
+  //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
   if(now - counter1s > 500){
     counter1s = now; 
     if(++halfSecond > 119) halfSecond = 0;
+
     if(resetDispl) --resetDispl;
     else if(numSetup) saveset();  // сохраняем установки
     else displNum = 0;            // возврат к главному дисплею
+
   #ifdef LED_DISPLAY
     if(numSetup == 0) ledDispl(displNum); else display_setup();
     module.setDisplay(data, 8);
@@ -225,8 +235,8 @@ void loop() {
               case 1:
                 val = RelayPos(0,2);
                 switch (val){
-                    case ON: heaterValue = TRIACON; break;
-                    case OFF: heaterValue = TRIACOFF;    break;
+                    case ON:  heaterValue = TRIACON;  break;
+                    case OFF: heaterValue = TRIACOFF; break;
                 }
                 DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
@@ -237,22 +247,22 @@ void loop() {
                 DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
-                    case ON: humidiValue = TRIACON; break;
-                    case OFF: humidiValue = TRIACOFF;    break;
+                    case ON:  humidiValue = TRIACON;  break;
+                    case OFF: humidiValue = TRIACOFF; break;
                 }
                 DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
               case 3:
                 val = RelayPos(0,2);
                 switch (val){
-                    case ON: heaterValue = TRIACON; break;
-                    case OFF: heaterValue = TRIACOFF;    break;
+                    case ON:  heaterValue = TRIACON;  break;
+                    case OFF: heaterValue = TRIACOFF; break;
                 }
                 DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
-                    case ON: humidiValue = TRIACON; break;
-                    case OFF: humidiValue = TRIACOFF;    break;
+                    case ON:  humidiValue = TRIACON;  break;
+                    case OFF: humidiValue = TRIACOFF; break;
                 }
                 DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
                 break;
@@ -327,6 +337,7 @@ void loop() {
         }
         writePCF8574(portOut.value);
       }
+
       pctHeater = constrain(heaterValue, 0, 255);
       pctHeater = map(pctHeater,0,255,0,100);
       pctHimidifier = constrain(humidiValue, 0, 255);
@@ -346,8 +357,6 @@ void loop() {
     writePCF8574(portOut.value);
   }//============================== КОНЕЦ ПОЛ-СЕКУНДЫ =================================
     
- 
-  
   if (now - lastSendTime > interval) {
     if(earlyMode != mode){
       Serial.printf("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
@@ -377,6 +386,21 @@ void loop() {
   }
 }
 //----------------------------------- loop() ----------------------------------------------------------------------
+#ifdef LED_DISPLAY
+void ledSet(void){
+    byte led = 0;
+    if(!(portOut.value&2)) led |= 1;
+    if(!(portOut.value&4)) led |= 2;
+    if(!TURN) led |= 4;
+    if(!EXTRA1) led |= 8;
+    if(!EXTRA2) led |= 0x10;
+    if(!EXTRA3) led |= 0x20;
+    for (uint8_t i = 0; i < 6; i++){
+        module.setLED(led&1, i);
+        led >>= 1;
+    }
+}
+#endif
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
