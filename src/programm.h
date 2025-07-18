@@ -29,6 +29,6 @@ void prepareProg1();
 void prepareProg2();
 void prepareProg3();
 void prepareProg4();
-void testAT24C32();
+void testProgs();
 
 #endif /* PROGRAMM_H */

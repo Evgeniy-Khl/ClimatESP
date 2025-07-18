@@ -72,17 +72,10 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
     for (size_t i = 0; i < amountday; i++){
         uint8_t curday = day + i;
         uint16_t memoryAddress = eepromMemoryAddressForDay(prg, curday);
-        // byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-        DEBUG_PRINT("DAY:"); DEBUG_PRINT(curday); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
-        // DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
-        // DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
-        // DEBUG_PRINTLN();
+        byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+        DEBUG_PRINT("DAY:"); DEBUG_PRINT(curday); 
+        DEBUG_PRINT("; ADD:"); DEBUG_PRINT(memoryAddress);
+        DEBUG_PRINT("; RES:"); DEBUG_PRINTLN(res);
     }
     
 }
@@ -126,57 +119,33 @@ void prepareProg4(){
     prepareTable(4,29, 2,280,200,450, 0, 0, 0,90);// 29-31	28,0 оС	20,0 оС(45,0%)	90%	вимкнений	вимкнуто
 }
 
-void testAT24C32(){
+void testProgs(){
   DEBUG_PRINTLN("---------------ESP8266 <-> AT24C32 EEPROM Test---------------");
   uint16_t memoryAddress = eepromMemoryAddressForDay(1, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-  DEBUG_PRINT("PROG: 1"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
-        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
-        DEBUG_PRINTLN();
+  if(unBuf.spDay.spT0 == -1){
+    prepareProg1();
+    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N1");
+  }
 
   memoryAddress = eepromMemoryAddressForDay(2, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-  DEBUG_PRINT("PROG: 2"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
-        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
-        DEBUG_PRINTLN();
+  if(unBuf.spDay.spT0 == -1){
+    prepareProg2();
+    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N2");
+  }
 
   memoryAddress = eepromMemoryAddressForDay(3, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-  DEBUG_PRINT("PROG: 3"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
-        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
-        DEBUG_PRINTLN();
+  if(unBuf.spDay.spT0 == -1){
+    prepareProg3();
+    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N3");
+  }
 
   memoryAddress = eepromMemoryAddressForDay(4, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-  DEBUG_PRINT("PROG: 4 "); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
-        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
-        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
-        DEBUG_PRINTLN();
+  if(unBuf.spDay.spT0 == -1){
+    prepareProg4();
+    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N4");
+  }
 }

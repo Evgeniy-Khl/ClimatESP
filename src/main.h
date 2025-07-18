@@ -257,7 +257,6 @@ extern uint8_t dataLed[6];
 
 byte writePCF8574(byte data);
 byte readPCF8574();
-void testAT24C32();
 void initWiFiManag(void);
 
 #endif /* __MAIN_H */
