@@ -40,7 +40,7 @@ byte eepromWrBuff(uint16_t memoryAddress, const uint8_t* buffer, uint8_t length)
  * @param buffer Указатель на буфер для сохранения прочитанных данных.
  * @param length Количество байт для чтения.
  */
-void eepromRdBuff(uint16_t memoryAddress, uint8_t* buffer, uint16_t length) {
+void eepromRdBuff(uint16_t memoryAddress, uint8_t* buffer, uint8_t length) {
   Wire.beginTransmission(EEPROM_I2C_ADDRESS);
   Wire.write((uint8_t)(memoryAddress >> 8));
   Wire.write((uint8_t)(memoryAddress & 0xFF));
@@ -124,4 +124,59 @@ void prepareProg4(){
     prepareTable(4,13,14,372,288,520,60,10,10,25);// 13-26	37,2 оС	28,8 оС(52,0%)	25%	увімкнено	вимкнуто
     prepareTable(4,27, 2,370,320,700, 0,10,10,35);// 27-28	37,0 оС	32,0 оС(70,0%)	35%	вимкнений	вимкнуто
     prepareTable(4,29, 2,280,200,450, 0, 0, 0,90);// 29-31	28,0 оС	20,0 оС(45,0%)	90%	вимкнений	вимкнуто
+}
+
+void testAT24C32(){
+  DEBUG_PRINTLN("---------------ESP8266 <-> AT24C32 EEPROM Test---------------");
+  uint16_t memoryAddress = eepromMemoryAddressForDay(1, 1);
+  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  DEBUG_PRINT("PROG: 1"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
+        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
+        DEBUG_PRINTLN();
+
+  memoryAddress = eepromMemoryAddressForDay(2, 1);
+  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  DEBUG_PRINT("PROG: 2"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
+        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
+        DEBUG_PRINTLN();
+
+  memoryAddress = eepromMemoryAddressForDay(3, 1);
+  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  DEBUG_PRINT("PROG: 3"); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
+        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
+        DEBUG_PRINTLN();
+
+  memoryAddress = eepromMemoryAddressForDay(4, 1);
+  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  DEBUG_PRINT("PROG: 4 "); DEBUG_PRINT("; DAY: 1"); DEBUG_PRINT("; ADD:"); DEBUG_PRINTLN(memoryAddress);
+        DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT(";");
+        DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT(";");
+        DEBUG_PRINTLN();
 }
