@@ -119,7 +119,11 @@ void checkkey(uint8_t key){
                       case 29:  if(editBuff < -99) editBuff = -99;  break;
                     }
           break;
-        case KEY_5_4_6: reset(); beeperOn(100); break;
+        case KEY_5_4_6: reset(); break;
+        case KEY_7_1: prepareProg1(); beeperOn(100); break;
+        case KEY_7_2: prepareProg2(); beeperOn(100); break;
+        case KEY_7_3: prepareProg3(); beeperOn(100); break;
+        case KEY_7_4: prepareProg4(); beeperOn(100); break;
         case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveConfig(); beeperOn(50); break;
         case KEY_7_4_6_8: LittleFS.format(); beeperOn(100); break; // Проверка и форматирование, если необходимо
         case KEY_8: saveset(); break;

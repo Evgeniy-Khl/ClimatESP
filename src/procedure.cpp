@@ -402,13 +402,16 @@ void reset(void){
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  beeperOn(50);
   delay(500);
   for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  beeperOn(50);
   delay(500);
   for (uint8_t i = 0; i < 8; i++) { data[i] = BOT;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
   saveConfig();
+  beeperOn(100);
   delay(3000);
 }
 
