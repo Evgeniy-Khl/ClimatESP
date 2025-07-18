@@ -28,10 +28,8 @@ void initWiFiManag(void){
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
     //----------------------------------------------------------
-    //sets timeout until configuration portal gets turned off
-    //useful to make it all retry or go to sleep
-    //in seconds
-    wifiManager.setTimeout(20);
+    // Устанавливаем таймаут для портала конфигурации в 60 секунд (1 минута)
+    wifiManager.setConfigPortalTimeout(60);
     //----------------------------------------------------------
     //получает SSID и пароль и пытается подключиться
     //если подключение не удаётся, запускает точку доступа с указанным именем "AutoConnectAP"
