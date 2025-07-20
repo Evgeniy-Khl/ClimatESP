@@ -73,7 +73,8 @@ void setup() {
     DEBUG_PRINTF("Free space: %u bytes\n", fs_info.totalBytes - fs_info.usedBytes);
   #endif
   //---------------------------- инициализация WiFiManager -----------------------------------
-  initWiFiManag();
+  if(settings.sp_structs[0].special) initWiFiManag();
+  else DEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
   initEnvironment();
   //------------------------------------------------------------------------------------------
   #ifdef LED_DISPLAY

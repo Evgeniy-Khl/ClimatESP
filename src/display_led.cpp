@@ -174,27 +174,29 @@ void displ_IP(void){
       delay(2000);
     }
     //------------------------------ индикация IP (первая пара) --------------------------------
-    displ_top(dataLed[0],ENDCOMMA);
-    displ_bot(dataLed[1],ENDCOMMA);
-    displ_67(1, NOCOMMA);
-    module.setDisplay(data, 8);
-    digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    delay(100);
-    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    delay(3000);
-    //------------------------------ индикация IP (вторая пара) --------------------------------
-    displ_top(dataLed[2],ENDCOMMA);
-    displ_bot(dataLed[3],ENDCOMMA);
-    displ_67(2, NOCOMMA);
-    module.setDisplay(data, 8);
-    digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    delay(100);
-    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    delay(100);
-    digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    delay(100);
-    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    delay(3000);
+    if(dataLed[0]){
+      displ_top(dataLed[0],ENDCOMMA);
+      displ_bot(dataLed[1],ENDCOMMA);
+      displ_67(1, NOCOMMA);
+      module.setDisplay(data, 8);
+      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+      delay(100);
+      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+      delay(3000);
+      //------------------------------ индикация IP (вторая пара) --------------------------------
+      displ_top(dataLed[2],ENDCOMMA);
+      displ_bot(dataLed[3],ENDCOMMA);
+      displ_67(2, NOCOMMA);
+      module.setDisplay(data, 8);
+      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+      delay(100);
+      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+      delay(100);
+      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+      delay(100);
+      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+      delay(3000);
+    }
     //-------------------------------- индикация марки прибора ---------------------------------
     data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
     data[1] =  0b01011110; // d
