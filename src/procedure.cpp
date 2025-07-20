@@ -188,6 +188,7 @@ void printConfig() {
         DEBUG_PRINTF("  extendMode: %d\n", settings.sp_structs[i].extendMode);
         DEBUG_PRINTF("  Kp: %d\n", settings.sp_structs[i].Kp);
         DEBUG_PRINTF("  Ki: %d\n", settings.sp_structs[i].Ki);
+        DEBUG_PRINTF("  special: %d\n", settings.sp_structs[i].special);
     }
     DEBUG_PRINTLN("--------------------");
 }
@@ -221,6 +222,7 @@ void saveConfig() {
         obj["extendMode"] = settings.sp_structs[i].extendMode;
         obj["Kp"] = settings.sp_structs[i].Kp;
         obj["Ki"] = settings.sp_structs[i].Ki;
+        obj["special"] = settings.sp_structs[i].special;
     }
 
     // Открываем файл для записи
@@ -288,6 +290,7 @@ bool loadConfig() {
             settings.sp_structs[i].extendMode = obj["extendMode"];
             settings.sp_structs[i].Kp = obj["Kp"];
             settings.sp_structs[i].Ki = obj["Ki"];
+            settings.sp_structs[i].special = obj["special"];
             i++;
         }
     }
@@ -383,6 +386,7 @@ void reset(void){
   settings.sp_structs[0].extendMode = EXTMODE_0;
   settings.sp_structs[0].Kp = KP_0_1;
   settings.sp_structs[0].Ki = KI_0_1;
+  settings.sp_structs[0].special = SPECIAL;
 
   settings.sp_structs[1].spT = SPT_1;
   settings.sp_structs[1].spRH = SPRH_1;
@@ -399,6 +403,7 @@ void reset(void){
   settings.sp_structs[1].extendMode = EXTMODE_1;
   settings.sp_structs[1].Kp = KP_0_1;
   settings.sp_structs[1].Ki = KI_0_1;
+  settings.sp_structs[1].special = SPECIAL;
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
