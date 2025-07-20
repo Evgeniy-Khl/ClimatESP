@@ -57,6 +57,10 @@
             <th>Температура №2 (°C)</th>
             <th>Вологість (%)</th>
             <th>Заслінка (%)</th>
+            <th>Поворот (хвл.)</th>
+            <th>Поворот (сек.)</th>
+            <th>Пауза (хвл.)</th>
+            <th>Провітрювання (сек.)</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -91,12 +95,12 @@ async function fetchData() {
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 const dayCell = document.createElement('td');
-                dayCell.innerHTML = `Ст.${index + 1}`; // Нумерация строк
+                dayCell.innerHTML = `Д.${index + 1}`; // Нумерация строк
                 tr.appendChild(dayCell);
 
                 row.forEach((cell, cellIndex) => {
                     const td = document.createElement('td');
-                    if (cellIndex === 0 || cellIndex === 1) {
+                    if (cellIndex === 0 || cellIndex === 1 || cellIndex === 2) {
                         td.innerHTML = (cell / 10).toFixed(1); // Дробное значение
                     } else {
                         td.innerHTML = cell;
@@ -178,7 +182,7 @@ async function saveData() {
 			const formattedValue = cell.innerHTML.replace(',', '.');
 
 			// Преобразуем значение в число
-			const value = (index === 1 || index === 2) ? Math.round(parseFloat(formattedValue) * 10) : parseInt(formattedValue);
+			const value = (index === 1 || index === 2 || index === 3) ? Math.round(parseFloat(formattedValue) * 10) : parseInt(formattedValue);
 			return isNaN(value) ? null : value;
 		}).filter(cell => cell !== null);
 	}).filter(row => row.length > 0);

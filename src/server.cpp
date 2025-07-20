@@ -130,7 +130,7 @@ void respondsEeprom(){
 
 void acceptEeprom() {
   // Логирование всех параметров
-  DEBUG_PRINTF("The SERVER has accepted EEPROM: %d, %ld\n", seconds, millis() - lastSendTime);
+  DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
   
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
@@ -152,16 +152,14 @@ void acceptEeprom() {
       else if (paramName == "program") settings.sp_structs[1].state = paramValue.toInt();
       else if (paramName == "alarm0") settings.sp_structs[0].alarm = paramValue.toInt();
       else if (paramName == "alarm1") settings.sp_structs[1].alarm = paramValue.toInt();
-      else if (paramName == "coolOn0") settings.sp_structs[0].coolOn = paramValue.toInt();    // "vent0"
-      else if (paramName == "coolOff0") settings.sp_structs[0].coolOff = paramValue.toInt();  // "vent1"
-      else if (paramName == "coolOn1") settings.sp_structs[1].coolOn = paramValue.toInt();    // ?????
-      else if (paramName == "coolOff1") settings.sp_structs[1].coolOff = paramValue.toInt();  // ?????
+      else if (paramName == "coolOn0") settings.sp_structs[0].coolOn = paramValue.toInt();
+      else if (paramName == "coolOff0") settings.sp_structs[0].coolOff = paramValue.toInt();
+      else if (paramName == "coolOn1") settings.sp_structs[1].coolOn = paramValue.toInt();
+      else if (paramName == "coolOff1") settings.sp_structs[1].coolOff = paramValue.toInt();
       else if (paramName == "extOn") settings.sp_structs[0].auxiliary = paramValue.toInt();
       else if (paramName == "extOff") settings.sp_structs[1].auxiliary = paramValue.toInt();
       else if (paramName == "minRun") settings.sp_structs[0].pulse = paramValue.toInt();
-      // else if (paramName == "maxRun") usp.sp.maxRun = paramValue.toInt();
       else if (paramName == "period") settings.sp_structs[1].pulse = paramValue.toInt();
-      // else if (paramName == "hysteresis") usp.sp.hysteresis = paramValue.toInt();
       else if (paramName == "air0") settings.sp_structs[0].aeration = paramValue.toInt();
       else if (paramName == "air1") settings.sp_structs[1].aeration = paramValue.toInt();
       else if (paramName == "flpClose") settings.sp_structs[0].flapLimit = paramValue.toInt();
@@ -171,56 +169,83 @@ void acceptEeprom() {
       else if (paramName == "pkoff1") settings.sp_structs[1].Kp = paramValue.toInt();
       else if (paramName == "ikoff0") settings.sp_structs[0].Ki = paramValue.toInt();
       else if (paramName == "ikoff1") settings.sp_structs[1].Ki = paramValue.toInt();
-      // else if (paramName == "identif") usp.sp.identif = paramValue.toInt();
+      else if (paramName == "identif") settings.sp_structs[1].special = paramValue.toInt();
   }
 
   server.send(200); // Отправляем только статус 200
 
-  // saveEeprom();
+  saveConfig();
 }
 
   void respondsProgram(){
     String jsonResponse;
     JsonDocument doc;
     mode = SAVEPROG; interval = INTERVAL_1000; quarter = SET_PROG4+1;
-
-    for (int i = 0; i < 32; i++) {
-        JsonArray row = doc.add<JsonArray>();
-        for (int j = 0; j < 4; j++) {
-            row.add(tableData[i][j]);
-        }
+    uint8_t prg = settings.sp_structs[1].state;
+    if(prg){
+      for (int i = 1; i < 31; i++) {
+          JsonArray row = doc.add<JsonArray>();
+          uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
+          eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+          row.add(unBuf.spDay.spT0);
+          row.add(unBuf.spDay.spT1);
+          row.add(unBuf.spDay.spRH);
+          row.add(unBuf.spDay.flap);
+          row.add(unBuf.spDay.timer0);
+          row.add(unBuf.spDay.timer1);
+          row.add(unBuf.spDay.aeration0);
+          row.add(unBuf.spDay.aeration1);
+      }
+      serializeJson(doc, jsonResponse);
+      DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
+      DEBUG_PRINTLN("jsonResponse:"+jsonResponse);
+      server.send(200, "application/json", jsonResponse);
     }
-    serializeJson(doc, jsonResponse);
-    DEBUG_PRINTF("SERVER responds to the client with PROGRAM: %d,%ld\n",seconds,millis()-lastSendTime);
-    DEBUG_PRINTLN("jsonResponse:"+jsonResponse);
-    server.send(200, "application/json", jsonResponse);
   }
 
   //https://arduinojson.org/v7/assistant/#/step1
   void programDeser(String input){
-    // Stream& input;
+    uint8_t prg = settings.sp_structs[1].state;
     JsonDocument doc;
 
     DeserializationError error = deserializeJson(doc, input);
 
     if (error) {
-      DEBUG_PRINT("deserializeJson() failed: ");
+      DEBUG_PRINT("deserializeJson() FAILED: ");
       DEBUG_PRINTLN(error.c_str());
       return;
     }
 
     JsonArray data = doc["data"];
-    const int rows = 32; // Количество строк
     const int cols = 4;  // Количество столбцов
     DEBUG_PRINTLN("programDeser()");
 
-    for (int i = 0; i < rows; i++) {
+    for (int i = 1; i < 31; i++) {
       JsonArray data_i = data[i];
-      for (int j = 0; j < cols; j++) {
-        tableData[i][j] = data_i[j]; // Заполнение массива
-        DEBUG_PRINT(tableData[i][j]); DEBUG_PRINT("; ");
-      }
-      DEBUG_PRINTLN("||");
+      unBuf.spDay.spT0 = data_i[0]; //
+      unBuf.spDay.spT1 = data_i[1]; //
+      unBuf.spDay.spRH = data_i[2]; //
+      unBuf.spDay.flap = data_i[3]; //
+      unBuf.spDay.timer0 = data_i[4]; //
+      unBuf.spDay.timer1 = data_i[5]; //
+      unBuf.spDay.aeration0 = data_i[6]; //
+      unBuf.spDay.aeration1 = data_i[7]; //
+      
+      DEBUG_PRINT("spT0="); DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT("; ");
+      DEBUG_PRINT("spT1="); DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT("; ");
+      DEBUG_PRINT("spRH="); DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT("; ");
+      DEBUG_PRINT("flap="); DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT("; ");
+      DEBUG_PRINT("timer0="); DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT("; ");
+      DEBUG_PRINT("timer1="); DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT("; ");
+      DEBUG_PRINT("aeration0="); DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT("; ");
+      DEBUG_PRINT("aeration1="); DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT("; ");
+      DEBUG_PRINTLN();
+      uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
+      byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+
+      DEBUG_PRINT("DAY:"); DEBUG_PRINT(i); 
+      DEBUG_PRINT("; ADD:"); DEBUG_PRINT(memoryAddress);
+      DEBUG_PRINT("; RES:"); DEBUG_PRINTLN(res);
     }
   }
 
