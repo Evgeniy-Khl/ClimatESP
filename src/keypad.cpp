@@ -84,7 +84,7 @@ void checkkey(uint8_t key){
                         case 28: editBuff = settings.sp_structs[1].Ki; break;             // П13 = 900 
                         case 29: editBuff = settings.sp_structs[0].spRH; break;           // П14 подстройка датчика HIH-5030-01
                         case 30: editBuff = settings.sp_structs[0].special; break;        // П15 таймаут для портала конфигурации WiFi
-                        case 31: editBuff = settings.sp_structs[1].special; break;        // П16 резерв
+                        case 31: editBuff = settings.sp_structs[1].special; break;        // П16 номер прибора
                     };
           break;
         case KEY_4: if(keyCount == 1) waitCheckKeyPad = WAITCHECKKEYPAD;

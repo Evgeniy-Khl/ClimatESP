@@ -27,7 +27,7 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 300;
     JsonDocument data;
-    data["model"] = "Клімат-5.25";// + "&nbsp;&nbsp;&nbsp;ID:" + String(upv.pv.node);
+    data["model"] = "Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№:" + String(settings.sp_structs[1].special);
     data["temperature0"] = getFloat((float)ds[0].pvT/10,0);
     data["temperature1"] = getFloat((float)ds[1].pvT/10,0);
     data["settemp0"] = getFloat((float)settings.sp_structs[0].spT/10,1);
@@ -117,7 +117,7 @@ void respondsEeprom(){
         doc["pkoff1"] = settings.sp_structs[1].Kp;
         doc["ikoff0"] = settings.sp_structs[0].Ki;
         doc["ikoff1"] = settings.sp_structs[1].Ki;
-        doc["identif"] = 1;
+        doc["identif"] = settings.sp_structs[1].special;
         doc["status"] = 1;
 
         serializeJson(doc, jsonResponse); // Сериализуем JSON

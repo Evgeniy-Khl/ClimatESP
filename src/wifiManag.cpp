@@ -28,9 +28,9 @@ void initWiFiManag(void){
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
     //----------------------------------------------------------
-    if(settings.sp_structs[0].special < 60){
-      settings.sp_structs[0].special = 60;
-    }
+    if(settings.sp_structs[0].special < 60) settings.sp_structs[0].special = 60;
+    
+    DEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); DEBUG_PRINTLN(settings.sp_structs[0].special);
     // Устанавливаем таймаут для портала конфигурации в 60 секунд (1 минута)
     wifiManager.setConfigPortalTimeout(settings.sp_structs[0].special);    
     //----------------------------------------------------------
