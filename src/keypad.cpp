@@ -1,13 +1,13 @@
 #include "keypad.h"
 
 void checkkey(uint8_t key){
-  uint8_t topUser=30, topOwner=15, botUser=16;
+  // uint8_t topUser=31, topOwner=15, botUser=16;
   beeperOn(5);     // Включаем бипер
   if(numSetup){     //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
         case KEY_1: waitCheckKeyPad = WAITCHECKKEYPAD;
-                    if (++numSetup > topOwner) numSetup=1;         // Меню пользователя
+                    if (++numSetup > 15) numSetup=1;         // Меню пользователя
                     switch (numSetup){
                         case 1: editBuff = settings.sp_structs[0].spT; break;          // У1 уставка канал 1
                         case 2: if(HIH5030) editBuff = settings.sp_structs[1].spRH;    // У2 уставка канал 2 
@@ -61,11 +61,13 @@ void checkkey(uint8_t key){
                       case 27: if(editBuff > 999) editBuff = 999;  break;
                       case 28: if(editBuff > 999) editBuff = 999;  break;
                       case 29: if(editBuff > 999) editBuff = 999;  break;
+                      case 30: if(editBuff > 180) editBuff = 180;  break;
+                      case 31: if(editBuff > 999) editBuff = 999;  break;
                     }
           break;
         case KEY_3: waitCheckKeyPad = WAITCHECKKEYPAD;
                     ++numSetup;
-                    if (numSetup > topUser || numSetup < botUser) numSetup = botUser;// Меню специалиста
+                    if (numSetup > 31 || numSetup < 16) numSetup = 16;// Меню специалиста
                     switch (numSetup){
                         case 16: editBuff = settings.sp_structs[0].state; break;          // П01 текущее положение заслонки
                         case 17: editBuff = settings.sp_structs[0].mode; break;           // П02 = 0 задержка регулировки по влажному
@@ -81,7 +83,8 @@ void checkkey(uint8_t key){
                         case 27: editBuff = settings.sp_structs[1].Kp; break;             // П12 = 15
                         case 28: editBuff = settings.sp_structs[1].Ki; break;             // П13 = 900 
                         case 29: editBuff = settings.sp_structs[0].spRH; break;           // П14 подстройка датчика HIH-5030-01
-                        case 30: editBuff = 0; break;                 // П0 сброс параметров
+                        case 30: editBuff = settings.sp_structs[0].special; break;        // П15 таймаут для портала конфигурации WiFi
+                        case 31: editBuff = settings.sp_structs[1].special; break;        // П16 резерв
                     };
           break;
         case KEY_4: if(keyCount == 1) waitCheckKeyPad = WAITCHECKKEYPAD;
@@ -117,6 +120,8 @@ void checkkey(uint8_t key){
                       case 27:  if(editBuff <   1) editBuff =   1;  break;
                       case 28:  if(editBuff <   0) editBuff =   0;  break;
                       case 29:  if(editBuff < -99) editBuff = -99;  break;
+                      case 30:  if(editBuff <   0) editBuff =   0;  break;
+                      case 31:  if(editBuff <   0) editBuff =   0;  break;
                     }
           break;
         case KEY_5_4_6: reset(); break;
@@ -178,28 +183,28 @@ void checkkey(uint8_t key){
 
 void saveset(void){
   switch (numSetup){ //---------------------- Меню пользователя ---------------------------------------
-      case 1: settings.sp_structs[0].spT = editBuff; break;       // 0.1 - 99.9 °C
+      case 1: settings.sp_structs[0].spT = editBuff; break;       // У1 уставка канал 1 (0.1 - 99.9 °C)
       case 2: if(HIH5030) 
-                 settings.sp_structs[1].spRH = editBuff;          // 0.1 - 99.9 %
-              else settings.sp_structs[1].spT = editBuff;         // 0.1 - 99.9 °C
+                 settings.sp_structs[1].spRH = editBuff;          // У2 уставка канал 2 (0.1 - 99.9 %)
+              else settings.sp_structs[1].spT = editBuff;         // У2 уставка канал 2 (0.1 - 99.9 °C)
         break;
-      case 3: settings.sp_structs[0].timer = editBuff;            // 1 - 999 мин.
+      case 3: settings.sp_structs[0].timer = editBuff;            // У3 время отключенного состояния (1 - 999 мин.)
               pvTimer = editBuff; 
         break;  // длительность выключенного состояния таймера
-      case 4: settings.sp_structs[1].timer = editBuff; break;     // 0 - 999 сек.
-      case 5: settings.sp_structs[0].aeration = editBuff; break;  // 1 - 999 мин. ПАУЗА ПРОВЕТРИВАНИЯ
-      case 6: settings.sp_structs[1].aeration = editBuff;         // 0 - 999 сек.
+      case 4: settings.sp_structs[1].timer = editBuff; break;     // У4 время включенного состояния (0 - 999 сек.)
+      case 5: settings.sp_structs[0].aeration = editBuff; break;  // У5 ПАУЗА ПРОВЕТРИВАНИЯ (1 - 999 мин.)
+      case 6: settings.sp_structs[1].aeration = editBuff;         // У6 ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (0 - 999 сек.)
               if(editBuff){pvVenting = editBuff; pvAeration = 0; AERATION=1;} 
-        break;  // ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (секунд)
-      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // 0,1 - 20,0 °C
-      case 8: settings.sp_structs[0].coolOff = editBuff; break;   // 0,0 - 15,0 °C
-      case 9:  settings.sp_structs[1].coolOn =  editBuff; break;  // 0,1 - 20,0 °C/%
-      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // 0,0 - 15,0 °C/%
-      case 11: settings.sp_structs[0].alarm = editBuff;  break;   // 0,5 - 40,0 °C
-      case 12: settings.sp_structs[1].alarm = editBuff;  break;   // 0,5 - 40,0 °C/%
-      case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
-      case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // 0,5 - 40,0 °C
-      case 15: settings.sp_structs[1].state = editBuff; break;    // 0 - 4
+        break;
+      case 7: settings.sp_structs[0].coolOn =  editBuff; break;   // У7 включение охлаждения по каналу 1 (0,1 - 20,0 °C)
+      case 8: settings.sp_structs[0].coolOff = editBuff; break;   // У8 включение охлаждения по каналу 1 (0,0 - 15,0 °C)
+      case 9:  settings.sp_structs[1].coolOn =  editBuff; break;  // У9 включение охлаждения по каналу 2 (0,1 - 20,0 °C/%)
+      case 10: settings.sp_structs[1].coolOff = editBuff; break;  // У10 включение охлаждения по каналу 2 (0,0 - 15,0 °C/%)
+      case 11: settings.sp_structs[0].alarm = editBuff;  break;   // У11 тревога по каналу 1 (0,5 - 40,0 °C)
+      case 12: settings.sp_structs[1].alarm = editBuff;  break;   // У12 тревога по каналу 2 (0,5 - 40,0 °C/%)
+      case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // У13 включение вспомогательного канала (0,5 - 40,0 °C)
+      case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // У14 выключение вспомогательного канала (0,5 - 40,0 °C)
+      case 15: settings.sp_structs[1].state = editBuff; break;    // У15 номер программы (0 - 4)
     // case 12:
     //   {
     //    if(editBuff>4) editBuff=4; else if(editBuff<0) editBuff=0;// № программы->ограничено 0 - 4
@@ -222,30 +227,32 @@ void saveset(void){
     //   } break;
     
     //--------------------------- Меню специалиста ---------------------------------------------------------
-      case 16: settings.sp_structs[0].state = editBuff; break;  // ограничено 0 - 100% текущее положение заслонки
-      case 17: settings.sp_structs[0].mode = editBuff;  break;  // НЕ ограничено задержка регулировки по влажному
-      case 18: settings.sp_structs[1].mode = editBuff;  // ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
+      case 16: settings.sp_structs[0].state = editBuff; break;  // П01 ограничено 0 - 100% текущее положение заслонки
+      case 17: settings.sp_structs[0].mode = editBuff;  break;  // П02 НЕ ограничено задержка регулировки по влажному
+      case 18: settings.sp_structs[1].mode = editBuff;  // П03 ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
               //  if(editBuff == 4) topUser=PULSMENU; else topUser=TOPUSER; 
         break;
-      case 19: settings.sp_structs[0].extendMode = editBuff; break; // режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
-      case 20: settings.sp_structs[1].extendMode = editBuff; break; // ?????????????????????????????????
-      case 21: settings.sp_structs[0].pulse = editBuff * 10; break;      // ограничено 1 - 100 (0.1 - 10.0) секунд;
-      case 22: settings.sp_structs[1].pulse = editBuff; break;      // ограничено 5-60 секунд
-      case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // close->ограничено 0 - 63
-      case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// open ->ограничено 0 - 127
-      case 25: settings.sp_structs[0].Kp = editBuff;
+      case 19: settings.sp_structs[0].extendMode = editBuff; break; // П04 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
+      case 20: settings.sp_structs[1].extendMode = editBuff; break; // П05 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
+      case 21: settings.sp_structs[0].pulse = editBuff * 10; break; // П06 ограничено 1 - 100 (0.1 - 10.0) секунд;
+      case 22: settings.sp_structs[1].pulse = editBuff; break;      // П07 ограничено 5-60 секунд
+      case 23: settings.sp_structs[0].flapLimit = editBuff; /*setflap();*/ break; // П08 close->ограничено 0 - 63
+      case 24: settings.sp_structs[1].flapLimit = editBuff;  /*setflap();*/ break;// П09 open ->ограничено 0 - 127
+      case 25: settings.sp_structs[0].Kp = editBuff;  // П10
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
-      case 26: settings.sp_structs[0].Ki = editBuff; 
+      case 26: settings.sp_structs[0].Ki = editBuff;  // П11
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
-      case 27: settings.sp_structs[1].Kp = editBuff; 
+      case 27: settings.sp_structs[1].Kp = editBuff;  // П12
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 1 - 999;
-      case 28: settings.sp_structs[1].Ki = editBuff; 
+      case 28: settings.sp_structs[1].Ki = editBuff;  // П13
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
-      case 29: settings.sp_structs[0].spRH = editBuff; break;   // ограничено -99 до 99 (-9,9 до 9,9 Ц.)
+      case 29: settings.sp_structs[0].spRH = editBuff; break;   // П14 ограничено -99 до 99 (-9,9 до 9,9 Ц.)
+      case 30: settings.sp_structs[0].special = editBuff; break;// П15 ограничено 0 до 180
+      case 31: settings.sp_structs[1].special = editBuff; break;// П16 ограничено 0 до 999
   };
   saveConfig();
   numSetup=0;

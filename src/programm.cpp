@@ -120,32 +120,32 @@ void prepareProg4(){
 }
 
 void testProgs(){
-  DEBUG_PRINTLN("---------------ESP8266 <-> AT24C32 EEPROM Test---------------");
+  DEBUG_PRINTLN("AT24C32 EEPROM Test.");
   uint16_t memoryAddress = eepromMemoryAddressForDay(1, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg1();
-    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N1");
-  }
+    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N1");
+  } else DEBUG_PRINTLN("PROGRAMM N1 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(2, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg2();
-    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N2");
-  }
+    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N2");
+  } else DEBUG_PRINTLN("PROGRAMM N2 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(3, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg3();
-    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N3");
-  }
+    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N3");
+  } else DEBUG_PRINTLN("PROGRAMM N3 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(4, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg4();
-    DEBUG_PRINT("ПЕРЕЗАПИСАНА PROG N4");
-  }
+    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N4");
+  } else DEBUG_PRINTLN("PROGRAMM N4 Ok");
 }

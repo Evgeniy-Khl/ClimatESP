@@ -189,7 +189,7 @@ extern union Byte portFlag;
 #define EXTMODE_0   0   // аварійн. режим = 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
 #define KP_0_1      80  // пропорц. 2 (Kp/4) = 80       [20*4]
 #define KI_0_1      400 // ітеграл. 2 (Ki/10000) = 400  [20/500*10000]
-#define SPECIAL     0   // таймаут для портала конфигурации WiFi
+#define SPECIAL0    0   // таймаут для портала конфигурации WiFi
 
 #define SPT_1       300 // завдання у грд.Цесія №2 30,0 °C
 #define SPRH_1      670 // завдання у відсотках №2 65%
@@ -204,6 +204,7 @@ extern union Byte portFlag;
 #define PULSE_1     15  // імпульс період = 15 (sec.) MAX = 60 sec.
 #define MODE_1      0   // режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс
 #define EXTMODE_1   1   // 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
+#define SPECIAL1    0   // таймаут для портала конфигурации WiFi
 
 extern char botToken[50];
 extern char chatID [15];
