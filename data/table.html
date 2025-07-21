@@ -28,9 +28,28 @@
             text-align: center;
             font-size: 16px; /* Увеличен размер шрифта для удобства чтения на мобильных устройствах */
         }
-        th {
-            background-color: #f4f4f4;
-        }
+        /* Заменяем существующий стиль th на этот */
+		th {
+			position: sticky;
+			top: 0;
+			background-color: #f4f4f4;
+			z-index: 2; /* Ставим выше, чем у столбца */
+		}
+
+		/* Добавляем этот новый стиль для первого столбца */
+		td:first-child {
+			position: sticky;
+			left: 0;
+			background-color: #f9f9f9; /* Цвет фона как у body */
+			z-index: 1; /* Ставим ниже, чем у заголовка */
+		}
+
+		/* Стиль для левой верхней ячейки, чтобы она была поверх всего */
+		th:first-child {
+			left: 0;
+			z-index: 3;
+		}
+		
         button {
             width: 100%;
             padding: 12px;

@@ -217,7 +217,6 @@ void acceptEeprom() {
     }
 
     JsonArray data = doc["data"];
-    const int cols = 4;  // Количество столбцов
     DEBUG_PRINTLN("programDeser()");
 
     for (int i = 1; i < 31; i++) {

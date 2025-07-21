@@ -386,7 +386,7 @@ void reset(void){
   settings.sp_structs[0].extendMode = EXTMODE_0;
   settings.sp_structs[0].Kp = KP_0_1;
   settings.sp_structs[0].Ki = KI_0_1;
-  settings.sp_structs[0].special = SPECIAL;
+  settings.sp_structs[0].special = SPECIAL0;
 
   settings.sp_structs[1].spT = SPT_1;
   settings.sp_structs[1].spRH = SPRH_1;
@@ -403,7 +403,7 @@ void reset(void){
   settings.sp_structs[1].extendMode = EXTMODE_1;
   settings.sp_structs[1].Kp = KP_0_1;
   settings.sp_structs[1].Ki = KI_0_1;
-  settings.sp_structs[1].special = SPECIAL;
+  settings.sp_structs[1].special = SPECIAL1;
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
