@@ -209,6 +209,7 @@ extern union Byte portFlag;
 extern char botToken[50];
 extern char chatID [15];
 extern MyTelegramBot bot;
+extern WiFiClientSecure client;
 extern bool shouldSaveConfig;
 //-------------
 extern uint8_t earlyMode, mode, tmrResetMode, quarter, errors, seconds;

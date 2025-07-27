@@ -23,18 +23,12 @@ RTC_DS3231 rtc;                     // Создаем объект RTC для DS
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
 
-#ifdef ESP8266
-  X509List cert(TELEGRAM_CERTIFICATE_ROOT);
-#endif
+byte writePCF8574(byte data);
 
-#ifdef LED_DISPLAY
-  TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
-  // void ledDisplKeypad(long now);
-  void ledSet(void);
-#else
+TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+void ledSet(void);
 
-#endif
-void setup() {
+void setup(){
   #ifdef DEBUG
     Serial.begin(115200);               // Инициализация последовательного порта для отладки
   #endif
@@ -42,20 +36,26 @@ void setup() {
   Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
-  #ifdef LED_DISPLAY
-    for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-    if(temp) data[0] = NUMBER_FONT[14]; //"Eoo ooo oo"
-    module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
-  #endif
-  #ifdef ESP8266
-    configTime(0, 0, "pool.ntp.org");   // get UTC time via NTP
-    client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
-  #endif
+  for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
+  if(temp) data[0] = NUMBER_FONT[14]; //"Eoo ooo oo"
+  module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
   //----------------------------------- MOUNTING FS ----------------------------------------
   DEBUG_PRINTLN("mounting FS...");
   bool lFS = LittleFS.begin();
   if(lFS) {
     DEBUG_PRINTLN("mounted file system");
+    //--------------------------------- clean LittleFS, for testing -----------------------
+    // **Здесь вы можете разместить LittleFS.format();  но ОЧЕНЬ ВАЖНО ПОНИМАТЬ КОГДА ЭТО ДЕЛАТЬ!**
+    // Например, вы можете отформатировать файловую систему только при первом запуске или при определенном условии.
+    // **ВНИМАНИЕ: Раскомментирование следующей строки приведет к форматированию LittleFS при каждом запуске!**
+    // Проверка и форматирование, если необходимо
+    // if (LittleFS.format()) {
+    //   Serial.println("LittleFS formatted successfully");
+    // } else {
+    //   Serial.println("Failed to format LittleFS");
+    // }
+    //-------------------------------------------------------
+
     dataLed[4] = checkSetpoint();
     dataLed[5] = checkConfig();
   } else {
@@ -93,7 +93,7 @@ void setup() {
   delay(3000);
 }
 
-void loop() {
+void loop(){
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
   bool hasChanged = false;
   long now = millis();

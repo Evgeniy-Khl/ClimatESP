@@ -47,6 +47,32 @@ void initWiFiManag(void){
           dataLed[i] = myIP[i];
           // DEBUG_PRINT("ip:"); DEBUG_PRINTLN(dataLed[i]);
         }
+       #ifdef ESP8266
+          X509List cert(TELEGRAM_CERTIFICATE_ROOT);
+          client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
+       #endif
+        //------------------- Настройки времени ----------------------------
+        const char* ntpServer = "pool.ntp.org"; // Сервер NTP
+        // Строка конфигурации часового пояса для Украины (EET/EEST)
+        // EET-2EEST,M3.5.0/3,M10.5.0/4
+        // EET-2: Стандартное время UTC+2
+        // EEST: Летнее время
+        // M3.5.0/3: Переход на летнее время в 3:00 в последнее воскресенье марта
+        // M10.5.0/4: Переход на зимнее время в 4:00 в последнее воскресенье октября
+        const char* tzInfo = "EET-2EEST,M3.5.0/3,M10.5.0/4";
+        // Конфигурируем и запускаем синхронизацию времени
+        // configTime(0, 0, "pool.ntp.org");   // get UTC time via NTP
+        // configTime(смещение_в_секундах, смещение_для_летнего_времени, ntp_сервер) - устаревший метод
+        // Новый, правильный метод использует строку часового пояса:
+        configTime(tzInfo, ntpServer);
+        // Ожидаем, пока время будет получено
+        DEBUG_PRINT("Waiting for time synchronization");
+        while (!time(nullptr)) {
+          DEBUG_PRINT(".");
+          delay(1000);
+        }
+        DEBUG_PRINTLN("\nTime synchronized!");
+
         //------------------ read updated parameters -----------------------
         strcpy(botToken, custom_botToken.getValue());
         strcpy(chatID, custom_chatID.getValue());
@@ -120,7 +146,7 @@ void initWiFiManag(void){
         server.begin();   // Start server
         DEBUG_PRINTLN("HTTP server started");
         
-        begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+        uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
         DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
     }
 }
