@@ -20,7 +20,7 @@ void initWiFiManag(void){
     //------------------ reset settings ------------------------
     if(settings.sp_structs[1].extendMode & 0x10){
       settings.sp_structs[1].extendMode &= 0xEF;
-      saveConfig();
+      saveSetpoint();
       wifiManager.resetSettings();
     } 
     //----------------------------------------------------------
@@ -30,22 +30,22 @@ void initWiFiManag(void){
     //----------------------------------------------------------
     if(settings.sp_structs[0].special < 60) settings.sp_structs[0].special = 60;
     
-    DEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); DEBUG_PRINTLN(settings.sp_structs[0].special);
+    MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(settings.sp_structs[0].special);
     // Устанавливаем таймаут для портала конфигурации в 60 секунд (1 минута)
     wifiManager.setConfigPortalTimeout(settings.sp_structs[0].special);    
     //----------------------------------------------------------
     // Пытаемся подключиться
     if (!wifiManager.autoConnect("AutoConnectAP")) {
-      DEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
+      MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
       // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
     } else {
         //------- if you get here you have connected to the WiFi -----------
-        DEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
-        DEBUG_PRINTLN(WiFi.localIP());	// Print ESP32 Local IP Address
+        MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
+        MYDEBUG_PRINTLN(WiFi.localIP());	// Print ESP32 Local IP Address
         IPAddress myIP = WiFi.localIP();
         for (int i = 0; i < 4; i++) {
           dataLed[i] = myIP[i];
-          // DEBUG_PRINT("ip:"); DEBUG_PRINTLN(dataLed[i]);
+          // MYDEBUG_PRINT("ip:"); MYDEBUG_PRINTLN(dataLed[i]);
         }
        #ifdef ESP8266
           X509List cert(TELEGRAM_CERTIFICATE_ROOT);
@@ -66,20 +66,20 @@ void initWiFiManag(void){
         // Новый, правильный метод использует строку часового пояса:
         configTime(tzInfo, ntpServer);
         // Ожидаем, пока время будет получено
-        DEBUG_PRINT("Waiting for time synchronization");
+        MYDEBUG_PRINT("Waiting for time synchronization");
         while (!time(nullptr)) {
-          DEBUG_PRINT(".");
+          MYDEBUG_PRINT(".");
           delay(1000);
         }
-        DEBUG_PRINTLN("\nTime synchronized!");
+        MYDEBUG_PRINTLN("\nTime synchronized!");
 
         //------------------ read updated parameters -----------------------
         strcpy(botToken, custom_botToken.getValue());
         strcpy(chatID, custom_chatID.getValue());
-        DEBUG_PRINTLN("----The values in the file are ----");
-        DEBUG_PRINTLN("botToken:" + String(botToken));
-        DEBUG_PRINTLN("chatID:" + String(chatID));
-        DEBUG_PRINTLN();
+        MYDEBUG_PRINTLN("----The values in the file are ----");
+        MYDEBUG_PRINTLN("botToken:" + String(botToken));
+        MYDEBUG_PRINTLN("chatID:" + String(chatID));
+        MYDEBUG_PRINTLN();
         //-------------- Проверяем, что botToken не пустая -----------------
         if (strlen(botToken) > 0) {
             bot.updateToken(botToken);
@@ -88,13 +88,13 @@ void initWiFiManag(void){
         }
         //--------------- save the custom parameters to FS -------------------------
         if(shouldSaveConfig) {
-          DEBUG_PRINTLN("saving config");
+          MYDEBUG_PRINTLN("saving config");
           JsonDocument json;
           json["botToken"] = botToken;
           json["chatID"] = chatID;
           File configFile = LittleFS.open("/config.json", "w");
           if (!configFile) {
-            DEBUG_PRINTLN("failed to open config file for writing");
+            MYDEBUG_PRINTLN("failed to open config file for writing");
           }
           serializeJson(json, Serial);
           serializeJson(json, configFile);
@@ -105,7 +105,7 @@ void initWiFiManag(void){
         server.on("/", HTTP_GET, []() {
           mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 300;
           if (!LittleFS.exists("/index.html")) {
-            DEBUG_PRINTLN("index.html not found");
+            MYDEBUG_PRINTLN("index.html not found");
           } else {
             File file = LittleFS.open("/index.html", "r");
             if (!file) {
@@ -144,7 +144,7 @@ void initWiFiManag(void){
         server.onNotFound(notFoundHandler);
         
         server.begin();   // Start server
-        DEBUG_PRINTLN("HTTP server started");
+        MYDEBUG_PRINTLN("HTTP server started");
         
         uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
         DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);

@@ -66,7 +66,7 @@ void sendStatus(){
 
 // Handle what happens when you receive new messages
 void handleNewMessages(int numNewMessages) {
-    DEBUG_PRINTLN("handleNewMessages: "+String(numNewMessages));
+    MYDEBUG_PRINTLN("handleNewMessages: "+String(numNewMessages));
     for (int i=0; i<numNewMessages; i++) {
         // Chat id of the requester
         String chat_id = String(bot.messages[i].chat_id);
@@ -77,7 +77,7 @@ void handleNewMessages(int numNewMessages) {
         
         // Print the received message
         String text = bot.messages[i].text;
-        DEBUG_PRINTLN("received message: " + text);
+        MYDEBUG_PRINTLN("received message: " + text);
     
         String from_name = bot.messages[i].from_name;
     
@@ -99,6 +99,6 @@ void handleNewMessages(int numNewMessages) {
   
 //callback notifying us of the need to save config
 void saveConfigCallback() {
-    DEBUG_PRINTLN("Should save config");
+    MYDEBUG_PRINTLN("Should save config");
     shouldSaveConfig = true;
 }

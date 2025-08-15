@@ -122,7 +122,7 @@ void respondsEeprom(){
 
         serializeJson(doc, jsonResponse); // Сериализуем JSON
         DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
-        DEBUG_PRINTLN(jsonResponse);
+        MYDEBUG_PRINTLN(jsonResponse);
         mode = SAVEEEPROM; interval = INTERVAL_1000;
         server.send(200, "application/json", jsonResponse); // Отправляем ответ
         // DEBUG_PRINTF("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
@@ -174,7 +174,7 @@ void acceptEeprom() {
 
   server.send(200); // Отправляем только статус 200
 
-  saveConfig();
+  saveSetpoint();
 }
 
   void respondsProgram(){
@@ -198,7 +198,7 @@ void acceptEeprom() {
       }
       serializeJson(doc, jsonResponse);
       DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
-      DEBUG_PRINTLN("jsonResponse:"+jsonResponse);
+      MYDEBUG_PRINTLN("jsonResponse:"+jsonResponse);
       server.send(200, "application/json", jsonResponse);
     }
   }
@@ -211,13 +211,13 @@ void acceptEeprom() {
     DeserializationError error = deserializeJson(doc, input);
 
     if (error) {
-      DEBUG_PRINT("deserializeJson() FAILED: ");
-      DEBUG_PRINTLN(error.c_str());
+      MYDEBUG_PRINT("deserializeJson() FAILED: ");
+      MYDEBUG_PRINTLN(error.c_str());
       return;
     }
 
     JsonArray data = doc["data"];
-    DEBUG_PRINTLN("programDeser()");
+    MYDEBUG_PRINTLN("programDeser()");
 
     for (int i = 1; i < 31; i++) {
       JsonArray data_i = data[i];
@@ -230,21 +230,21 @@ void acceptEeprom() {
       unBuf.spDay.aeration0 = data_i[6]; //
       unBuf.spDay.aeration1 = data_i[7]; //
       
-      DEBUG_PRINT("spT0="); DEBUG_PRINT(unBuf.spDay.spT0); DEBUG_PRINT("; ");
-      DEBUG_PRINT("spT1="); DEBUG_PRINT(unBuf.spDay.spT1); DEBUG_PRINT("; ");
-      DEBUG_PRINT("spRH="); DEBUG_PRINT(unBuf.spDay.spRH); DEBUG_PRINT("; ");
-      DEBUG_PRINT("flap="); DEBUG_PRINT(unBuf.spDay.flap); DEBUG_PRINT("; ");
-      DEBUG_PRINT("timer0="); DEBUG_PRINT(unBuf.spDay.timer0); DEBUG_PRINT("; ");
-      DEBUG_PRINT("timer1="); DEBUG_PRINT(unBuf.spDay.timer1); DEBUG_PRINT("; ");
-      DEBUG_PRINT("aeration0="); DEBUG_PRINT(unBuf.spDay.aeration0); DEBUG_PRINT("; ");
-      DEBUG_PRINT("aeration1="); DEBUG_PRINT(unBuf.spDay.aeration1); DEBUG_PRINT("; ");
-      DEBUG_PRINTLN();
+      MYDEBUG_PRINT("spT0="); MYDEBUG_PRINT(unBuf.spDay.spT0); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("spT1="); MYDEBUG_PRINT(unBuf.spDay.spT1); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("spRH="); MYDEBUG_PRINT(unBuf.spDay.spRH); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("flap="); MYDEBUG_PRINT(unBuf.spDay.flap); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("timer0="); MYDEBUG_PRINT(unBuf.spDay.timer0); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("timer1="); MYDEBUG_PRINT(unBuf.spDay.timer1); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("aeration0="); MYDEBUG_PRINT(unBuf.spDay.aeration0); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINT("aeration1="); MYDEBUG_PRINT(unBuf.spDay.aeration1); MYDEBUG_PRINT("; ");
+      MYDEBUG_PRINTLN();
       uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
       byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
 
-      DEBUG_PRINT("DAY:"); DEBUG_PRINT(i); 
-      DEBUG_PRINT("; ADD:"); DEBUG_PRINT(memoryAddress);
-      DEBUG_PRINT("; RES:"); DEBUG_PRINTLN(res);
+      MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(i); 
+      MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
+      MYDEBUG_PRINT("; RES:"); MYDEBUG_PRINTLN(res);
     }
   }
 
@@ -254,7 +254,7 @@ void acceptEeprom() {
     // Проверка наличия параметра "data" в запросе
     if (server.hasArg("data")) {
         jsonData = server.arg("data");
-        DEBUG_PRINTLN("jsonData: " + jsonData); // Логирование полученных данных
+        MYDEBUG_PRINTLN("jsonData: " + jsonData); // Логирование полученных данных
         
         // Отправляем статус 200
         server.send(200); 

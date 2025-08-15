@@ -1,8 +1,74 @@
 #include "main.h"
-#include "sensors.h"
-#include "procedure.h"
 
 #define TUNING	170
+
+void sensorType(){
+  MYDEBUG_PRINTLN("Определение типа датчика...");
+  // 1. Пытаемся найти датчик DS18B20. Это более надежная проверка.
+  sensors.begin(); // Инициализируем шину 1-Wire
+  // numberOfDevices = sensors.getDeviceCount();
+  numberOfDevices = sensors.getDS18Count();
+  if(numberOfDevices > 0) {
+      detectedSensor = SENSOR_DS18B20;
+      if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
+      MYDEBUG_PRINT("Обнаружен датчик DS18B20:"); MYDEBUG_PRINT(numberOfDevices, DEC); MYDEBUG_PRINTLN(" шт.");
+      sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
+      sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
+      sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
+      sensors.setResolution(12);// Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
+      sensors.requestTemperatures(); // Отправляем команду на измерение
+      //------- Получаем и сохраняем адреса всех найденных датчиков ------
+      for (int i = 0; i < numberOfDevices; i++){
+        if(sensors.getAddress(sensorAddresses[i], i)){
+          DEBUG_PRINTF("  Датчик %d: ", i);
+          printAddress(sensorAddresses[i]);
+          MYDEBUG_PRINTLN();
+        } else {
+          DEBUG_PRINTF("Не удалось получить адрес для датчика %d\n", i);
+        }
+      }
+   } else {
+      // 2. Если DS18B20 не найден, пытаемся прочитать данные с DHT22.
+      delay(1000);
+      dht.begin(); // Инициализируем датчик DHT
+      // Делаем тестовое чтение. Если результат не "NaN", значит, это DHT.
+      if (!isnan(dht.readTemperature())) {
+        detectedSensor = SENSOR_DHT22;
+        MYDEBUG_PRINTLN("Обнаружен датчик: DHT22");
+      }
+   }
+}
+
+void sensorCheck(){
+  switch (detectedSensor){
+    case SENSOR_DHT22:{ // <--- Открывающая скобка
+      float h = dht.readHumidity();
+      float t = dht.readTemperature();
+
+      if (isnan(h) || isnan(t)) {
+        MYDEBUG_PRINTLN("Ошибка чтения с DHT22!");
+        if(++ds[0].errDevice > 5) {ds[0].pvT = 126; ds[1].pvT = 126; ds[0].errDevice = 5;}
+      } else {
+        ds[0].errDevice = 0;
+        ds[0].pvT = round(t);
+        ds[1].pvT = round(h);
+        MYDEBUG_PRINT("t= "); MYDEBUG_PRINT(t); MYDEBUG_PRINTLN(" °C");
+        MYDEBUG_PRINT("RH= "); MYDEBUG_PRINT(h); MYDEBUG_PRINT(" %\t");
+      }
+      break;
+    }
+    case SENSOR_DS18B20: checkDs18b20(); break;
+    case UNKNOWN: MYDEBUG_PRINTLN("Датчики не подключены!"); break;
+  }
+}
+
+//------------- индикация 66,0 - завис датчик. --------------
+bool check_freeze(uint8_t i, float val){
+ if(val == ds[i].previousValue){
+    if(++ds[i].froze> 600){ds[i].froze = 600; return true;}
+ } else {ds[i].froze = 0; ds[i].previousValue = val;}
+ return false;
+}
 
 void temperature_check(void){
 #ifdef DEBUG
@@ -12,7 +78,7 @@ void temperature_check(void){
   for (uint8_t i = 0; i < numberOfDevices; i++){
     float tempC = sensors.getTempCByIndex(i);
     DEBUG_SPRINTF(buff, "TempCByIndex(%i): %5.1f °C",i,tempC);
-    DEBUG_PRINTLN(buff);
+    MYDEBUG_PRINTLN(buff);
     if(tempC == DEVICE_DISCONNECTED_C) {
       ds[i].errDevice++;
       if(ds[i].errDevice > 5) {ds[i].pvT = 1990; ds[i].errDevice = 5;}
@@ -25,7 +91,7 @@ void temperature_check(void){
     sensors.getAddress(sensorAddress, i);
     uint8_t alarmH = sensors.getHighAlarmTemp(sensorAddress);
     DEBUG_SPRINTF(buff, "HighAlarmTemp(%i): %3i",i,alarmH);
-    DEBUG_PRINTLN(buff);
+    MYDEBUG_PRINTLN(buff);
     if(alarmH==TUNING){
       uint8_t alarmL = sensors.getLowAlarmTemp(sensorAddress);
       ds[i].pvT += alarmL;

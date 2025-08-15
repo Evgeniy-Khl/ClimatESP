@@ -11,37 +11,34 @@
 #include <LittleFS.h>
 #define FlashFS LittleFS
 #include <SPI.h>
-#include <Wire.h>     // Библиотека для I2C связи
-#include <RTClib.h>   // Библиотека для работы с RTC DS3231
+#include <Wire.h>           // Библиотека для I2C связи
+#include "SoftwarePWMBit.h" // Подключаем наш новый класс
+#include <RTClib.h>         // Библиотека для работы с RTC DS3231
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include "SoftwarePWMBit.h" // Подключаем наш новый класс
+#include <DHT.h>
 #include "AT24C32.h"
 #include "server.h"
 #include "telegram.h"
 #include "programm.h"
 #include "procedure.h"
-#ifdef LED_DISPLAY
-  #include "display_led.h"
-  #include "keypad.h"
-#else
-  #include "display_tft.h"
-#endif
+#include "keypad.h"
 #include "sensors.h"
+#include "display_led.h"
 
 #define DEBUG
 
 #ifdef DEBUG
   // Вариативные макросы, принимающие любое количество аргументов
   #define DEBUG_SPRINTF(...)  sprintf(__VA_ARGS__)
-  #define DEBUG_PRINT(...)   Serial.print(__VA_ARGS__)
-  #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+  #define MYDEBUG_PRINT(...)   Serial.print(__VA_ARGS__)
+  #define MYDEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
   #define DEBUG_PRINTF(...) Serial.printf(__VA_ARGS__)
 #else
   // "Пустышки" остаются такими же
   #define DEBUG_SPRINTF(...)
-  #define DEBUG_PRINT(...)
-  #define DEBUG_PRINTLN(...)
+  #define MYDEBUG_PRINT(...)
+  #define MYDEBUG_PRINTLN(...)
 #endif
 // --- Конец блока макросов ---
 
@@ -74,7 +71,8 @@ typedef struct {
   int16_t previousValue;    // предыдущее значение
   uint8_t errDevice;        // нет ответа датчика
   uint8_t deviation;        // отклонение от заданного значения
-  uint16_t duration;        // длительность зависания
+  uint16_t froze;           // длительность зависания
+
 } Ds;
 extern Ds ds[];
 
@@ -221,7 +219,16 @@ extern Interval interval;
 
 extern RTC_DS3231 rtc;
 extern SpUnion settings;
+extern DHT dht;
 extern DallasTemperature sensors;
+extern DeviceAddress sensorAddresses[MAX_DEVICE];
+
+enum SensorType {                       // Создаем перечисление (enum) для удобного хранения типа датчика
+  UNKNOWN,
+  SENSOR_DHT22,
+  SENSOR_DS18B20
+};
+extern SensorType detectedSensor;
 
 extern bool newDispl;
 extern long counterWait, counter10, counter1s;

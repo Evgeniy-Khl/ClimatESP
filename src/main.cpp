@@ -1,15 +1,7 @@
-/*
-RAM:   [=====     ]  47.0% (used 38504 bytes from 81920 bytes)
-Flash: [=====     ]  52.6% (used 548895 bytes from 1044464 bytes)
-
-RAM:   [====      ]  44.6% (used 36520 bytes from 81920 bytes)
-Flash: [=====     ]  52.1% (used 544255 bytes from 1044464 bytes)
-*/
 #include "main.h"
 #include "my_settings.h"
 char displStr[200];
 
-// AsyncWebServer server(80);      // Create AsyncWebServer object on port 80
 ESP8266WebServer server(80);
 WiFiClientSecure client;
 MyTelegramBot bot(botToken, client);
@@ -20,8 +12,10 @@ SoftwarePWMBit humidiPwm(&portOut.value, 2);
 
 RTC_DS3231 rtc;                     // Создаем объект RTC для DS3231
 
+DHT dht(ONE_WIRE_BUS_PIN, DHT22);
 OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
 DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
+DeviceAddress sensorAddresses[MAX_DEVICE];  // Массив для хранения уникальных адресов датчиков
 
 byte writePCF8574(byte data);
 
@@ -37,13 +31,12 @@ void setup(){
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-  if(temp) data[0] = NUMBER_FONT[14]; //"Eoo ooo oo"
-  module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
+  if(temp) data[7] = NUMBER_FONT[14];   //"ooo ooo oE"
   //----------------------------------- MOUNTING FS ----------------------------------------
-  DEBUG_PRINTLN("mounting FS...");
+  MYDEBUG_PRINTLN("mounting FS...");
   bool lFS = LittleFS.begin();
   if(lFS) {
-    DEBUG_PRINTLN("mounted file system");
+    MYDEBUG_PRINTLN("mounted file system");
     //--------------------------------- clean LittleFS, for testing -----------------------
     // **Здесь вы можете разместить LittleFS.format();  но ОЧЕНЬ ВАЖНО ПОНИМАТЬ КОГДА ЭТО ДЕЛАТЬ!**
     // Например, вы можете отформатировать файловую систему только при первом запуске или при определенном условии.
@@ -54,42 +47,47 @@ void setup(){
     // } else {
     //   Serial.println("Failed to format LittleFS");
     // }
-    //-------------------------------------------------------
-
+    //--------------------- checkSetpoint ----------------------------------
     dataLed[4] = checkSetpoint();
     dataLed[5] = checkConfig();
   } else {
-    DEBUG_PRINTLN("failed to mount FS");
-    #ifdef LED_DISPLAY
-      for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
-    #endif
+    MYDEBUG_PRINTLN("failed to mount FS");
+    data[6] = NUMBER_FONT[14];          //"ooo ooo Eo"
   }
-  #ifdef DEBUG
-    //---------------------- Получение информации о файловой системе
-    FSInfo fs_info;
-    LittleFS.info(fs_info);
-    DEBUG_PRINTF("Total space: %u bytes\n", fs_info.totalBytes);
-    DEBUG_PRINTF("Used space: %u bytes\n", fs_info.usedBytes);
-    DEBUG_PRINTF("Free space: %u bytes\n", fs_info.totalBytes - fs_info.usedBytes);
-  #endif
   //---------------------------- инициализация WiFiManager -----------------------------------
-  if(settings.sp_structs[0].special) initWiFiManag();
-  else DEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
-  initEnvironment();
+  if(settings.sp_structs[0].special & 0x03) initWiFiManag();
+  else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
+  //------------------------------------------------------------------------------
+  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
+  PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
+  DEBUG_SPRINTF(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+  MYDEBUG_PRINTLN(displStr);
+  DEBUG_SPRINTF(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+  MYDEBUG_PRINTLN(displStr);
+  //---------- Инициализация DS3231 ----------------------------------------
+  if(rtc.begin()) {RTCENABLE = 1; data[5] = NUMBER_FONT[12];}          //"ooo ooC oo"
+  //------------------------------------------------------------------------------
+  testProgs();              // тест
+  //----------------------- определяем какой датчик подключен --------------------------------
+  sensorType();
+  switch (detectedSensor){
+    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break;
+    case SENSOR_DHT22:   data[1] = NUMBER_FONT[1]; break;
+    case UNKNOWN: 
+          data[0] = NUMBER_FONT[0];
+          data[1] = NUMBER_FONT[0];
+      break;
+  }
   //------------------------------------------------------------------------------------------
-  #ifdef LED_DISPLAY
-    if(RTCENABLE) data[1] = NUMBER_FONT[1]; //"o1o ooo oo"
-    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
-    displ_IP();
-  #else
-
-  #endif
+  digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+  pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
+  displ_IP();
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
+  module.setDisplay(data, 8);           // Вывод на дисплей "ooo ooo oo"
   delay(3000);
 }
 
@@ -164,7 +162,7 @@ void loop(){
         if(++countSeconds > 59){
           countSeconds = 0;
           //==================== НОВАЯ МИНУТА =======================================
-          DEBUG_PRINTLN("=== НОВАЯ МИНУТА ===");
+          MYDEBUG_PRINTLN("=== НОВАЯ МИНУТА ===");
           if(disableBeep) disableBeep--;
           //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
           if(settings.sp_structs[0].timer) rotate_trays();
@@ -198,7 +196,7 @@ void loop(){
         //-----
         // DEBUG_SPRINTF(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
         //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
-        // DEBUG_PRINTLN(displStr);
+        // MYDEBUG_PRINTLN(displStr);
         //-----
         // heaterPwm.write(heaterValue);
         // humidiPwm.write(humidiValue);
@@ -212,12 +210,12 @@ void loop(){
         else if(valTable > 100) pvRH = 100;
         else pvRH = valTable;
         //------
-        // DEBUG_PRINTLN();
+        // MYDEBUG_PRINTLN();
         // DEBUG_SPRINTF(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",halfSecond/2,resetDispl,displNum,numSetup);
-        // DEBUG_PRINTLN(displStr);
+        // MYDEBUG_PRINTLN(displStr);
         
         // DEBUG_SPRINTF(displStr,"pP0 = %g; iP0 = %g; out = %g;",pid[0].pPart,pid[0].iPart,pid[0].output);
-        // DEBUG_PRINTLN(displStr);
+        // MYDEBUG_PRINTLN(displStr);
         
         
         // Serial.flush();
@@ -229,9 +227,9 @@ void loop(){
               uint8_t val;
               case 0:
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
-                // DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
+                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                // DEBUG_PRINT("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
                 break;
               case 1:
                 val = RelayPos(0,2);
@@ -239,19 +237,19 @@ void loop(){
                     case ON:  heaterValue = TRIACON;  break;
                     case OFF: heaterValue = TRIACOFF; break;
                 }
-                // DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
+                // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
                 humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                // DEBUG_PRINT("ПИД увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
                 break;
               case 2:
                 heaterValue = UpdatePID(0);            // ПИД нагреватель
-                // DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
+                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
                     case ON:  humidiValue = TRIACON;  break;
                     case OFF: humidiValue = TRIACOFF; break;
                 }
-                // DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
                 break;
               case 3:
                 val = RelayPos(0,2);
@@ -259,26 +257,26 @@ void loop(){
                     case ON:  heaterValue = TRIACON;  break;
                     case OFF: heaterValue = TRIACOFF; break;
                 }
-                // DEBUG_PRINT("РЕЛЕ нагреватель:"); DEBUG_PRINTLN(heaterValue);
+                // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
                 val = RelayPos(1,3);
                 switch (val){
                     case ON:  humidiValue = TRIACON;  break;
                     case OFF: humidiValue = TRIACOFF; break;
                 }
-                // DEBUG_PRINT("РЕЛЕ увлажнитель:"); DEBUG_PRINTLN(humidiValue);
+                // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
                 break;
               case 4:
                 heaterValue = UpdatePID(0);           // ПИД нагреватель
-                // DEBUG_PRINT("ПИД нагреватель:"); DEBUG_PRINTLN(heaterValue);
+                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
                 OutPulse();                           // импульсное управление увлажнителем
                 if (pvPeriod) --pvPeriod;
                 else {
                   pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
                   if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
                 };
-                // DEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); DEBUG_PRINTLN(pvPulse);
+                // MYDEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); MYDEBUG_PRINTLN(pvPulse);
                 break;
-              // default: DEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель"); break;
+              // default: MYDEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель"); break;
           }
         } else {heaterValue = TRIACOFF; pctHeater = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
 
@@ -293,30 +291,30 @@ void loop(){
             if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
             else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
           } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
-          // DEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); DEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
+          // MYDEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); MYDEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
         //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
           if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
             EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(10);
             if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = PCF_OFF;}
-            // DEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); DEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
+            // MYDEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
           } else {
           //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
             uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
             if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
                     val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
             if(val == ON){EXTRA1 = PCF_ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = PCF_OFF; pvFlap = settings.sp_structs[0].state;}
-            // DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
+            // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
           }
         }
       //------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ ---------------------------
         // setflap();                            // задание положения заслонки 
-        // DEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); DEBUG_PRINTLN(EXTRA1);
+        // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1);
 
       //------------------ ПОВОРОТ ЛОТКОВ асимметричный режим ----------------------------
       if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
         TURNSECOND = ON;
         if(--pvTimer==0){
-          DEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
+          MYDEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
           pvTimer = settings.sp_structs[0].timer; 
           TURN = PCF_OFF; TURNSECOND = OFF;
           writePCF8574(portOut.value);
@@ -344,10 +342,10 @@ void loop(){
       pctHimidifier = map(pctHimidifier,0,255,0,100);
       DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; OUT=0x%02x; PW=%u; HU=%u; Tim=%u;  ERR=0x%02x; time: %u;",
         (float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,pctHeater,pctHimidifier,pvTimer,errorsFlag.value,halfSecond);
-      DEBUG_PRINTLN(displStr);
+      MYDEBUG_PRINTLN(displStr);
       // printBinary(portOut.value);
-      DEBUG_PRINTLN("==============================================================================");
-      DEBUG_PRINTLN();
+      MYDEBUG_PRINTLN("==============================================================================");
+      MYDEBUG_PRINTLN();
        */
       OutStatusLed();  // для HTML страницы
     }//============================== КОНЕЦ СЕКУНДЫ =================================
@@ -410,12 +408,12 @@ byte writePCF8574(byte data) {
   Wire.write(data);
   byte error = Wire.endTransmission();
   if (error == 0) {
-    //DEBUG_PRINT("Data written: 0b");
+    //MYDEBUG_PRINT("Data written: 0b");
     //printBinary(data);
-    //DEBUG_PRINTLN();
+    //MYDEBUG_PRINTLN();
   } else {
-    DEBUG_PRINT("\nError writing to PCF8574. Error code: ");
-    DEBUG_PRINTLN(error);
+    MYDEBUG_PRINT("\nError writing to PCF8574. Error code: ");
+    MYDEBUG_PRINTLN(error);
   }
   return error;
 }
@@ -426,7 +424,7 @@ byte readPCF8574() {
   if (Wire.available()) {
     return Wire.read();
   } else {
-    DEBUG_PRINTLN("Error reading from PCF8574: No data available.");
+    MYDEBUG_PRINTLN("Error reading from PCF8574: No data available.");
     return 0xFF; // Возвращаем 0xFF в случае ошибки (можно выбрать другое значение)
   }
 }
@@ -435,18 +433,18 @@ byte readPCF8574() {
 /* void printBinary(byte inByte) {
   for (int b = 7; b >= 0; b--) {
     switch (b) {
-    case 7: DEBUG_PRINT("N7="); break;
-    case 6: DEBUG_PRINT("N6="); break;
-    case 5: DEBUG_PRINT("E3="); break;
-    case 4: DEBUG_PRINT("E2="); break;
-    case 3: DEBUG_PRINT("E1="); break;
-    case 2: DEBUG_PRINT("TU="); break;
-    case 1: DEBUG_PRINT("HU="); break;
-    case 0: DEBUG_PRINT("HE="); break;
+    case 7: MYDEBUG_PRINT("N7="); break;
+    case 6: MYDEBUG_PRINT("N6="); break;
+    case 5: MYDEBUG_PRINT("E3="); break;
+    case 4: MYDEBUG_PRINT("E2="); break;
+    case 3: MYDEBUG_PRINT("E1="); break;
+    case 2: MYDEBUG_PRINT("TU="); break;
+    case 1: MYDEBUG_PRINT("HU="); break;
+    case 0: MYDEBUG_PRINT("HE="); break;
     }
-    if(b>1) DEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
-    else DEBUG_PRINT(bitRead(inByte, b)? "ON" : "OF");
-    DEBUG_PRINTLN();
+    if(b>1) MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
+    else MYDEBUG_PRINT(bitRead(inByte, b)? "ON" : "OF");
+    MYDEBUG_PRINTLN();
   }
 } */
 

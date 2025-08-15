@@ -45,24 +45,16 @@ void rotate_trays(void){
     if(--pvTimer == 0){
       pvTimer = settings.sp_structs[0].timer; 
       TURN = PCF_OFF;
-      DEBUG_PRINTLN("TURN = PCF_OFF");
+      MYDEBUG_PRINTLN("TURN = PCF_OFF");
     }
   } else {
     if(--pvTimer == 0){
       if(settings.sp_structs[1].timer) pvTimer = settings.sp_structs[1].timer;
       else pvTimer = settings.sp_structs[0].timer;
       TURN = PCF_ON;
-      DEBUG_PRINTLN("TURN = PCF_ON");
+      MYDEBUG_PRINTLN("TURN = PCF_ON");
     }
   }
-}
-
-//------------- индикация 66,0 - завис датчик. --------------
-bool check_freeze(uint8_t i){
- if(ds[i].pvT == ds[i].previousValue){
-    if(++ds[i].duration > 600){ds[i].duration = 600; return true;}
- } else {ds[i].duration = 0; ds[i].previousValue = ds[i].pvT;}
- return false;
 }
 
 int16_t checkPV(uint8_t cn){
@@ -117,17 +109,17 @@ uint8_t checkSetpoint(void){
   uint8_t err = 0;
   //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
-      if(!loadConfig()){
-        DEBUG_PRINTLN("Конфігурація не завантажена!");
+      if(!loadSetpoint()){
+        MYDEBUG_PRINTLN("Конфігурація не завантажена!");
         err = 1 ;
-        saveConfig();  // значения по умолчанию
+        saveSetpoint();  // значения по умолчанию
       }
   } else {
-      saveConfig();  // значения по умолчанию
-      DEBUG_PRINTLN("Конфігурація за замовчуванням!");
+      saveSetpoint();  // значения по умолчанию
+      MYDEBUG_PRINTLN("Конфігурація за замовчуванням!");
       err = 2 ;
   }
-  DEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
+  MYDEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
     printConfig();
   #endif
@@ -138,10 +130,10 @@ uint8_t checkConfig(void){
   uint8_t err = 0;
   if(LittleFS.exists("/config.json")){
     //file exists, reading and loading
-    DEBUG_PRINTLN("reading config file");
+    MYDEBUG_PRINTLN("reading config file");
     File configFile = LittleFS.open("/config.json", "r");
     if(configFile){
-      DEBUG_PRINTLN("opened config file");
+      MYDEBUG_PRINTLN("opened config file");
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -150,11 +142,11 @@ uint8_t checkConfig(void){
       auto deserializeError = deserializeJson(json, buf.get());
       serializeJson(json, Serial);
       if( ! deserializeError ){
-        DEBUG_PRINTLN("\nparsed json");
+        MYDEBUG_PRINTLN("\nparsed json");
         strcpy(botToken, json["botToken"]);
         strcpy(chatID, json["chatID"]);
       } else {
-        DEBUG_PRINTLN("failed to load json config");
+        MYDEBUG_PRINTLN("failed to load json config");
         err = 3;
       }
       configFile.close();
@@ -170,7 +162,7 @@ uint8_t checkConfig(void){
 //-------- Функция для печати текущих значений структуры в Serial порт --------
 #ifdef DEBUG
 void printConfig() {
-    DEBUG_PRINTLN("--------------------");
+    MYDEBUG_PRINTLN("--------------------");
     for (int i = 0; i < 2; i++) {
         DEBUG_PRINTF("Элемент settings.sp_structs[%d]:\n", i);
         DEBUG_PRINTF("  spT: %d\n", settings.sp_structs[i].spT);
@@ -190,13 +182,13 @@ void printConfig() {
         DEBUG_PRINTF("  Ki: %d\n", settings.sp_structs[i].Ki);
         DEBUG_PRINTF("  special: %d\n", settings.sp_structs[i].special);
     }
-    DEBUG_PRINTLN("--------------------");
+    MYDEBUG_PRINTLN("--------------------");
 }
 #endif
 
 //----------- Функция сохранения конфигурации в JSON файл ----------------
-void saveConfig() {
-    DEBUG_PRINTLN("Сохранение конфигурации...");
+void saveSetpoint() {
+    MYDEBUG_PRINTLN("Сохранение конфигурации...");
 
     // Создаем JSON документ. Размер 512 байт более чем достаточен.
     JsonDocument doc;
@@ -228,28 +220,28 @@ void saveConfig() {
     // Открываем файл для записи
     File configFile = LittleFS.open("/setpoint.json", "w");
     if (!configFile) {
-        DEBUG_PRINTLN("Не удалось открыть файл для записи");
+        MYDEBUG_PRINTLN("Не удалось открыть файл для записи");
         return;
     }
 
     // Сериализуем JSON в файл
     if (serializeJson(doc, configFile) == 0) {
-        DEBUG_PRINTLN("Ошибка записи в файл");
+        MYDEBUG_PRINTLN("Ошибка записи в файл");
     } else {
-        DEBUG_PRINTLN("Конфигурация успешно сохранена.");
+        MYDEBUG_PRINTLN("Конфигурация успешно сохранена.");
     }
     
     configFile.close();
 }
 
 //------------ Функция загрузки конфигурации из JSON файла -------------
-bool loadConfig() {
-    DEBUG_PRINTLN("Загрузка конфигурации...");
+bool loadSetpoint() {
+    MYDEBUG_PRINTLN("Загрузка конфигурации...");
 
     // Открываем файл для чтения
     File configFile = LittleFS.open("/setpoint.json", "r");
     if (!configFile) {
-        DEBUG_PRINTLN("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
+        MYDEBUG_PRINTLN("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
         return false;
     }
 
@@ -259,8 +251,8 @@ bool loadConfig() {
     // Десериализуем JSON из файла
     DeserializationError error = deserializeJson(doc, configFile);
     if (error) {
-        DEBUG_PRINT("Ошибка десериализации JSON: ");
-        DEBUG_PRINTLN(error.c_str());
+        MYDEBUG_PRINT("Ошибка десериализации JSON: ");
+        MYDEBUG_PRINTLN(error.c_str());
         configFile.close();
         return false;
     }
@@ -294,7 +286,7 @@ bool loadConfig() {
             i++;
         }
     }
-    DEBUG_PRINTLN("Конфигурация успешно загружена.");
+    MYDEBUG_PRINTLN("Конфигурация успешно загружена.");
     return true;
 }
 
@@ -302,9 +294,9 @@ bool loadConfig() {
 // Вспомогательная функция для вывода адреса датчика
 void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) DEBUG_PRINT("0");
-    DEBUG_PRINT(deviceAddress[i], HEX);
-    if (i < 7) DEBUG_PRINT(":");
+    if (deviceAddress[i] < 16) MYDEBUG_PRINT("0");
+    MYDEBUG_PRINT(deviceAddress[i], HEX);
+    if (i < 7) MYDEBUG_PRINT(":");
   }
 }
 #endif
@@ -366,7 +358,7 @@ uint8_t alarm(void){
 // // Вспомогательная функция для печати
 // void printBinary(unsigned char byte) {
 //   for (int i = 7; i >= 0; i--) {
-//     DEBUG_PRINTLN(bitRead(byte, i));
+//     MYDEBUG_PRINTLN(bitRead(byte, i));
 //   }
 // }
 
@@ -415,108 +407,8 @@ void reset(void){
   delay(500);
   for (uint8_t i = 0; i < 8; i++) { data[i] = BOT;}
   module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
-  saveConfig();
+  saveSetpoint();
   beeperOn(100);
   delay(3000);
 }
 
-//============================== Config ========================================
-void initEnvironment(void){
-#ifdef DEBUG
-  char displStr[65];
-#endif
-  //--------- инициализация PID --------------------------------------------
-  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
-  PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
-
-  DEBUG_SPRINTF(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
-  DEBUG_PRINTLN(displStr);
-  DEBUG_SPRINTF(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
-  DEBUG_PRINTLN(displStr);
-  
-  //------------------------------------------------------------------------
-  /* DEBUG_PRINTLN("\n");
-  uint32_t realSize = ESP.getFlashChipRealSize(); // Получаем реальный размер flash
-  uint32_t ideSize = ESP.getFlashChipSize();    // Получаем размер, установленный в IDE
-  FlashMode_t ideMode = ESP.getFlashChipMode();
-
-  DEBUG_PRINTF("Flash real id:   %08X\n", ESP.getFlashChipId());
-  DEBUG_PRINTF("Flash real size: %u bytes\n\n", realSize);
-
-  DEBUG_PRINTF("Flash ide  size: %u bytes\n", ideSize);
-  DEBUG_PRINTF("Flash ide speed: %u Hz\n", ESP.getFlashChipSpeed());
-  DEBUG_PRINTF("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
-
-  if (ideSize != realSize) {
-    DEBUG_PRINTLN("Внимание! Размер Flash, установленный в IDE, не совпадает с реальным!");
-  } else {
-    DEBUG_PRINTLN("Размер Flash в IDE совпадает с реальным.");
-  }
-  DEBUG_PRINTLN(); */
-
-/* 
-  //---------- Изменяем яркость светодиода ----------------------------------------
-  // Пин, к которому подключен светодиод (GPIO2)
-  pinMode(LEDPIN, OUTPUT);    // Устанавливаем пин светодиода как выход
-  // Можно установить желаемую частоту ШИМ (опционально)
-  // analogWriteFreq(1000);   // По умолчанию и так 1000 Гц
-  // Можно установить желаемый диапазон (опционально)
-  analogWriteRange(255);      // Если хотите диапазон 0-255
-  //===============================================================================
- */
-
-  
-  // Wire.begin(D2, D1);      // Если вы хотите использовать другие пины для I2C (например, D2 для SDA, D1 для SCL)
-  //--------------------- Инициализация PCF8574 ----------------------------------
-  /* Пример: Установить все пины PCF8574 как выходы и выключить их (записать 0)
-            Для PCF8574, чтобы использовать пин как "выход", мы просто записываем в него значение.
-            Чтобы использовать пин как "вход", мы записываем в него '1' (высокий уровень),
-            а затем читаем состояние. Внутренние подтягивающие резисторы слабые. 
-  */
-
-  //---------- Инициализация DS3231 ----------------------------------------
-  if(rtc.begin()) RTCENABLE = 1;
-  //------------------------------------------------------------------------------
-  testProgs();              // тест
-  //==============================================================================
-
-  //------------ Инициализация библиотеки DallasTemperature -----------------------------
-  sensors.begin();
-  sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
-  sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
-  sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
-  sensors.setResolution(12);// Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
-
-  // Поиск устройств на шине 1-Wire
-  numberOfDevices = sensors.getDeviceCount();
-  if(numberOfDevices > MAX_DEVICE) numberOfDevices = MAX_DEVICE;
-  DEBUG_PRINT("Found ");
-  DEBUG_PRINT(numberOfDevices, DEC);
-  DEBUG_PRINTLN(" devices.");
-  
-  #ifdef DEBUG
-    if (numberOfDevices == 0) {
-      DEBUG_PRINTLN("No DS18B20 sensors found! Check wiring and pull-up resistor.");
-      // Можно остановить выполнение, если датчики не найдены
-      // while(true) delay(100);
-    } else {
-      sensors.requestTemperatures(); // Отправляем команду на измерение
-      DeviceAddress sensorAddress;
-      DEBUG_PRINTLN("Sensor addresses:");
-      // Выводим адрес каждого найденного устройства
-      for (uint8_t i = 0; i < numberOfDevices; i++) {
-        if (sensors.getAddress(sensorAddress, i)) {
-          DEBUG_PRINT("  Sensor ");
-          DEBUG_PRINT(i);
-          DEBUG_PRINT(": ");
-          printAddress(sensorAddress);
-          DEBUG_PRINTLN();
-        } else {
-          DEBUG_PRINT("Could not get address for sensor ");
-          DEBUG_PRINTLN(i);
-        }
-      }
-    }
-  #endif
-  //==================================================================================
-}

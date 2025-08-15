@@ -26,8 +26,8 @@ byte eepromWrBuff(uint16_t memoryAddress, const uint8_t* buffer, uint8_t length)
 
     byte status = Wire.endTransmission();
     if (status != 0) {
-      DEBUG_PRINT("I2C Write Error in buffer (addr "); DEBUG_PRINT(memoryAddress);
-      DEBUG_PRINT("). Status: "); DEBUG_PRINTLN(status);
+      MYDEBUG_PRINT("I2C Write Error in buffer (addr "); MYDEBUG_PRINT(memoryAddress);
+      MYDEBUG_PRINT("). Status: "); MYDEBUG_PRINTLN(status);
       // Прервать дальнейшую запись этого буфера, если есть ошибка
     }
     delay(EEPROM_WRITE_DELAY); // Ожидание завершения цикла записи страницы
@@ -73,15 +73,15 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
         uint8_t curday = day + i;
         uint16_t memoryAddress = eepromMemoryAddressForDay(prg, curday);
         byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
-        DEBUG_PRINT("DAY:"); DEBUG_PRINT(curday); 
-        DEBUG_PRINT("; ADD:"); DEBUG_PRINT(memoryAddress);
-        DEBUG_PRINT("; RES:"); DEBUG_PRINTLN(res);
+        MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(curday); 
+        MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
+        MYDEBUG_PRINT("; RES:"); MYDEBUG_PRINTLN(res);
     }
     
 }
 // Інкубація курячих яєць.
 void prepareProg1(){
-    DEBUG_PRINTLN("PROGRAMM: 1");
+    MYDEBUG_PRINTLN("PROGRAMM: 1");
     prepareTable(1, 1, 5,379,310,600,60, 0, 0, 0);// 1-5	37,9 оС	31,0 оС(60,0%)	закрита	увімкнено	вимкнуто
     prepareTable(1, 6, 7,378,300,580,60,10,10,10);// 6-12	37,8 оС	30,0 оС(58,0%)	10 %	увімкнено	вимкнуто
     prepareTable(1,13, 6,376,290,550,60,10,10,20);// 13-18	37,6 оС	29,0 оС(55,0%)	20%	увімкнено	вимкнуто
@@ -91,7 +91,7 @@ void prepareProg1(){
 
 // Інкубація качиних яєць.
 void prepareProg2(){
-    DEBUG_PRINTLN("PROGRAMM: 2");
+    MYDEBUG_PRINTLN("PROGRAMM: 2");
     prepareTable(2, 1, 8,380,330,700,60, 0, 0, 0);// 1-8	38,0 оС	33,0 оС(70,0%)	закрита	увімкнено	вимкнуто
     prepareTable(2, 9, 5,375,310,600,60,10,10,15);// 9-13	37,5 оС	31,0 оС(60,0%)	15%	увімкнено	1 раз 5 хв.
     prepareTable(2,14,11,372,300,560,60,10,10,25);// 14-24	37,2 оС	30,0 оС(56,0%)	25%	увімкнено	2 рази 20 хв.
@@ -101,7 +101,7 @@ void prepareProg2(){
 
 // Інкубація перепелиних яєць.
 void prepareProg3(){
-    DEBUG_PRINTLN("PROGRAMM: 3");
+    MYDEBUG_PRINTLN("PROGRAMM: 3");
     prepareTable(3, 1,12,376,310,580,60, 0, 0, 0);// 1-12	37,6 оС	31,0 оС(58,0%)	закрита	увімкнено	вимкнуто
     prepareTable(3,13, 3,373,290,530,60,10,10, 5);// 13-15	37,3 оС	29,0 оС(53,0%)	5 %	увімкнено	вимкнуто
     prepareTable(3,16, 2,372,280,470, 0,10,10,15);// 16-17	37,2 оС	28,0 оС(47,0%)	15%	вимкнений	вимкнуто
@@ -111,7 +111,7 @@ void prepareProg3(){
 
 // Інкубація індикових яєць.
 void prepareProg4(){
-    DEBUG_PRINTLN("PROGRAMM: 4");
+    MYDEBUG_PRINTLN("PROGRAMM: 4");
     prepareTable(4, 1, 6,378,300,560,60, 0, 0, 0);// 1-6	37,8 оС	30,0 оС(56,0%)	закрита	увімкнено	вимкнуто
     prepareTable(4, 7, 6,375,290,520,60,10,10,15);// 7-12	37,5 оС	29,0 оС(52,0%)	15 %	увімкнено	вимкнуто
     prepareTable(4,13,14,372,288,520,60,10,10,25);// 13-26	37,2 оС	28,8 оС(52,0%)	25%	увімкнено	вимкнуто
@@ -120,32 +120,32 @@ void prepareProg4(){
 }
 
 void testProgs(){
-  DEBUG_PRINTLN("AT24C32 EEPROM Test.");
+  MYDEBUG_PRINTLN("AT24C32 EEPROM Test.");
   uint16_t memoryAddress = eepromMemoryAddressForDay(1, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg1();
-    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N1");
-  } else DEBUG_PRINTLN("PROGRAMM N1 Ok");
+    MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N1");
+  } else MYDEBUG_PRINTLN("PROGRAMM N1 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(2, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg2();
-    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N2");
-  } else DEBUG_PRINTLN("PROGRAMM N2 Ok");
+    MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N2");
+  } else MYDEBUG_PRINTLN("PROGRAMM N2 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(3, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg3();
-    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N3");
-  } else DEBUG_PRINTLN("PROGRAMM N3 Ok");
+    MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N3");
+  } else MYDEBUG_PRINTLN("PROGRAMM N3 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(4, 1);
   eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
   if(unBuf.spDay.spT0 == -1){
     prepareProg4();
-    DEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N4");
-  } else DEBUG_PRINTLN("PROGRAMM N4 Ok");
+    MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N4");
+  } else MYDEBUG_PRINTLN("PROGRAMM N4 Ok");
 }

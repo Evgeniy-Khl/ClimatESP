@@ -4,11 +4,8 @@ char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
 uint8_t dataLed[6];
 
-#ifndef LED_DISPLAY
-    bool newDispl = true, newTxt = true;
-    const char* keyLabel[15];
-    uint16_t keyColor[15], xpos, ypos, txt_height, t_x = 0, t_y = 0;
-#endif
+SensorType detectedSensor = UNKNOWN;    // Переменная для хранения определенного типа датчика
+
 bool shouldSaveConfig = false;//flag for saving data
 bool enabledListen = false;
 

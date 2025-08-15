@@ -22,13 +22,12 @@ void OutPulse(void);
 uint8_t checkSetpoint(void);
 uint8_t checkConfig(void);
 void printConfig();
-void saveConfig();
-bool loadConfig();
+void saveSetpoint();
+bool loadSetpoint();
 void printAddress(DeviceAddress deviceAddress);
 void printBinary(unsigned char byte);
 uint8_t tableRH(int16_t maxT, int16_t minT);
 uint8_t alarm(void);
 void reset(void);
-void initEnvironment(void);
 
 #endif /* _PROCEDURE_H */

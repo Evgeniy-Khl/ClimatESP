@@ -129,7 +129,7 @@ void checkkey(uint8_t key){
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
         case KEY_7_3: prepareProg3(); beeperOn(100); break;
         case KEY_7_4: prepareProg4(); beeperOn(100); break;
-        case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveConfig(); beeperOn(50); break;
+        case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveSetpoint(); beeperOn(50); break;
         case KEY_7_4_6_8: LittleFS.format(); beeperOn(100); break; // Проверка и форматирование, если необходимо
         case KEY_8: saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
@@ -254,6 +254,6 @@ void saveset(void){
       case 30: settings.sp_structs[0].special = editBuff; break;// П15 ограничено 0 до 180
       case 31: settings.sp_structs[1].special = editBuff; break;// П16 ограничено 0 до 999
   };
-  saveConfig();
+  saveSetpoint();
   numSetup=0;
 }
