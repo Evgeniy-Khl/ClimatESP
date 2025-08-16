@@ -31,7 +31,10 @@ void setup(){
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-  if(temp) data[7] = NUMBER_FONT[14];   //"ooo ooo oE"
+  module.setDisplay(data, 8);                                     //"ooo ooo oo"
+  if(temp){
+     dataLed[5] = NUMBER_FONT[14];                                //"ooo ooo oE"
+  }
   //----------------------------------- MOUNTING FS ----------------------------------------
   MYDEBUG_PRINTLN("mounting FS...");
   bool lFS = LittleFS.begin();
@@ -48,11 +51,11 @@ void setup(){
     //   Serial.println("Failed to format LittleFS");
     // }
     //--------------------- checkSetpoint ----------------------------------
-    dataLed[4] = checkSetpoint();
-    dataLed[5] = checkConfig();
+    dataLed[2] = checkSetpoint();
+    dataLed[3] = checkConfig();
   } else {
     MYDEBUG_PRINTLN("failed to mount FS");
-    data[6] = NUMBER_FONT[14];          //"ooo ooo Eo"
+    dataLed[4] = NUMBER_FONT[14];                                       //"ooo ooo Eo"
   }
   //---------------------------- инициализация WiFiManager -----------------------------------
   if(settings.sp_structs[0].special & 0x03) initWiFiManag();
@@ -65,29 +68,22 @@ void setup(){
   DEBUG_SPRINTF(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
   MYDEBUG_PRINTLN(displStr);
   //---------- Инициализация DS3231 ----------------------------------------
-  if(rtc.begin()) {RTCENABLE = 1; data[5] = NUMBER_FONT[12];}          //"ooo ooC oo"
+  if(rtc.begin()) RTCENABLE = 1; 
   //------------------------------------------------------------------------------
   testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
   sensorType();
-  switch (detectedSensor){
-    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break;
-    case SENSOR_DHT22:   data[1] = NUMBER_FONT[1]; break;
-    case UNKNOWN: 
-          data[0] = NUMBER_FONT[0];
-          data[1] = NUMBER_FONT[0];
-      break;
-  }
   //------------------------------------------------------------------------------------------
   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
   pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
-  displ_IP();
+
+  displ_IP();//--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
+  
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
-  module.setDisplay(data, 8);           // Вывод на дисплей "ooo ooo oo"
   delay(3000);
 }
 

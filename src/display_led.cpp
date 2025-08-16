@@ -1,8 +1,6 @@
 #include "main.h"
 #include "display_led.h"
 
-uint8_t data[8];
-
 void displ_top(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0, endComa = 0;
   if((ERROR4 || comma == 3) && (halfSecond & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
@@ -162,21 +160,39 @@ void display_setup(void){
   else {data[6] = YY; data[7] = NUMBER_FONT[12];}  // "УС"
 }
 
+//--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
 void displ_IP(void){
-    //-------------------------- ошибки MOUNTING FS ------------------------------
-    if(dataLed[4] || dataLed[5]){         
-      data[6] = NUMBER_FONT[dataLed[4]];
-      data[7] = NUMBER_FONT[dataLed[5]];
+    int8_t duration = 0;
+    for (uint8_t i = 2; i < 6; i++){
+      /* if(dataLed[i]) */ duration++;
+    }
+    
+    if(duration){ 
+      data[0] = DEF;
+      data[1] = DEF;
+      data[2] = DEF;
+      
+      data[4] = NUMBER_FONT[dataLed[2]];//"--- o1o oo" ошибка checkSetpoint
+      data[5] = NUMBER_FONT[dataLed[3]];//"--- oo1 oo" ошибка checkConfig
+      data[6] = dataLed[4];             //"--- ooo Eo" ошибка MOUNTING FS
+      data[7] = dataLed[5];             //"--- ooo oE" ошибка writePCF8574
       module.setDisplay(data, 8);
-      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-      delay(1000);
-      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      delay(2000);
+      do {
+        digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+        MYDEBUG_PRINTLN("BEEP ON");
+        delay(500);
+        digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+        MYDEBUG_PRINTLN("BEEP OFF");
+        delay(2000);
+        duration--;
+      } while (duration > 0);
     }
     //------------------------------ индикация IP (первая пара) --------------------------------
-    if(dataLed[0]){
-      displ_top(dataLed[0],ENDCOMMA);
-      displ_bot(dataLed[1],ENDCOMMA);
+    if(WIFIENABLE){
+      IPAddress myIP = WiFi.localIP();
+      
+      displ_top(myIP[0],ENDCOMMA);
+      displ_bot(myIP[1],ENDCOMMA);
       displ_67(1, NOCOMMA);
       module.setDisplay(data, 8);
       digitalWrite(BEEP_PIN, LOW); // Включаем бипер
@@ -184,8 +200,8 @@ void displ_IP(void){
       digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
       delay(3000);
       //------------------------------ индикация IP (вторая пара) --------------------------------
-      displ_top(dataLed[2],ENDCOMMA);
-      displ_bot(dataLed[3],ENDCOMMA);
+      displ_top(myIP[2],ENDCOMMA);
+      displ_bot(myIP[3],ENDCOMMA);
       displ_67(2, NOCOMMA);
       module.setDisplay(data, 8);
       digitalWrite(BEEP_PIN, LOW); // Включаем бипер
@@ -198,14 +214,23 @@ void displ_IP(void){
       delay(3000);
     }
     //-------------------------------- индикация марки прибора ---------------------------------
-    data[0] = NUMBER_FONT[numberOfDevices]; // отображение числа датчиков на дисплее
-    data[1] =  0b01011110; // d
-    data[2] =  0b00000110; // 1
-    data[3] =  0b11101101; // 5.
-    data[4] =  0b01011011; // 2
-    data[5] =  0b01101101; // 5
-    data[6] =  0;          // blank
-    data[7] =  0;          // blank
+    for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}                    //"ooo ooo oo"
+
+    
+    switch (detectedSensor){
+    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break; //4oo ooo oo
+    case SENSOR_DHT22:   data[1] = NUMBER_FONT[1]; break;               //o1o ooo oo
+    case UNKNOWN: 
+          data[0] = NUMBER_FONT[0];                                     //00o ooo oo
+          data[1] = NUMBER_FONT[0];
+      break;
+    }
+    if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //4oo 1oo oo
+    if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //4oo 11o oo
+
+    data[6] = NUMBER_FONT[0];                                           // версия v.00
+    data[7] = NUMBER_FONT[0];
+
     module.setDisplay(data, 8);
     digitalWrite(BEEP_PIN, LOW); // Включаем бипер
     delay(100);

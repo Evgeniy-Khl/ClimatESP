@@ -2,6 +2,7 @@
 
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+uint8_t data[8];
 uint8_t dataLed[6];
 
 SensorType detectedSensor = UNKNOWN;    // Переменная для хранения определенного типа датчика

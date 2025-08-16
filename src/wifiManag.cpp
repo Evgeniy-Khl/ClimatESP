@@ -40,13 +40,10 @@ void initWiFiManag(void){
       // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
     } else {
         //------- if you get here you have connected to the WiFi -----------
+        WIFIENABLE = 1;
         MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
         MYDEBUG_PRINTLN(WiFi.localIP());	// Print ESP32 Local IP Address
-        IPAddress myIP = WiFi.localIP();
-        for (int i = 0; i < 4; i++) {
-          dataLed[i] = myIP[i];
-          // MYDEBUG_PRINT("ip:"); MYDEBUG_PRINTLN(dataLed[i]);
-        }
+        
        #ifdef ESP8266
           X509List cert(TELEGRAM_CERTIFICATE_ROOT);
           client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org

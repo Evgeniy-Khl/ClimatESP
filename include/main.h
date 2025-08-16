@@ -146,9 +146,9 @@ extern union Byte portFlag;
 #define REACHED0    portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
 #define REACHED1    portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
 #define TURNSECOND  portFlag.bitfield.a2  // устанавливается в 1 если отсчет в секундах
-#define RTCENABLE   portFlag.bitfield.a3  // не используется
-#define HIH5030	    portFlag.bitfield.a4  // exist HIH5030 flag
-#define AM2301	    portFlag.bitfield.a5  // exist AM2301 flag
+#define RTCENABLE   portFlag.bitfield.a3  // если установлены RTC
+#define WIFIENABLE  portFlag.bitfield.a4  // если подключен к WIFI
+#define HIH5030	    portFlag.bitfield.a5  // exist HIH5030 flag
 #define COOLING     portFlag.bitfield.a6  // охлаждение
 #define AERATION    portFlag.bitfield.a7  // проветривание
 
