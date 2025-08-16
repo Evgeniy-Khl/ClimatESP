@@ -95,7 +95,7 @@ struct Sp{
     int16_t extendMode; // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; [1]-1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
     int16_t Kp;         // Пропорциональный
     int16_t Ki;         // Интегральный
-    int16_t special;    // [0]- таймаут для портала конфигурации WiFi; [1]- резерв
+    int16_t special;    // [0]- таймаут WiFi &0x3; [1]- резерв
 };                      //---- 32 уставок ----
 #pragma pack(pop)
 
@@ -160,15 +160,13 @@ extern union Byte portFlag;
 #define TRIACOFF    0
 #define DISPLAYOFF  300
 
-#ifdef LED_DISPLAY
-  #define BEEP_PIN        0
-  #define PWMOUT_PIN      15
-  #define RESETDISPLAY    20  // 20/2=10 Sec.
-  #define MINWAIT         100
-  #define WAITCHECKKEYPAD 1000	// mSec. максимальная пауза перед реакцией на кнопку
-  extern TM1638 module;
-  extern uint8_t data[8];
-#else
+#define BEEP_PIN        0
+#define PWMOUT_PIN      15
+#define RESETDISPLAY    20  // 20/2=10 Sec.
+#define MINWAIT         100
+#define WAITCHECKKEYPAD 1000	// mSec. максимальная пауза перед реакцией на кнопку
+extern TM1638 module;
+extern uint8_t data[8];
 
 #endif
 //******************************************************** */

@@ -164,7 +164,7 @@ void display_setup(void){
 void displ_IP(void){
     int8_t duration = 0;
     for (uint8_t i = 2; i < 6; i++){
-      /* if(dataLed[i]) */ duration++;
+      if(dataLed[i]) duration++;
     }
     
     if(duration){ 
@@ -179,10 +179,8 @@ void displ_IP(void){
       module.setDisplay(data, 8);
       do {
         digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-        MYDEBUG_PRINTLN("BEEP ON");
         delay(500);
         digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-        MYDEBUG_PRINTLN("BEEP OFF");
         delay(2000);
         duration--;
       } while (duration > 0);

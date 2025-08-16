@@ -78,7 +78,7 @@ void setup(){
   pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
 
   displ_IP();//--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
-  
+
   pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
@@ -101,9 +101,7 @@ void loop(){
 
     if(hasChanged) {
       writePCF8574(portOut.value);
-      #ifdef LED_DISPLAY
       ledSet();
-      #endif
     }
 
     if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH);   // Выключаем бипер
@@ -111,17 +109,12 @@ void loop(){
     if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){   // импульсный режим увлажнения
       humidiValue = TRIACOFF;
       writePCF8574(portOut.value);
-      #ifdef LED_DISPLAY
       ledSet();
-      #endif
     }
 
-    #ifdef LED_DISPLAY
     keys = module.getButtons();
     if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}  // если не удерживается ни одна кнопка то сброс времени ожидания.
-    #endif
   }
-  #ifdef LED_DISPLAY
   //-------------------------------------------- КЛАВИАТУРА --------------------------------------
     if(now - counterWait > waitCheckKeyPad){
       counterWait = now;
@@ -137,8 +130,6 @@ void loop(){
       else if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
       else lastKey = keys;
     }
-  #endif
-
   //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
   if(now - counter1s > 500){
     counter1s = now; 
@@ -148,10 +139,8 @@ void loop(){
     else if(numSetup) saveset();  // сохраняем установки
     else displNum = 0;            // возврат к главному дисплею
 
-  #ifdef LED_DISPLAY
     if(numSetup == 0) ledDispl(displNum); else display_setup();
     module.setDisplay(data, 8);
-  #endif  
   //================================ НОВАЯ СЕКУНДА =================================
     if(halfSecond % 2){
         errorsFlag.value = 0; 
@@ -346,9 +335,7 @@ void loop(){
       OutStatusLed();  // для HTML страницы
     }//============================== КОНЕЦ СЕКУНДЫ =================================
     // DateTime now = rtc.now();
-    #ifdef LED_DISPLAY
-      ledSet();     // светодиоды панели
-    #endif
+    ledSet();     // светодиоды панели
     writePCF8574(portOut.value);
   }//============================== КОНЕЦ ПОЛ-СЕКУНДЫ =================================
     
@@ -382,7 +369,6 @@ void loop(){
 }
 //----------------------------------- loop() ----------------------------------------------------------------------
 
-#ifdef LED_DISPLAY
 void ledSet(void){
     byte led = 0;
     if(!(portOut.value&2)) led |= 1;
@@ -396,7 +382,6 @@ void ledSet(void){
         led >>= 1;
     }
 }
-#endif
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {

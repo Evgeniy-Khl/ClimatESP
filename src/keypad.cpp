@@ -61,7 +61,7 @@ void checkkey(uint8_t key){
                       case 27: if(editBuff > 999) editBuff = 999;  break;
                       case 28: if(editBuff > 999) editBuff = 999;  break;
                       case 29: if(editBuff > 999) editBuff = 999;  break;
-                      case 30: if(editBuff > 180) editBuff = 180;  break;
+                      case 30: if(editBuff >   3) editBuff = 3  ;  break;
                       case 31: if(editBuff > 999) editBuff = 999;  break;
                     }
           break;
@@ -129,8 +129,8 @@ void checkkey(uint8_t key){
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
         case KEY_7_3: prepareProg3(); beeperOn(100); break;
         case KEY_7_4: prepareProg4(); beeperOn(100); break;
-        case KEY_7_4_6: settings.sp_structs[1].extendMode |= 0x10; saveSetpoint(); beeperOn(50); break;
-        case KEY_7_4_6_8: LittleFS.format(); beeperOn(100); break; // Проверка и форматирование, если необходимо
+        case KEY_7_4_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;// wifiManager.resetSettings()
+        case KEY_7_4_6_8: beeperOn(100); LittleFS.format(); ESP.restart();break; // форматирование
         case KEY_8: saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 
@@ -251,7 +251,7 @@ void saveset(void){
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
       case 29: settings.sp_structs[0].spRH = editBuff; break;   // П14 ограничено -99 до 99 (-9,9 до 9,9 Ц.)
-      case 30: settings.sp_structs[0].special = editBuff; break;// П15 ограничено 0 до 180
+      case 30: settings.sp_structs[0].special = editBuff; break;// П15 ограничено 0 до 3
       case 31: settings.sp_structs[1].special = editBuff; break;// П16 ограничено 0 до 999
   };
   saveSetpoint();
