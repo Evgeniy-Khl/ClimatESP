@@ -18,8 +18,8 @@ void initWiFiManag(void){
     wifiManager.addParameter(&custom_chatID);
 
     //------------------ reset settings ------------------------
-    if(settings.sp_structs[1].extendMode & 0x10){
-      settings.sp_structs[1].extendMode &= 0xEF;
+    if(settings.sp_structs[0].special & 0x08){
+      settings.sp_structs[0].special &= 0xF7;
       saveSetpoint();
       wifiManager.resetSettings();
     } 
@@ -28,14 +28,13 @@ void initWiFiManag(void){
     //defaults to 8%
     //wifiManager.setMinimumSignalQuality();
     //----------------------------------------------------------
-    if(settings.sp_structs[0].special < 60) settings.sp_structs[0].special = 60;
-    
-    MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(settings.sp_structs[0].special);
+    uint8_t tt = (settings.sp_structs[0].special & 0x03) * 60;
+    MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
     // Устанавливаем таймаут для портала конфигурации в 60 секунд (1 минута)
-    wifiManager.setConfigPortalTimeout(settings.sp_structs[0].special);    
+    wifiManager.setConfigPortalTimeout(tt);    
     //----------------------------------------------------------
     // Пытаемся подключиться
-    if (!wifiManager.autoConnect("AutoConnectAP")) {
+    if (!wifiManager.autoConnect("ClimatAP")) {
       MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
       // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
     } else {
@@ -48,28 +47,6 @@ void initWiFiManag(void){
           X509List cert(TELEGRAM_CERTIFICATE_ROOT);
           client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
        #endif
-        //------------------- Настройки времени ----------------------------
-        const char* ntpServer = "pool.ntp.org"; // Сервер NTP
-        // Строка конфигурации часового пояса для Украины (EET/EEST)
-        // EET-2EEST,M3.5.0/3,M10.5.0/4
-        // EET-2: Стандартное время UTC+2
-        // EEST: Летнее время
-        // M3.5.0/3: Переход на летнее время в 3:00 в последнее воскресенье марта
-        // M10.5.0/4: Переход на зимнее время в 4:00 в последнее воскресенье октября
-        const char* tzInfo = "EET-2EEST,M3.5.0/3,M10.5.0/4";
-        // Конфигурируем и запускаем синхронизацию времени
-        // configTime(0, 0, "pool.ntp.org");   // get UTC time via NTP
-        // configTime(смещение_в_секундах, смещение_для_летнего_времени, ntp_сервер) - устаревший метод
-        // Новый, правильный метод использует строку часового пояса:
-        configTime(tzInfo, ntpServer);
-        // Ожидаем, пока время будет получено
-        MYDEBUG_PRINT("Waiting for time synchronization");
-        while (!time(nullptr)) {
-          MYDEBUG_PRINT(".");
-          delay(1000);
-        }
-        MYDEBUG_PRINTLN("\nTime synchronized!");
-
         //------------------ read updated parameters -----------------------
         strcpy(botToken, custom_botToken.getValue());
         strcpy(chatID, custom_chatID.getValue());
@@ -81,7 +58,12 @@ void initWiFiManag(void){
         if (strlen(botToken) > 0) {
             bot.updateToken(botToken);
             // if(botSetup()) Serial.println("The command list was updated successfully.");
-            bot.sendMessage(chatID, "Climate-5.25", "");//bot.sendMessage("25235518", "Hola amigo!", "Markdown");
+            uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+            DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+            uint8_t num = settings.sp_structs[1].special & 0x0F;
+            bot.sendMessage(chatID, "Climate-5.25  №" + String(num), "");
+            BOTENABLE = 1;
+            MYDEBUG_PRINTLN("bot.updateToken!");
         }
         //--------------- save the custom parameters to FS -------------------------
         if(shouldSaveConfig) {

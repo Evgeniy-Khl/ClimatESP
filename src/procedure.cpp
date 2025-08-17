@@ -98,11 +98,71 @@ void OutPulse(void){
   if(ds[1].pvErr < 0) pvPulse = 0;                  // отключение впрыска по 2 каналу если перелив
 }
 
+//-- для HTML страницы --
 void OutStatusLed(void){
     for(uint8_t i = 0; i < 6; i++){
       uint8_t numBit = 1 << i;
       dataLed[i] = (~portOut.value) & numBit;
     }
+}
+
+void checkModeDevice(){
+  //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
+  switch (settings.sp_structs[1].mode) {
+    uint8_t val;
+    case 0:
+      heaterValue = UpdatePID(0);            // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      humidiValue = UpdatePID(1);            // ПИД увлажнитель
+      // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 1:
+      val = RelayPos(0,2);
+      switch (val){
+          case ON:  heaterValue = TRIACON;  break;
+          case OFF: heaterValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      humidiValue = UpdatePID(1);            // ПИД увлажнитель
+      // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 2:
+      heaterValue = UpdatePID(0);            // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      val = RelayPos(1,3);
+      switch (val){
+          case ON:  humidiValue = TRIACON;  break;
+          case OFF: humidiValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 3:
+      val = RelayPos(0,2);
+      switch (val){
+          case ON:  heaterValue = TRIACON;  break;
+          case OFF: heaterValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      val = RelayPos(1,3);
+      switch (val){
+          case ON:  humidiValue = TRIACON;  break;
+          case OFF: humidiValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 4:
+      heaterValue = UpdatePID(0);           // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      OutPulse();                           // импульсное управление увлажнителем
+      if (pvPeriod) --pvPeriod;
+      else {
+        pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
+        if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
+      };
+      // MYDEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); MYDEBUG_PRINTLN(pvPulse);
+      break;
+    // default: MYDEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель"); break;
+  }
 }
 
 uint8_t checkSetpoint(void){

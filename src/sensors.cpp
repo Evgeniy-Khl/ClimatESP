@@ -63,10 +63,10 @@ void sensorCheck(){
 }
 
 //------------- индикация 66,0 - завис датчик. --------------
-bool check_freeze(uint8_t i, float val){
- if(val == ds[i].previousValue){
+bool check_freeze(uint8_t i){
+ if(ds[i].pvT == ds[i].previousValue){
     if(++ds[i].froze> 600){ds[i].froze = 600; return true;}
- } else {ds[i].froze = 0; ds[i].previousValue = val;}
+ } else {ds[i].froze = 0; ds[i].previousValue = ds[i].pvT;}
  return false;
 }
 

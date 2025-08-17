@@ -41,6 +41,6 @@ void acceptProgram();
 void respondsValues();
 String getFloat(float val, uint8_t brackets);
 byte calculateChecksum(byte* data, int length);
-void OutStatusLed();
+void OutStatusLed();  // для HTML страницы
 
 #endif //SERVER_H

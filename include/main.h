@@ -95,7 +95,7 @@ struct Sp{
     int16_t extendMode; // [0]-0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ; [1]-1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
     int16_t Kp;         // Пропорциональный
     int16_t Ki;         // Интегральный
-    int16_t special;    // [0]- таймаут WiFi &0x3; [1]- резерв
+    int16_t special;    // [0]- таймаут WiFi маска 0x03; [1]- номер прибора маска 0x0F
 };                      //---- 32 уставок ----
 #pragma pack(pop)
 
@@ -148,8 +148,8 @@ extern union Byte portFlag;
 #define TURNSECOND  portFlag.bitfield.a2  // устанавливается в 1 если отсчет в секундах
 #define RTCENABLE   portFlag.bitfield.a3  // если установлены RTC
 #define WIFIENABLE  portFlag.bitfield.a4  // если подключен к WIFI
-#define HIH5030	    portFlag.bitfield.a5  // exist HIH5030 flag
-#define COOLING     portFlag.bitfield.a6  // охлаждение
+#define BOTENABLE   portFlag.bitfield.a5  // если strlen(botToken) > 0
+#define HIH5030     portFlag.bitfield.a6  // exist HIH5030 flag
 #define AERATION    portFlag.bitfield.a7  // проветривание
 
 #define ON  1
@@ -168,7 +168,6 @@ extern union Byte portFlag;
 extern TM1638 module;
 extern uint8_t data[8];
 
-#endif
 //******************************************************** */
 #define SPT_0       350 // завдання №1 35,0 °C
 #define SPRH_0      0   // завдання (ПОДСТРОЙКА HIH) = 0

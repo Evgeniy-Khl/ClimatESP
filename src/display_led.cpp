@@ -114,7 +114,7 @@ void ledDispl(unsigned char mode){
       displ_top(ds[0].pvT,COMMA); 
       if(HIH5030) displ_bot(pvRH,COMMA); else displ_bot(ds[1].pvT,COMMA);
       if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
-      else if(COOLING || AERATION) displ_67(pvVenting, COOL);
+      else if(AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
       else displ_67(halfSecond / 2, NOCOMMA); //pvRH

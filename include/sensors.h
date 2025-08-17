@@ -4,7 +4,7 @@
 
 void sensorType();
 void sensorCheck();
-bool check_freeze(uint8_t i, float val);
+bool check_freeze(uint8_t i);
 void checkDs18b20(void);
 void temperature_check(void);
 int16_t valDcToRH(uint16_t Vadc);

@@ -152,15 +152,7 @@ void loop(){
           //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
           if(settings.sp_structs[0].timer) rotate_trays();
           //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
-          if(!AERATION && !COOLING && settings.sp_structs[1].aeration){
-            if(--pvAeration == 0){
-              pvVenting = settings.sp_structs[1].aeration; AERATION = 1; EXTRA1 = PCF_ON;
-              //  if((relayMode & 4) && checkDry==0) {pwTriac1=maxRun; CN2 = CN2ON;}// принудительный впрыск воды!!!
-            }
-          } else if(COOLING){
-            EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(50);
-            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; COOLING = 0;}
-          }
+          
         } //==================== КОНЕЦ МИНУТЫ  ===================================
       #ifndef DEBUG  
         temperature_check();
@@ -206,108 +198,46 @@ void loop(){
         // Serial.flush();
         //------
       #endif
-        if(!COOLING){  //-------------- нормальная работа -------------------------
-          //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
-          switch (settings.sp_structs[1].mode) {
-              uint8_t val;
-              case 0:
-                heaterValue = UpdatePID(0);            // ПИД нагреватель
-                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
-                humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
-                break;
-              case 1:
-                val = RelayPos(0,2);
-                switch (val){
-                    case ON:  heaterValue = TRIACON;  break;
-                    case OFF: heaterValue = TRIACOFF; break;
-                }
-                // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
-                humidiValue = UpdatePID(1);            // ПИД увлажнитель
-                // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
-                break;
-              case 2:
-                heaterValue = UpdatePID(0);            // ПИД нагреватель
-                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
-                val = RelayPos(1,3);
-                switch (val){
-                    case ON:  humidiValue = TRIACON;  break;
-                    case OFF: humidiValue = TRIACOFF; break;
-                }
-                // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
-                break;
-              case 3:
-                val = RelayPos(0,2);
-                switch (val){
-                    case ON:  heaterValue = TRIACON;  break;
-                    case OFF: heaterValue = TRIACOFF; break;
-                }
-                // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
-                val = RelayPos(1,3);
-                switch (val){
-                    case ON:  humidiValue = TRIACON;  break;
-                    case OFF: humidiValue = TRIACOFF; break;
-                }
-                // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
-                break;
-              case 4:
-                heaterValue = UpdatePID(0);           // ПИД нагреватель
-                // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
-                OutPulse();                           // импульсное управление увлажнителем
-                if (pvPeriod) --pvPeriod;
-                else {
-                  pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
-                  if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
-                };
-                // MYDEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); MYDEBUG_PRINTLN(pvPulse);
-                break;
-              // default: MYDEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель"); break;
-          }
-        } else {heaterValue = TRIACOFF; pctHeater = 0;}      // иначе идет ОХЛАЖДЕНИЕ!
-
+      //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
+        checkModeDevice();
         if(settings.sp_structs[0].mode == 1 && !REACHED0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
-
         // heaterPwm.write(heaterValue);
         // humidiPwm.write(humidiValue);
-
-        if(!COOLING){  //-------------- нормальная работа -------------------------
-          //------ КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
-          if(ERROR1 == 0){
-            if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
-            else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
-          } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
-          // MYDEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); MYDEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
-        //------------------------- ПРОВЕТРИВАНИЕ -----------------------------
-          if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
-            EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(10);
-            if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = PCF_OFF;}
-            // MYDEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
-          } else {
-          //------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ ---------------------------------------------------------------
-            uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
-            if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
-                    val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
-            if(val == ON){EXTRA1 = PCF_ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = PCF_OFF; pvFlap = settings.sp_structs[0].state;}
-            // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
-          }
+      //---------------------------- КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
+        if(ERROR1 == 0){
+          if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
+          else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
+        } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
+        // MYDEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); MYDEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
+      //--------------------------------------- ПРОВЕТРИВАНИЕ -----------------------------------------------------------
+        if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
+          EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(10);
+          if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = PCF_OFF;}
+          // MYDEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
+        } else {
+      //------------------------------------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ --------------------------------------------------------
+          uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
+          if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
+                  val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
+          if(val == ON){EXTRA1 = PCF_ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = PCF_OFF; pvFlap = settings.sp_structs[0].state;}
+          // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
         }
-      //------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ ---------------------------
+      //-------------------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ --------------------------------------------------------
         // setflap();                            // задание положения заслонки 
         // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1);
-
-      //------------------ ПОВОРОТ ЛОТКОВ асимметричный режим ----------------------------
-      if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
-        TURNSECOND = ON;
-        if(--pvTimer==0){
-          MYDEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
-          pvTimer = settings.sp_structs[0].timer; 
-          TURN = PCF_OFF; TURNSECOND = OFF;
-          writePCF8574(portOut.value);
+      //-------------------------------- ПОВОРОТ ЛОТКОВ асимметричный режим ----------------------------------------------
+        if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
+          TURNSECOND = ON;
+          if(--pvTimer==0){
+            MYDEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
+            pvTimer = settings.sp_structs[0].timer; 
+            TURN = PCF_OFF; TURNSECOND = OFF;
+            writePCF8574(portOut.value);
+          }
+        } else {
+          TURNSECOND = OFF;
         }
-      } else {
-        TURNSECOND = OFF;
-      }
-      //--------------------------------- АВАРИЯ ---------------------------------
+      //-------------------------------------------- АВАРИЯ -------------------------------------------------------------
       if(numSetup == 0){
         uint8_t res = alarm();
         switch (settings.sp_structs[0].extendMode){
@@ -333,12 +263,15 @@ void loop(){
       MYDEBUG_PRINTLN();
        */
       OutStatusLed();  // для HTML страницы
-    }//============================== КОНЕЦ СЕКУНДЫ =================================
+      uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+      DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+    }//============================================ КОНЕЦ СЕКУНДЫ ============================================
     // DateTime now = rtc.now();
     ledSet();     // светодиоды панели
     writePCF8574(portOut.value);
-  }//============================== КОНЕЦ ПОЛ-СЕКУНДЫ =================================
-    
+  }//============================================ КОНЕЦ ПОЛ-СЕКУНДЫ ===========================================
+  
+  //************************************************ TELEGRAM *************************************************/
   if (now - lastSendTime > interval) {
     if(earlyMode != mode){
       // Serial.printf("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
