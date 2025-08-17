@@ -61,8 +61,8 @@ void checkkey(uint8_t key){
                       case 27: if(editBuff > 999) editBuff = 999;  break;
                       case 28: if(editBuff > 999) editBuff = 999;  break;
                       case 29: if(editBuff > 999) editBuff = 999;  break;
-                      case 30: if(editBuff >   3) editBuff = 3  ;  break;
-                      case 31: if(editBuff > 999) editBuff = 999;  break;
+                      case 30: if(editBuff >   3) editBuff =   3;  break;
+                      case 31: if(editBuff >  15) editBuff =  15;  break;
                     }
           break;
         case KEY_3: waitCheckKeyPad = WAITCHECKKEYPAD;
@@ -83,8 +83,8 @@ void checkkey(uint8_t key){
                         case 27: editBuff = settings.sp_structs[1].Kp; break;             // П12 = 15
                         case 28: editBuff = settings.sp_structs[1].Ki; break;             // П13 = 900 
                         case 29: editBuff = settings.sp_structs[0].spRH; break;           // П14 подстройка датчика HIH-5030-01
-                        case 30: editBuff = settings.sp_structs[0].special; break;        // П15 таймаут для портала конфигурации WiFi
-                        case 31: editBuff = settings.sp_structs[1].special; break;        // П16 номер прибора
+                        case 30: editBuff = settings.sp_structs[0].special & 0x03; break; // П15 таймаут WiFi маска 0х03
+                        case 31: editBuff = settings.sp_structs[1].special & 0x0F; break; // П16 номер прибора маска 0х0F
                     };
           break;
         case KEY_4: if(keyCount == 1) waitCheckKeyPad = WAITCHECKKEYPAD;
@@ -121,7 +121,7 @@ void checkkey(uint8_t key){
                       case 28:  if(editBuff <   0) editBuff =   0;  break;
                       case 29:  if(editBuff < -99) editBuff = -99;  break;
                       case 30:  if(editBuff <   0) editBuff =   0;  break;
-                      case 31:  if(editBuff <   0) editBuff =   0;  break;
+                      case 31:  if(editBuff <   1) editBuff =   1;  break;
                     }
           break;
         case KEY_5_4_6: reset(); break;
@@ -251,8 +251,8 @@ void saveset(void){
               //  PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki); // Kp/4; Ki/10000;
         break;  // ограничено 0 - 999;
       case 29: settings.sp_structs[0].spRH = editBuff; break;   // П14 ограничено -99 до 99 (-9,9 до 9,9 Ц.)
-      case 30: settings.sp_structs[0].special = editBuff; break;// П15 ограничено 0 до 3
-      case 31: settings.sp_structs[1].special = editBuff; break;// П16 ограничено 0 до 999
+      case 30: settings.sp_structs[0].special = editBuff & 0x03; break;// П15 ограничено 0 до 3
+      case 31: settings.sp_structs[1].special = editBuff & 0x0F; break;// П16 ограничено 0 до 15
   };
   saveSetpoint();
   numSetup=0;

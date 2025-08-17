@@ -27,14 +27,16 @@ void respondsValues() {
     String string, jsonResponse;
     tmrTelegramOff = 300;
     JsonDocument data;
-    data["model"] = "Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№:" + String(settings.sp_structs[1].special);
+    data["model"] = "Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№:" + String(settings.sp_structs[1].special & 0x0F);
     data["temperature0"] = getFloat((float)ds[0].pvT/10,0);
-    data["temperature1"] = getFloat((float)ds[1].pvT/10,0);
     data["settemp0"] = getFloat((float)settings.sp_structs[0].spT/10,1);
-    data["settemp1"] = getFloat((float)settings.sp_structs[1].spT/10,1);
+    if(detectedSensor == SENSOR_DS18B20 && numberOfDevices > 1){
+        data["temperature1"] = getFloat((float)ds[1].pvT/10,0);
+        data["settemp1"] = getFloat((float)settings.sp_structs[1].spT/10,1);
+    }
     if(pvRH == 255) data["humidity"] = "***";
     else data["humidity"] = String(pvRH);
-    if(HIH5030 || AM2301) data["sethum"] = "[" + String(settings.sp_structs[1].spRH) + "]";
+    if(HIH5030) data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
     else  data["sethum"] = "[--]";
     
     switch (settings.sp_structs[1].extendMode){
@@ -65,6 +67,11 @@ void respondsValues() {
     data["rotation"] = String(pvTimer) + (TURNSECOND ? " сек." : " хвл.");
 
     data["power"] = String(pctHeater) + "%";
+    data["error1"] = ERROR1;
+    data["error2"] = ERROR2;
+    data["error4"] = ERROR4;
+    data["error8"] = ERROR8;
+    data["overheat"] = OVERHEAT;
     data["flap"] = String(pvFlap) + "%";
     if(settings.sp_structs[1].state==0) string = "немає";
     else string = "№"+String(settings.sp_structs[1].state);

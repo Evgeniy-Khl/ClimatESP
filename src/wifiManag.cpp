@@ -30,19 +30,36 @@ void initWiFiManag(void){
     //----------------------------------------------------------
     uint8_t tt = (settings.sp_structs[0].special & 0x03) * 60;
     MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
-    // Устанавливаем таймаут для портала конфигурации в 60 секунд (1 минута)
+    data[0] = 0b00111001; // (67)	  C
+    data[1] = 0b01011100; // (111)	o
+    data[2] = 0b01010100; // (110)	n
+    if(tt/100) data[3] = NUMBER_FONT[tt/100];
+    data[4] = NUMBER_FONT[(tt/10)%10];
+    data[5] = NUMBER_FONT[tt%10];
+    data[6] = 0b00111110; // (85)	U
+    data[7] = 0b01110001; // (70)	F
+    module.setDisplay(data, 8);
     wifiManager.setConfigPortalTimeout(tt);    
     //----------------------------------------------------------
     // Пытаемся подключиться
     if (!wifiManager.autoConnect("ClimatAP")) {
       MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
+      data[3] = DEF;
+      data[4] = DEF;
+      data[5] = DEF;  // ---
+      module.setDisplay(data, 8);
+      delay(1000);
       // Ничего не делаем здесь, чтобы программа просто продолжила выполнение
     } else {
         //------- if you get here you have connected to the WiFi -----------
         WIFIENABLE = 1;
         MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
         MYDEBUG_PRINTLN(WiFi.localIP());	// Print ESP32 Local IP Address
-        
+        data[3] = GR;
+        data[4] = GR;
+        data[5] = GR;  // ooo
+        module.setDisplay(data, 8);
+        delay(1000);
        #ifdef ESP8266
           X509List cert(TELEGRAM_CERTIFICATE_ROOT);
           client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org

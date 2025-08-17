@@ -80,7 +80,7 @@
 	#ledsTable {
         width: 300px;
         height: 0px auto;
-		margin: 0px auto;
+	    margin: 0px auto;
         border: 0px solid black;
         border-radius: 10px;       
     }
@@ -173,10 +173,47 @@ function fetchData() {
             
 			document.getElementById("model").innerHTML = jsonResponse.model;
             document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
-            document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
-            document.getElementById("humidity").innerHTML = jsonResponse.humidity;
             document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
-            document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
+			
+			// Преобразование строковых значений в числа
+            const error1 = jsonResponse.error1;
+            const error2 = jsonResponse.error2;
+            const error4 = jsonResponse.error4;
+            const error8 = jsonResponse.error8;
+            const overheat = jsonResponse.overheat;
+			
+			// Изменение цвета блока #rcorners0
+            if (error1 == 1) {
+                document.getElementById("rcorners0").style.background = "#fc5d70";
+            } else {
+                document.getElementById("rcorners0").style.background = "#89f594";
+            }
+			if (error4 == 1) {
+                document.getElementById("rcorners0").style.background = "#fcfa5d";
+            } else {
+                document.getElementById("rcorners0").style.background = "#89f594";
+            }
+			
+			// Проверка наличия temperature1
+            if (jsonResponse.temperature1 === undefined) {
+                document.getElementById("rcorners1").style.display = 'none';
+            } else {
+                document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
+                document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
+				// Изменение цвета блока #rcorners1
+				if (error2 == 1) {
+					document.getElementById("rcorners1").style.background = "#fc5d70";
+				} else {
+					document.getElementById("rcorners1").style.background = "#89f594";
+				}
+				if (error8 == 1) {
+					document.getElementById("rcorners1").style.background = "#fcfa5d";
+				} else {
+					document.getElementById("rcorners1").style.background = "#89f594";
+				}
+            }
+			
+            document.getElementById("humidity").innerHTML = jsonResponse.humidity;
             document.getElementById("sethum").innerHTML = jsonResponse.sethum;
 			
 			document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
@@ -190,14 +227,14 @@ function fetchData() {
             document.getElementById("currDay").innerHTML = jsonResponse.currDay;
 
             // Обновление цвета LED
-            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#ffdd00" : "transparent";
-            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#00aaff" : "transparent";
-            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00ff00" : "transparent";
-            document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "transparent";
-            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#ff0000" : "transparent";
-            document.getElementById('led5').style.backgroundColor = jsonResponse.led5 === "ON" ? "#ff0000" : "transparent";
+            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#ffdd00" : "#595959";
+            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#00aaff" : "#595959";
+            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00ff00" : "#595959";
+            document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "#595959";
+            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#ff0000" : "#595959";
+            document.getElementById('led5').style.backgroundColor = jsonResponse.led5 === "ON" ? "#ff0000" : "#595959";
 			
-			// Управление кнопкой "Програма"
+		    // Управление кнопкой "Програма"
             const programButton = document.getElementById("programButton");
             if (jsonResponse.program == "немає") {
                 programButton.disabled = true; // Деактивировать кнопку

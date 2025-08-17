@@ -31,9 +31,9 @@ void setup(){
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-  module.setDisplay(data, 8);                                     //"ooo ooo oo"
+  module.setDisplay(data, 8);                       //"ooo ooo oo"
   if(temp){
-     dataLed[5] = NUMBER_FONT[14];                                //"ooo ooo oE"
+     dataLed[5] = 1;                                // ошибка writePCF8574
   }
   //----------------------------------- MOUNTING FS ----------------------------------------
   MYDEBUG_PRINTLN("mounting FS...");
@@ -55,7 +55,7 @@ void setup(){
     dataLed[3] = checkConfig();
   } else {
     MYDEBUG_PRINTLN("failed to mount FS");
-    dataLed[4] = NUMBER_FONT[14];                                       //"ooo ooo Eo"
+    dataLed[4] = 1;
   }
   //---------------------------- инициализация WiFiManager -----------------------------------
   if(settings.sp_structs[0].special & 0x03) initWiFiManag();
@@ -148,6 +148,8 @@ void loop(){
           countSeconds = 0;
           //==================== НОВАЯ МИНУТА =======================================
           MYDEBUG_PRINTLN("=== НОВАЯ МИНУТА ===");
+          uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+          DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
           if(disableBeep) disableBeep--;
           //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
           if(settings.sp_structs[0].timer) rotate_trays();
@@ -263,8 +265,6 @@ void loop(){
       MYDEBUG_PRINTLN();
        */
       OutStatusLed();  // для HTML страницы
-      uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
-      DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
     }//============================================ КОНЕЦ СЕКУНДЫ ============================================
     // DateTime now = rtc.now();
     ledSet();     // светодиоды панели

@@ -163,28 +163,19 @@ void display_setup(void){
 //--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
 void displ_IP(void){
     int8_t duration = 0;
-    for (uint8_t i = 2; i < 6; i++){
-      if(dataLed[i]) duration++;
-    }
-    
-    if(duration){ 
-      data[0] = DEF;
-      data[1] = DEF;
-      data[2] = DEF;
-      
-      data[4] = NUMBER_FONT[dataLed[2]];//"--- o1o oo" ошибка checkSetpoint
-      data[5] = NUMBER_FONT[dataLed[3]];//"--- oo1 oo" ошибка checkConfig
-      data[6] = dataLed[4];             //"--- ooo Eo" ошибка MOUNTING FS
-      data[7] = dataLed[5];             //"--- ooo oE" ошибка writePCF8574
-      module.setDisplay(data, 8);
-      do {
-        digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-        delay(500);
-        digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-        delay(2000);
-        duration--;
-      } while (duration > 0);
-    }
+    for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
+    if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration++;}   //"--- -1- --" ошибка checkSetpoint
+    if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration++;}   //"--- --1 --" ошибка checkConfig
+    if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration++;}           //"--- --- F-" ошибка MOUNTING FS
+    if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration++;}           //"---     -C" ошибка writePCF8574
+    module.setDisplay(data, 8);
+    do {
+      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+      delay(500);
+      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+      delay(2000);
+      duration--;
+    } while (duration > 0);
     //------------------------------ индикация IP (первая пара) --------------------------------
     if(WIFIENABLE){
       IPAddress myIP = WiFi.localIP();
