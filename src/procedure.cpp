@@ -13,14 +13,14 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 int16_t UpdatePID(uint8_t cn){
-  int16_t error, max = 255, min = -127;
+  int16_t error, setPoint, max = 255, min = -127;
   // float output;
   if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
     max = settings.sp_structs[1].pulse * 1000 / 2; 
     min = -max / 2;
   }
   // Вычисление ошибки
-  error = settings.sp_structs[cn].spT - ds[cn].pvT;
+  error = checkPV(cn);
   ds[cn].pvErr = error;         // error > 0 -> холодно
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;

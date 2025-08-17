@@ -109,21 +109,20 @@ void displ_67(signed int val, unsigned char mode){
 //===================== ledDisplay ========================
 void ledDispl(unsigned char mode){
   switch (mode){
-        //-------------t0;----------------------------RH;            /              t1; --------------------Timer;-------------------
+        //------------- t0; t1 / RH; --------------------
     case 0:
       displ_top(ds[0].pvT,COMMA); 
-      if(HIH5030) displ_bot(pvRH,COMMA); else displ_bot(ds[1].pvT,COMMA);
+      displ_bot(ds[1].pvT,COMMA);
       if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
       else if(AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
       else displ_67(halfSecond / 2, NOCOMMA); //pvRH
       break;
-       //-------------------t1;----------------------tNTC;--------------------"F2"---------
+       //-------------- Timer; Flap; ----------"F2"---------
     case 1: 
-      if(HIH5030) displ_top(ds[1].pvT, COMMA); 
-      else displ_top(pvTimer, NOCOMMA); 
-      clr_bot();      // displ_bot(pvTTriac, NOCOMMA); 
+      displ_top(pvTimer, NOCOMMA); 
+      displ_bot(settings.sp_structs[0].state, NOCOMMA); 
       data[6]=FF; data[7]=NUMBER_FONT[2]; 
       break;
        //-------------------Flap;--------------------date;--------------------"F3"---------

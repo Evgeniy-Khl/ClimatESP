@@ -33,11 +33,14 @@ void respondsValues() {
     if(detectedSensor == SENSOR_DS18B20 && numberOfDevices > 1){
         data["temperature1"] = getFloat((float)ds[1].pvT/10,0);
         data["settemp1"] = getFloat((float)settings.sp_structs[1].spT/10,1);
+        if(pvRH == 255) data["humidity"] = "***";
+        else data["humidity"] = String(pvRH);
+        if(HIH5030) data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
+        else  data["sethum"] = " ";
+    } else if(detectedSensor == SENSOR_DHT22){
+      data["humidity"] = getFloat((float)ds[1].pvT/10,0);
+      data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
     }
-    if(pvRH == 255) data["humidity"] = "***";
-    else data["humidity"] = String(pvRH);
-    if(HIH5030) data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
-    else  data["sethum"] = "[--]";
     
     switch (settings.sp_structs[1].extendMode){
       case 1: string = "охолодження"; break;

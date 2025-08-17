@@ -50,8 +50,8 @@ void sensorCheck(){
         if(++ds[0].errDevice > 5) {ds[0].pvT = 126; ds[1].pvT = 126; ds[0].errDevice = 5;}
       } else {
         ds[0].errDevice = 0;
-        ds[0].pvT = round(t);
-        ds[1].pvT = round(h);
+        ds[0].pvT = round(t * 10);
+        ds[1].pvT = round(h * 10);
         MYDEBUG_PRINT("t= "); MYDEBUG_PRINT(t); MYDEBUG_PRINTLN(" °C");
         MYDEBUG_PRINT("RH= "); MYDEBUG_PRINT(h); MYDEBUG_PRINT(" %\t");
       }
@@ -70,7 +70,7 @@ bool check_freeze(uint8_t i){
  return false;
 }
 
-void temperature_check(void){
+void checkDs18b20(void){
 #ifdef DEBUG
   char buff[100];
 #endif
@@ -84,7 +84,7 @@ void temperature_check(void){
       if(ds[i].errDevice > 5) {ds[i].pvT = 1990; ds[i].errDevice = 5;}
     }
     else {
-      ds[i].pvT = tempC * 10;
+      ds[i].pvT = round(tempC * 10);
       ds[i].errDevice = 0;
     }
     //----- Коректировка датчика DS18B20 ---------
