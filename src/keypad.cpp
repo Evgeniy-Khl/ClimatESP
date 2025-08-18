@@ -78,10 +78,10 @@ void checkkey(uint8_t key){
                         case 22: editBuff = settings.sp_structs[1].pulse; break;          // П07 = 3000-  15 сек.
                         case 23: editBuff = settings.sp_structs[0].flapLimit; break;      // П08 = 40 close
                         case 24: editBuff = settings.sp_structs[1].flapLimit; break;      // П09 = 85 open
-                        case 25: editBuff = settings.sp_structs[0].Kp; break;             // П10 = 20
-                        case 26: editBuff = settings.sp_structs[0].Ki; break;             // П11 = 500
-                        case 27: editBuff = settings.sp_structs[1].Kp; break;             // П12 = 15
-                        case 28: editBuff = settings.sp_structs[1].Ki; break;             // П13 = 900 
+                        case 25: editBuff = settings.sp_structs[0].Kp; break;             // П10 = 100
+                        case 26: editBuff = settings.sp_structs[0].Ki; break;             // П11 = 400
+                        case 27: editBuff = settings.sp_structs[1].Kp; break;             // П12 = 100
+                        case 28: editBuff = settings.sp_structs[1].Ki; break;             // П13 = 400 
                         case 29: editBuff = settings.sp_structs[0].spRH; break;           // П14 подстройка датчика HIH-5030-01
                         case 30: editBuff = settings.sp_structs[0].special & 0x03; break; // П15 таймаут WiFi маска 0х03
                         case 31: editBuff = settings.sp_structs[1].special & 0x0F; break; // П16 номер прибора маска 0х0F

@@ -8,12 +8,12 @@ void beeperOn(uint8_t val){
 }
 
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
-    pid->Kp = (float)Kp/4;
+    pid->Kp = (float)Kp/5;
     pid->Ki = (float)Ki/10000;
 }
 
 int16_t UpdatePID(uint8_t cn){
-  int16_t error, max = 255, min = -127;
+  int16_t error, max = 500, min = -500;
   // float output;
   if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
     max = settings.sp_structs[1].pulse * 1000 / 2; 

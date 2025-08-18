@@ -63,9 +63,9 @@ void setup(){
   //------------------------------------------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
-  DEBUG_SPRINTF(displStr,"Пропорц.0= %g  Ітеграл.0= %g", pid[0].Kp,pid[0].Ki);
+  DEBUG_SPRINTF(displStr,"Пропорц.0=%g  Ітеграл.0=%g", pid[0].Kp,pid[0].Ki);
   MYDEBUG_PRINTLN(displStr);
-  DEBUG_SPRINTF(displStr,"Пропорц.1= %g  Ітеграл.1= %g", pid[1].Kp,pid[1].Ki);
+  DEBUG_SPRINTF(displStr,"Пропорц.1=%g  Ітеграл.1=%g", pid[1].Kp,pid[1].Ki);
   MYDEBUG_PRINTLN(displStr);
   //---------- Инициализация DS3231 ----------------------------------------
   if(rtc.begin()) RTCENABLE = 1; 
@@ -170,27 +170,16 @@ void loop(){
         }
       #else
         //-----температура воздуха------
-        dpv0 += pctHeater/10;
+        dpv0 += pctHeater/50 + pid[0].iPart/10;
         ds[0].pvT = dpv0;
-        dpv1 += pctHimidifier/10; //pid[1].pPart/250 + pid[1].iPart*8;
+        dpv1 += pctHimidifier/50 + pid[1].iPart/10; //pid[1].pPart/250 + pid[1].iPart*8;
         ds[1].pvT = dpv1;
 
         uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
         if(valTable == 255) pvRH = valTable;
         else if(valTable > 100) pvRH = 100;
         else pvRH = valTable;
-        //------
-        // MYDEBUG_PRINTLN();
-        // DEBUG_SPRINTF(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",halfSecond/2,resetDispl,displNum,numSetup);
-        // DEBUG_SPRINTF(displStr,"=== Sek = %u; ds[0].pvT = %u; ds[1].pvT = %u; ===",halfSecond/2,ds[0].pvT,ds[0].pvT);
-        // MYDEBUG_PRINTLN(displStr);
         
-        // DEBUG_SPRINTF(displStr,"pP0 = %g; iP0 = %g; out = %g;",pid[0].pPart,pid[0].iPart,pid[0].output);
-        // MYDEBUG_PRINTLN(displStr);
-        
-        
-        // Serial.flush();
-        //------
       #endif
       //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
         checkModeDevice();
@@ -255,10 +244,10 @@ void loop(){
       pctHeater = map(pctHeater,0,255,0,100);
       pctHimidifier = constrain(humidiValue, 0, 255);
       pctHimidifier = map(pctHimidifier,0,255,0,100);
-      DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; OUT=0x%02x; PW=%u; HU=%u; Tim=%u;  ERR=0x%02x; time: %u;",
-        (float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,pctHeater,pctHimidifier,pvTimer,errorsFlag.value,halfSecond);
+      DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; Err=%i; pP0=%6.1f; iP0=%6.4f; Heater=%u; PW=%u%%; Err=%i; pP1=%6.1f; iP1=%6.4f; Himid=%u; HU=%u%%; Tim=%u;  ERR=0x%02x; time: %u;",
+        (float)ds[0].pvT/10,(float)ds[1].pvT/10,ds[0].pvErr,pid[0].pPart,pid[0].iPart,heaterValue,pctHeater,ds[1].pvErr,pid[1].pPart,pid[1].iPart,humidiValue,pctHimidifier,pvTimer,errorsFlag.value,halfSecond);
       MYDEBUG_PRINTLN(displStr);
-      printBinary(portOut.value);
+      // printBinary(portOut.value);
       MYDEBUG_PRINTLN("==============================================================================");
       MYDEBUG_PRINTLN();
       
