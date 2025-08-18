@@ -170,19 +170,10 @@ void loop(){
         }
       #else
         //-----температура воздуха------
-        heaterValue = UpdatePID(0);            // ПИД нагреватель
-        // humidiValue = UpdatePID(1);            // ПИД увлажнитель
-        //-----
-        // DEBUG_SPRINTF(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
-        //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
-        // MYDEBUG_PRINTLN(displStr);
-        //-----
-        // heaterPwm.write(heaterValue);
-        // humidiPwm.write(humidiValue);
-        dpv0 = pid[0].pPart/250 + pid[0].iPart*8;
-        ds[0].pvT += dpv0;
-        dpv1 = pid[1].pPart/250 + pid[1].iPart*8;
-        ds[1].pvT += dpv1;
+        dpv0 += pctHeater/10;
+        ds[0].pvT = dpv0;
+        dpv1 += pctHimidifier/10; //pid[1].pPart/250 + pid[1].iPart*8;
+        ds[1].pvT = dpv1;
 
         uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
         if(valTable == 255) pvRH = valTable;
@@ -191,6 +182,7 @@ void loop(){
         //------
         // MYDEBUG_PRINTLN();
         // DEBUG_SPRINTF(displStr,"=== Sek = %u; ResD = %u; DspN = %u; SetN = %u ===",halfSecond/2,resetDispl,displNum,numSetup);
+        // DEBUG_SPRINTF(displStr,"=== Sek = %u; ds[0].pvT = %u; ds[1].pvT = %u; ===",halfSecond/2,ds[0].pvT,ds[0].pvT);
         // MYDEBUG_PRINTLN(displStr);
         
         // DEBUG_SPRINTF(displStr,"pP0 = %g; iP0 = %g; out = %g;",pid[0].pPart,pid[0].iPart,pid[0].output);
@@ -202,9 +194,15 @@ void loop(){
       #endif
       //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
         checkModeDevice();
+        
         if(settings.sp_structs[0].mode == 1 && !REACHED0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
-        // heaterPwm.write(heaterValue);
-        // humidiPwm.write(humidiValue);
+        //-----
+        // DEBUG_SPRINTF(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
+        //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
+        // MYDEBUG_PRINTLN(displStr);
+        //-----
+        heaterPwm.write(heaterValue);
+        humidiPwm.write(humidiValue);
       //---------------------------- КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
         if(ERROR1 == 0){
           if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
@@ -253,17 +251,17 @@ void loop(){
         writePCF8574(portOut.value);
       }
 
-      /* pctHeater = constrain(heaterValue, 0, 255);
+      pctHeater = constrain(heaterValue, 0, 255);
       pctHeater = map(pctHeater,0,255,0,100);
       pctHimidifier = constrain(humidiValue, 0, 255);
       pctHimidifier = map(pctHimidifier,0,255,0,100);
       DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; OUT=0x%02x; PW=%u; HU=%u; Tim=%u;  ERR=0x%02x; time: %u;",
         (float)ds[0].pvT/10,(float)ds[1].pvT/10,portOut.value,pctHeater,pctHimidifier,pvTimer,errorsFlag.value,halfSecond);
       MYDEBUG_PRINTLN(displStr);
-      // printBinary(portOut.value);
+      printBinary(portOut.value);
       MYDEBUG_PRINTLN("==============================================================================");
       MYDEBUG_PRINTLN();
-       */
+      
       OutStatusLed();  // для HTML страницы
     }//============================================ КОНЕЦ СЕКУНДЫ ============================================
     // DateTime now = rtc.now();
@@ -304,9 +302,9 @@ void loop(){
 
 void ledSet(void){
     byte led = 0;
-    if(!(portOut.value&2)) led |= 1;
-    if(!(portOut.value&4)) led |= 2;
-    if(!TURN) led |= 4;
+    if(!TURN) led |= 1;
+    if(!(portOut.value&2)) led |= 2;
+    if(!(portOut.value&4)) led |= 4;
     if(!EXTRA1) led |= 8;
     if(!EXTRA2) led |= 0x10;
     if(!EXTRA3) led |= 0x20;
@@ -321,11 +319,7 @@ byte writePCF8574(byte data) {
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
-  if (error == 0) {
-    //MYDEBUG_PRINT("Data written: 0b");
-    //printBinary(data);
-    //MYDEBUG_PRINTLN();
-  } else {
+  if(error) {
     MYDEBUG_PRINT("\nError writing to PCF8574. Error code: ");
     MYDEBUG_PRINTLN(error);
   }
@@ -343,22 +337,4 @@ byte readPCF8574() {
   }
 }
 
-// Вспомогательная функция для печати байта в двоичном формате
-/* void printBinary(byte inByte) {
-  for (int b = 7; b >= 0; b--) {
-    switch (b) {
-    case 7: MYDEBUG_PRINT("N7="); break;
-    case 6: MYDEBUG_PRINT("N6="); break;
-    case 5: MYDEBUG_PRINT("E3="); break;
-    case 4: MYDEBUG_PRINT("E2="); break;
-    case 3: MYDEBUG_PRINT("E1="); break;
-    case 2: MYDEBUG_PRINT("TU="); break;
-    case 1: MYDEBUG_PRINT("HU="); break;
-    case 0: MYDEBUG_PRINT("HE="); break;
-    }
-    if(b>1) MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
-    else MYDEBUG_PRINT(bitRead(inByte, b)? "ON" : "OF");
-    MYDEBUG_PRINTLN();
-  }
-} */
 

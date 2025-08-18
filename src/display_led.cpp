@@ -91,7 +91,9 @@ void displ_67(signed int val, unsigned char mode){
         data[6] = GR; // o
         data[7] = GR; // o
     };
-  } else if(val<99){
+  } else if(val==100){
+      data[6] = GR; data[7] = GR; // oo
+  } else if(val<100){
       data[6] = NUMBER_FONT[(val/10)&0x0F];
       data[7] = NUMBER_FONT[(val%10)&0x0F];
       if(val<10){
@@ -117,7 +119,7 @@ void ledDispl(unsigned char mode){
       else if(AERATION) displ_67(pvVenting, COOL);
           // else if(programm) displ_678(date,DAY); 
       else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
-      else displ_67(halfSecond / 2, NOCOMMA); //pvRH
+      else displ_67(pvRH, NOCOMMA); // pctHeater -> power %
       break;
        //-------------- Timer; Flap; ----------"F2"---------
     case 1: 

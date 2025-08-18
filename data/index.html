@@ -127,9 +127,9 @@
 	<p></p>
     <table id="ledsTable">
       <tr>
-        <td id="led0">&#127774; <!-- Солнце с лицом --></td>
-        <td id="led1">&#128167; <!-- Капля воды --></td>
-        <td id="led2">&#128260; <!-- Горизонтальные стрелки по кругу --></td>
+        <td id="led0">&#128260; <!-- Горизонтальные стрелки по кругу --></td>
+        <td id="led1">&#127774; <!-- Солнце с лицом --></td>
+        <td id="led2">&#128167; <!-- Капля воды --></td>
         <td id="led3">&#127744; <!-- Вихрь (Cyclone) --></td>
         <td id="led4">&#128170;	<!-- Согнутые бицепсы --></td>
         <td id="led5">&#128680; <!-- Вращающийся маячок --></td>
@@ -137,6 +137,12 @@
     </table>
 	<p></p>
     <div class="container">
+      <span class="sensor-labels">Поворот</span>
+      <span style="font-size:2.0em; color:#000000" id="rotation">--- мин.</span>
+      <span class="sensor-labels">Нагрів;</span>
+      <span style="font-size:2.0em; color:#000000" id="power">--- %</span>
+      <span class="sensor-labels">Заслінка</span>
+      <span style="font-size:2.0em; color:#000000" id="flap">--- %</span>
 	  <span class="sensor-labels">Вентилятор</span>
       <span style="font-size:1.2em; color:#000000" id="ventmode">охлаждение</span>
 	  <span class="sensor-labels">Додактовий</span>
@@ -145,12 +151,6 @@
       <span style="font-size:1.2em; color:#000000" id="relaymode">канал №1</span>
 	  <span class="sensor-labels">Очікування</span>
       <span style="font-size:1.2em; color:#000000" id="checkDry">НЕТ</span>
-      <span class="sensor-labels">Поворот</span>
-      <span style="font-size:2.0em; color:#000000" id="rotation">--- мин.</span>
-      <span class="sensor-labels">Нагрів;</span>
-      <span style="font-size:2.0em; color:#000000" id="power">--- %</span>
-      <span class="sensor-labels">Заслінка</span>
-      <span style="font-size:2.0em; color:#000000" id="flap">--- %</span>
 	  <span class="sensor-labels">Програма</span>
       <span style="font-size:1.5em; color:#000000" id="program">---</span>
       <span class="sensor-labels">Інкубація</span>
@@ -227,9 +227,9 @@ function fetchData() {
             document.getElementById("currDay").innerHTML = jsonResponse.currDay;
 
             // Обновление цвета LED
-            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#ffdd00" : "#595959";
-            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#00aaff" : "#595959";
-            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00ff00" : "#595959";
+            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#00ff00" : "#595959";
+            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#ffdd00" : "#595959";
+            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00aaff" : "#595959";
             document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "#595959";
             document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#ff0000" : "#595959";
             document.getElementById('led5').style.backgroundColor = jsonResponse.led5 === "ON" ? "#ff0000" : "#595959";

@@ -80,12 +80,12 @@ void respondsValues() {
     else string = "№"+String(settings.sp_structs[1].state);
     data["program"] = string;
     data["currDay"] = "0 діб.";//String(upv.pv.currDay) + "діб.";
-    data["led0"] = dataLed[0] ? "ON" : "OFF" ;  // НАГРЕВАТЕЛЬ
-    data["led1"] = dataLed[1] ? "ON" : "OFF" ;  // УВЛАЖНИТЕЛЬ
-    data["led2"] = dataLed[2] ? "ON" : "OFF" ;  // Поворот лотков
-    data["led3"] = dataLed[3] ? "ON" : "OFF" ;  // Заслонка/вентилятор охлаждения
-    data["led4"] = dataLed[4] ? "ON" : "OFF" ;  // Вспомогательный нагреватель
-    data["led5"] = dataLed[5] ? "ON" : "OFF" ;  // Авария
+    data["led0"] = dataLed[0] ? "OFF" : "ON" ;  // Поворот лотков
+    data["led1"] = dataLed[1] ? "OFF" : "ON" ;  // НАГРЕВАТЕЛЬ
+    data["led2"] = dataLed[2] ? "OFF" : "ON" ;  // УВЛАЖНИТЕЛЬ
+    data["led3"] = dataLed[3] ? "OFF" : "ON" ;  // Заслонка/вентилятор охлаждения
+    data["led4"] = dataLed[4] ? "OFF" : "ON" ;  // Вспомогательный нагреватель
+    data["led5"] = dataLed[5] ? "OFF" : "ON" ;  // Авария
     
     serializeJson(data, jsonResponse);
     // DEBUG_PRINTF("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);

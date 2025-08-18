@@ -13,7 +13,7 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 int16_t UpdatePID(uint8_t cn){
-  int16_t error, setPoint, max = 255, min = -127;
+  int16_t error, max = 255, min = -127;
   // float output;
   if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
     max = settings.sp_structs[1].pulse * 1000 / 2; 
@@ -32,11 +32,11 @@ int16_t UpdatePID(uint8_t cn){
   // Суммарное управляющее воздействие
   pid[cn].output = pid[cn].pPart + pid[cn].iPart;
   if(pid[cn].output < 0) pid[cn].output = 0;
-  // Serial.print("Current value of pid[cn].output before cast: ");
-  // Serial.println(pid[cn].output); // Эта строка покажет вам реальное значение переменной
+  // MYDEBUG_PRINT("Current value of pid[cn].output before cast: ");
+  // MYDEBUG_PRINTLN(pid[cn].output); // Эта строка покажет вам реальное значение переменной
   error = (int16_t)pid[cn].output;
-  // Serial.print("Value of error after cast: ");
-  // Serial.println(error);
+  // DEBUG_PRINTF("MAX=%d; MIN=%d;  ",max,min);
+  // DEBUG_PRINTF("OUTPUT cn=%d: %3d%%\n",cn,error);
   return error;
 }
 //------------- симистричный таймер -------------------
@@ -100,9 +100,12 @@ void OutPulse(void){
 
 //-- для HTML страницы --
 void OutStatusLed(void){
-    for(uint8_t i = 0; i < 6; i++){
+    for(uint8_t i = 0; i < 5; i++){
       uint8_t numBit = 1 << i;
-      dataLed[i] = (~portOut.value) & numBit;
+      dataLed[i] = portOut.value & numBit;                          // если 1 -> OFF
+      if(pctHeater <= 5) dataLed[1] = 1; else dataLed[1] = 0;      // НАГРЕВАТЕЛЬ
+      if(pctHimidifier <= 5) dataLed[2] = 1; else dataLed[2] = 0;  // УВЛАЖНИТЕЛЬ
+      if(errorsFlag.value) dataLed[5] = 0; else dataLed[5] = 1;     // если 1 -> OFF
     }
 }
 
@@ -415,12 +418,20 @@ uint8_t alarm(void){
   return cn;
 }
 
-// // Вспомогательная функция для печати
-// void printBinary(unsigned char byte) {
-//   for (int i = 7; i >= 0; i--) {
-//     MYDEBUG_PRINTLN(bitRead(byte, i));
-//   }
-// }
+// Вспомогательная функция для печати байта в двоичном формате
+void printBinary(byte inByte) {
+  for (int b = 5; b >= 0; b--) {
+    switch (b) {
+    case 5: MYDEBUG_PRINT("E3="); break;
+    case 4: MYDEBUG_PRINT("E2="); break;
+    case 3: MYDEBUG_PRINT("E1="); break;
+    case 0: MYDEBUG_PRINT("TU="); break;
+    }
+    MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
+    MYDEBUG_PRINTLN();
+  }
+}
+
 
 void reset(void){
   settings.sp_structs[0].spT = SPT_0;

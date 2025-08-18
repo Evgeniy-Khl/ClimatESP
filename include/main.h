@@ -152,11 +152,11 @@ extern union Byte portFlag;
 #define HIH5030     portFlag.bitfield.a6  // exist HIH5030 flag
 #define AERATION    portFlag.bitfield.a7  // проветривание
 
-#define ON  1
-#define PCF_ON  0
-#define OFF 0
-#define PCF_OFF 1
-#define TRIACON     999
+#define ON          1
+#define PCF_ON      0
+#define OFF         0
+#define PCF_OFF     1
+#define TRIACON     255
 #define TRIACOFF    0
 #define DISPLAYOFF  300
 

@@ -28,7 +28,7 @@ bool SoftwarePWMBit::update() {
         lastCycleStartMicros += periodMillis;
     }
 
-    unsigned long onTime = (periodMillis * dutyCycle) / 255;
+    unsigned long onTime = (periodMillis * dutyCycle) / 255;// (1000 * (0-255))/255 = 0 - 1000
     
     bool shouldBeOn = (now - lastCycleStartMicros < onTime);
     bool isCurrentlyOn = (*targetByte & bitMask) != 0;
