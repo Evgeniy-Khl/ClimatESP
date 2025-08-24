@@ -72,14 +72,16 @@ void setup(){
   if(rtc.begin()){
     RTCENABLE = 1;
     if(rtc.lostPower()) {                     // у RTC села батарейка
-        MYDEBUG_PRINTLN("RTC lost power, forcing initial time sync.");
+        MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
         eepromWriteByte(STARTINCUBADRES, 0);  // если и был старт инкубации то теперь сброшен
+        settings.sp_structs[1].state = 0;     // [1]-программа текущая обнулена
+        // saveSetpoint();  //????????????????????
     } else {
       if(eepromReadByte(STARTINCUBADRES)) INCUBATION = 1; // установим флаг
     }
   } 
   //------------------------------------------------------------------------------
-  testProgs();              // тест
+  // testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
   sensorType();
   //------------------------------------------------------------------------------------------
@@ -153,7 +155,7 @@ void loop(){
 
     module.setDisplay(data, 8);
     ledSet();                     // светодиоды панели
-    writePCF8574(portOut.value);
+    // writePCF8574(portOut.value);  // ??????????????
   }
   //================================ НОВАЯ СЕКУНДА =================================
   if(now - counter1000 > 1000){
@@ -164,7 +166,7 @@ void loop(){
     humidiPwm.write(humidiValue);
     writePCF8574(portOut.value);
     OutStatusLed();               // для HTML страницы
-    if(++countSeconds > 59) newMinute();
+    if(++countSeconds > 9) newMinute();
   }
   //************************************************ TELEGRAM *************************************************/
   if (now - lastSendTime > interval) {

@@ -25,6 +25,7 @@
 #include "keypad.h"
 #include "sensors.h"
 #include "display_led.h"
+#include "saveDailyData.h"
 
 #define DEBUG
 
@@ -203,6 +204,7 @@ extern uint8_t data[8];
 #define SPECIAL1    0   // номер прибора маска 0x0F
 
 extern char displStr[200];
+extern float dpv0, dpv1;
 extern char botToken[50];
 extern char chatID [15];
 extern MyTelegramBot bot;
@@ -245,10 +247,12 @@ extern uint8_t
         lastKey,            // последняя нажатая кнопка
         keys,               // текущая кнопка
         keyCount,           // время удержания последней кнопки
+        lastDayProcessed,   // день последней записи файлов
         halfSecond,         // счетчик пол-секунды
         countSeconds,       // счетчик секунд
         countMinutes,       // счетчик минут
-        countHours;         // счетчик часов
+        countHours,         // счетчик часов
+        countDays;          // счетчик дней
 
 extern int16_t 
         pvAeration,         // текущее время проветривания

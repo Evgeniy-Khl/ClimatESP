@@ -1,4 +1,5 @@
 #include "main.h"
+float dpv0 = 0, dpv1 = 0;
 
 char botToken[50] = "";  // your Bot Token (Get from Botfather);
 char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
@@ -22,10 +23,12 @@ uint8_t numberOfDevices,    // число найденых датчиков
         lastKey,            // последняя нажатая кнопка
         keys,               // текущая кнопка
         keyCount,           // время удержания последней кнопки
+        lastDayProcessed,   // день последней записи файлов
         halfSecond,         // счетчик пол-секунды
         countSeconds,       // счетчик секунд
         countMinutes,       // счетчик минут
-        countHours;         // счетчик часов
+        countHours,         // счетчик часов
+        countDays;          // счетчик дней
 
 int16_t pvAeration,         // текущее время проветривания
         pvVenting,          // ? текущее время проветривания

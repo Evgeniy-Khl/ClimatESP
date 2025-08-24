@@ -483,7 +483,6 @@ void reset(void){
 }
 
 void newSecond(){
-  float dpv0 = 0, dpv1 = 0;
   errorsFlag.value = 0; 
           
   #ifndef DEBUG  
@@ -558,14 +557,16 @@ void newSecond(){
     }
     pctHeater = constrain(heaterValue, 0, 255);
     pctHeater = map(pctHeater,0,255,0,100);
+    
     pctHimidifier = constrain(humidiValue, 0, 255);
     pctHimidifier = map(pctHimidifier,0,255,0,100);
+    /*
     DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; Err=%i; pP0=%6.1f; iP0=%6.4f; Heater=%u; PW=%u%%; Err=%i; pP1=%6.1f; iP1=%6.4f; Himid=%u; HU=%u%%; Tim=%u;  ERR=0x%02x; time: %u;",
       (float)ds[0].pvT/10,(float)ds[1].pvT/10,ds[0].pvErr,pid[0].pPart,pid[0].iPart,heaterValue,pctHeater,ds[1].pvErr,pid[1].pPart,pid[1].iPart,humidiValue,pctHimidifier,pvTimer,errorsFlag.value,countSeconds);
     MYDEBUG_PRINTLN(displStr);
     // printBinary(portOut.value);
     MYDEBUG_PRINTLN("==============================================================================");
-    MYDEBUG_PRINTLN();
+    MYDEBUG_PRINTLN(); */
 }
 
 void newMinute(){
@@ -573,26 +574,36 @@ void newMinute(){
     countSeconds = now.second();
     countMinutes = now.minute();
     countHours   = now.hour();
+    countDays    = now.day();
   } else {
     countSeconds = 0;
     if(++countMinutes > 59){
       countMinutes = 0;
-      if(++countHours > 23) countHours = 0;
+      if(++countHours > 23){
+        countHours = 0;
+        if(++countDays > 30) countDays = 0;
+      } 
     }
   }
-  DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:%02u",countHours,countMinutes,countSeconds);
-  DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
+  DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
+  // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
   if(disableBeep) disableBeep--;
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
-  if(settings.sp_structs[0].timer) rotate_trays();
+  // if(settings.sp_structs[0].timer) rotate_trays();
   //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
   
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
-  // Вычисляем адрес на основе текущей минуты дня
-  int minute_of_day = countHours * 60 + countMinutes;
-  int address = minute_of_day * sizeof(int16_t) * 2;
-  // Записываем в EEPROM
-  eepromWriteInt16(address, ds[0].pvT);
-  eepromWriteInt16(address + sizeof(int16_t), ds[1].pvT);
-  DEBUG_PRINTF("MinOfDay=%03u; Addr t0=%x; Addr t1=%x;", minute_of_day, address, address + sizeof(int16_t));
+  if((countMinutes % 5) == 0){
+    int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
+    int address = period_of_day * sizeof(int16_t) * 2;        // Вычисляем адрес на основе этого периода
+    // Записываем в EEPROM
+    if (countDays != lastDayProcessed) {
+      saveDailyDataToFile(lastDayProcessed);
+      lastDayProcessed = countDays;
+    } else {
+      eepromWriteInt16(address, ds[0].pvT);
+      eepromWriteInt16(address + sizeof(int16_t), ds[1].pvT);
+      DEBUG_PRINTF("PerOfDay=%03u; Addr0: 0x%04x; t0=%6.1f; Addr1: 0x%04x; t1=%6.1f;",period_of_day,address,(float)ds[0].pvT/10,address + sizeof(int16_t),(float)ds[1].pvT/10);
+    }
+  }
 }

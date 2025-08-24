@@ -1,13 +1,13 @@
 #include "saveDailyData.h"
 
 /**
- * @brief Обрабатывает данные из EEPROM (в формате int16_t) и сохраняет в два файла.
+ * @brief Читает 288 пятиминутных записей из EEPROM и сохраняет их в файлы.
  * @param day Номер дня инкубации.
  */
 void saveDailyDataToFile(int day) {
-  DEBUG_PRINTF("Начало сохранения данных за день #%d\n", day);
+  checkAndManageSpace(); // Проверка и освобождение места
 
-  // --- 1. Подготовка ---
+  DEBUG_PRINTF("Начало сохранения данных за день #%d\n", day);
   JsonDocument graphDoc;
   JsonArray dataArray = graphDoc.to<JsonArray>();
   JsonDocument statsDoc;
@@ -16,34 +16,31 @@ void saveDailyDataToFile(int day) {
   float total_sum_t2 = 0, min_t2 = 200, max_t2 = -200;
   int validReadingsCount = 0;
 
-  const int total5MinPeriods = 288;
-  const int readingsPerPeriod = 5;
+  const int totalPeriods = 288; // Всего 288 пятиминутных периодов в сутках
 
-  // --- 2. Чтение, преобразование и обработка данных ---
-  for (int period = 0; period < total5MinPeriods; ++period) {
-    float sum_t1_period = 0;
-    float sum_t2_period = 0;
-    int readingsInPeriod = 0;
 
-    for (int minute = 0; minute < readingsPerPeriod; ++minute) {
-      int minuteOfDay = period * readingsPerPeriod + minute;
-      
-      // Каждая минутная запись (t1, t2) теперь занимает 2 * sizeof(int16_t) = 4 байта
-      int currentAddress = minuteOfDay * sizeof(int16_t) * 2;
-      
-      // Читаем raw-значения из EEPROM
-      int16_t raw_t1 = eepromReadInt16(currentAddress);
-      int16_t raw_t2 = eepromReadInt16(currentAddress + sizeof(int16_t));
+    // --- Основной цикл: читаем 288 готовых записей ---
+  for (int period = 0; period < totalPeriods; ++period) {
+        // Адрес вычисляется так же, как и при записи
+        int currentAddress = period * sizeof(int16_t) * 2;
+        
+        int16_t raw_t1 = eepromReadInt16(currentAddress);
+        int16_t raw_t2 = eepromReadInt16(currentAddress + sizeof(int16_t));
 
-      // Преобразуем обратно в float
-      float t1 = (float)raw_t1 / 10.0;
-      float t2 = (float)raw_t2 / 10.0;
+        // Проверяем, была ли вообще сделана запись (если EEPROM пуст, там будут нули или -1)
+        if (raw_t1 == 0 && raw_t2 == 0) {
+        continue; // Пропускаем пустую запись
+        }
 
-      // Проверка на адекватность данных (проверяем уже float)
-      if (t1 > -50 && t1 < 150) {
-        sum_t1_period += t1;
-        sum_t2_period += t2;
-        readingsInPeriod++;
+        float t1 = (float)raw_t1 / 10.0;
+        float t2 = (float)raw_t2 / 10.0;
+
+        // Добавляем точку в JSON для графика
+        JsonObject point = dataArray.add<JsonObject>();
+        point["p"] = period;
+        point["t1"] = t1;
+        point["t2"] = t2;
+
 
         // Обновляем общую дневную статистику
         total_sum_t1 += t1;
@@ -54,19 +51,46 @@ void saveDailyDataToFile(int day) {
         if (t2 > max_t2) max_t2 = t2;
         validReadingsCount++;
       }
+  //----------------- Сохранение файлов --------------------
+  String graphFilename = "/day_" + String(day) + "_graph.json";
+  File graphFile = LittleFS.open(graphFilename, "w");
+  if (graphFile) {
+    if (serializeJson(graphDoc, graphFile) > 0) {
+      Serial.printf("Данные для графика сохранены в %s\n", graphFilename.c_str());
+      serializeJson(graphDoc, Serial);
+    } else {
+      Serial.println("Ошибка записи JSON в файл графика!");
     }
-
-    if (readingsInPeriod > 0) {
-      JsonObject point = dataArray.createNestedObject();
-      point["p"] = period;
-      point["t1"] = sum_t1_period / readingsInPeriod;
-      point["t2"] = sum_t2_period / readingsInPeriod;
-    }
+    graphFile.close();
+  } else {
+    Serial.println("Ошибка открытия файла для графика!");
   }
+  graphDoc.clear();
+  
+  if (validReadingsCount > 0) {
+    statsDoc["avg_t1"] = total_sum_t1 / validReadingsCount;
+    statsDoc["min_t1"] = min_t1;
+    statsDoc["max_t1"] = max_t1;
+    statsDoc["avg_t2"] = total_sum_t2 / validReadingsCount;
+    statsDoc["min_t2"] = min_t2;
+    statsDoc["max_t2"] = max_t2;
 
-  // --- 3. Сохранение файлов (эта часть не изменилась) ---
-  // ... (код сохранения файлов остается прежним)
-  // ... (я включу его в полный пример ниже, чтобы не дублировать)
+    String statsFilename = "/day_" + String(day) + "_stats.json";
+    File statsFile = LittleFS.open(statsFilename, "w");
+    if (statsFile) {
+      if (serializeJson(statsDoc, statsFile) > 0) {
+        Serial.printf("Статистика сохранена в %s\n", statsFilename.c_str());
+        serializeJson(statsDoc, Serial);
+      } else {
+        Serial.println("Ошибка записи JSON в файл статистики!");
+      }
+      statsFile.close();
+    } else {
+      Serial.println("Ошибка открытия файла для статистики!");
+    }
+  } else {
+    Serial.println("Не найдено валидных данных за день для сохранения статистики.");
+  }
 }
 
 /**
