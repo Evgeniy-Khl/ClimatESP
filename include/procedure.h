@@ -30,5 +30,7 @@ void printBinary(uint8_t byte);
 uint8_t tableRH(int16_t maxT, int16_t minT);
 uint8_t alarm(void);
 void reset(void);
+void newSecond();
+void newMinute();
 
 #endif /* _PROCEDURE_H */

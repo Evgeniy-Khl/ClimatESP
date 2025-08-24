@@ -42,11 +42,12 @@
 #endif
 // --- Конец блока макросов ---
 
-#define LEDPIN 2
-#define ONE_WIRE_BUS_PIN LEDPIN   // используется номер GPIO2
-#define MAX_DEVICE 4              // ограничение количества датчиков
-#define START_MARKER 0xDD	// Начало блока = 221
+#define LEDPIN            2
+#define ONE_WIRE_BUS_PIN  LEDPIN    // используется номер GPIO2
+#define MAX_DEVICE        4         // ограничение количества датчиков
+#define STARTINCUBADRES   0xFFF     // адрес хранения начала инкубации
 
+#define START_MARKER 0xDD	// Начало блока = 221
 #define READDEFAULT 0
 #define READEEPROM  1
 #define SAVEEEPROM  2
@@ -143,11 +144,11 @@ extern union Byte portFlag;
 #define OVERHEAT  errorsFlag.bitfield.a6  // перегрев симистора
 #define FROZE	    errorsFlag.bitfield.a7  // завис датчик.
 
-#define REACHED0    portFlag.bitfield.a0  // pvT[0]-ДОСТИГ spT[0]
-#define REACHED1    portFlag.bitfield.a1  // pvT[1]-ДОСТИГ spT[1]
+#define RTCENABLE   portFlag.bitfield.a0  // если установлены RTC
+#define WIFIENABLE  portFlag.bitfield.a1  // если подключен к WIFI
 #define TURNSECOND  portFlag.bitfield.a2  // устанавливается в 1 если отсчет в секундах
-#define RTCENABLE   portFlag.bitfield.a3  // если установлены RTC
-#define WIFIENABLE  portFlag.bitfield.a4  // если подключен к WIFI
+#define INCUBATION  portFlag.bitfield.a3  // идет инкубация
+#define RESERV1     portFlag.bitfield.a4  // 
 #define BOTENABLE   portFlag.bitfield.a5  // если strlen(botToken) > 0
 #define HIH5030     portFlag.bitfield.a6  // exist HIH5030 flag
 #define AERATION    portFlag.bitfield.a7  // проветривание
@@ -201,6 +202,7 @@ extern uint8_t data[8];
 #define EXTMODE_1   1   // 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
 #define SPECIAL1    0   // номер прибора маска 0x0F
 
+extern char displStr[200];
 extern char botToken[50];
 extern char chatID [15];
 extern MyTelegramBot bot;
@@ -215,6 +217,7 @@ extern Interval interval;
 //-------------
 
 extern RTC_DS3231 rtc;
+extern DateTime now;
 extern SpUnion settings;
 extern DHT dht;
 extern DallasTemperature sensors;
@@ -234,7 +237,6 @@ extern uint8_t
         displNum,           // вариант дисплея
         resetDispl,         // время ожидания до возврата главного диплея
         numSetup,           // пунк выбора установки
-        halfSecond,         // счетчик полу-секунд
         pctHeater,          // значение мощности нагревателя
         pctHimidifier,      // значение мощности увлажнителя
         pvFlap,             // текущее положение заслонки
@@ -243,7 +245,10 @@ extern uint8_t
         lastKey,            // последняя нажатая кнопка
         keys,               // текущая кнопка
         keyCount,           // время удержания последней кнопки
-        countSeconds;       // счетчик секунд
+        halfSecond,         // счетчик пол-секунды
+        countSeconds,       // счетчик секунд
+        countMinutes,       // счетчик минут
+        countHours;         // счетчик часов
 
 extern int16_t 
         pvAeration,         // текущее время проветривания

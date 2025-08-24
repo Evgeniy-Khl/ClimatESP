@@ -8,9 +8,9 @@ void saveDailyDataToFile(int day) {
   DEBUG_PRINTF("Начало сохранения данных за день #%d\n", day);
 
   // --- 1. Подготовка ---
-  DynamicJsonDocument graphDoc(24000);
+  JsonDocument graphDoc;
   JsonArray dataArray = graphDoc.to<JsonArray>();
-  StaticJsonDocument<256> statsDoc;
+  JsonDocument statsDoc;
 
   float total_sum_t1 = 0, min_t1 = 200, max_t1 = -200;
   float total_sum_t2 = 0, min_t2 = 200, max_t2 = -200;
@@ -179,4 +179,6 @@ void checkAndManageSpace() {
 void startIncubation() {
   clearIncubationData();
   rtc.adjust(DateTime(1, 1, 1, 0, 0, 0));
+  eepromWriteByte(STARTINCUBADRES, 1);          // старт инкубации
+  INCUBATION = 1;                               // установим флаг
 }

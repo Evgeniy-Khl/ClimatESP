@@ -1,10 +1,6 @@
-/*
-   
- */
-
 #include "MyTelegramBot.h"
 
-#define TELEGRAM_DEBUG
+// #define TELEGRAM_DEBUG
 
 #define ZERO_COPY(STR)    ((char*)STR.c_str())
 #define BOT_CMD(STR)      buildCommand(F(STR))
@@ -529,8 +525,10 @@ bool MyTelegramBot::checkForOkResponse(const String& response) {
 
   // Проверка на ошибки десериализации
   if (error) {
-      Serial.print(F("Failed to parse JSON: "));
+    #ifdef TELEGRAM_DEBUG
+      MYDEBUG_PRINT(F("Failed to parse JSON: "));
       MYDEBUG_PRINTLN(error.f_str());
+    #endif
       return false; // Если произошла ошибка, возвращаем false
   }
 
