@@ -156,7 +156,7 @@ extern union Byte portFlag;
 #define PCF_ON      0
 #define OFF         0
 #define PCF_OFF     1
-#define TRIACON     255
+#define TRIACON     255     // открыт постоянно
 #define TRIACOFF    0
 #define DISPLAYOFF  300
 
@@ -184,7 +184,7 @@ extern uint8_t data[8];
 #define EXTMODE_0   0   // аварійн. режим = 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
 #define KP_0_1      100 // пропорц. (Kp/5) = 20      [1/5=0.2]..[1000/5=200]
 #define KI_0_1      400 // ітеграл. (Ki/10000) = 0.04 [20/500*10000]
-#define SPECIAL0    0   // таймаут для портала конфигурации WiFi маска 0x03
+#define SPECIAL0    1   // таймаут для портала конфигурации WiFi маска 0x03
 
 #define SPT_1       300 // завдання у грд.Цесія №2 30,0 °C
 #define SPRH_1      670 // завдання у відсотках №2 65%

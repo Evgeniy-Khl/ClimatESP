@@ -67,16 +67,10 @@
 	  cursor: pointer;
 	}
 
-	.units {
-	  font-size: 1.2rem;
-	 }
 	.sensor-labels {
 	  font-size: 1.5rem;
 	}
-	.set-labels {
-	  font-size: 1.9rem;
-	}
-
+	
 	#ledsTable {
         width: 300px;
         height: 0px auto;
@@ -108,21 +102,21 @@
       <span class="sensor-labels">Тепература №1</span><br/>
       <span style="font-size:2.0em; color:#000000" id="temperature0">--.-</span>
       <sup style="font-size:1.3em; color:#000000" id="settemp0">[--.-]</sup>
-      <sup class="units">&deg;C</sup>
+      <sup style="font-size:1.3em; color:#000000">&deg;C</sup>
     </p>
 	<p></p>
     <p id="rcorners1">
       <span class="sensor-labels">Тепература №2</span><br/>
       <span style="font-size:2.0em; color:#000000" id="temperature1">--.-</span>
       <sup style="font-size:1.3em; color:#000000" id="settemp1">[--.-]</sup>
-      <sup class="units">&deg;C</sup>
+      <sup style="font-size:1.3em; color:#000000">&deg;C</sup>
     </p>
 	<p></p>
     <p id="rcorners2">
       <span class="sensor-labels">Вологість</span><br/>
       <span style="font-size:2.0em; color:#000000" id="humidity">--</span>
       <sup style="font-size:1.3em; color:#000000" id="sethum">[--]</sup>
-      <sup class="units">&#37;</sup>
+      <!--<sup class="units">&#37;</sup>-->
     </p>
 	<p></p>
     <table id="ledsTable">
@@ -229,13 +223,13 @@ function fetchData() {
             // Обновление цвета LED
             document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#00ff00" : "#595959";
 			document.getElementById('led0').style.display = jsonResponse.led0 === "ON" ? "table-cell" : "none";
-            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#ffdd00" : "#595959";
+            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#fc9d03" : "#595959";
 			document.getElementById('led1').style.display = jsonResponse.led1 === "ON" ? "table-cell" : "none";
             document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00aaff" : "#595959";
 			document.getElementById('led2').style.display = jsonResponse.led2 === "ON" ? "table-cell" : "none";
             document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "#595959";
 			document.getElementById('led3').style.display = jsonResponse.led3 === "ON" ? "table-cell" : "none";
-            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#ff0000" : "#595959";
+            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#b33d02" : "#595959";
 			document.getElementById('led4').style.display = jsonResponse.led4 === "ON" ? "table-cell" : "none";
             document.getElementById('led5').style.backgroundColor = jsonResponse.led5 === "ON" ? "#ff0000" : "#595959";
 			document.getElementById('led5').style.display = jsonResponse.led5 === "ON" ? "table-cell" : "none";

@@ -45,7 +45,8 @@ void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t l
 void eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length);
 
 // ----- Функции для работы с разными типами данных -----
-
+void eepromWriteInt16(uint16_t address, int16_t value);
+int16_t eepromReadInt16(uint16_t address);
 void eepromWriteFloat(uint16_t address, float value);
 float eepromReadFloat(uint16_t address);
 void eepromWriteString(uint16_t address, const String& str);

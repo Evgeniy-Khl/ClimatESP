@@ -39,18 +39,18 @@ String MyTelegramBot::sendGetToTelegram(const String& command) {
   // Connect with api.telegram.org if not already connected
   if (!client->connected()) {
     #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("sendGetToTelegram()->[BOT]Connecting to server"));
+        MYDEBUG_PRINTLN(F("sendGetToTelegram()->[BOT]Connecting to server"));
     #endif
     if (!client->connect(TELEGRAM_HOST, TELEGRAM_SSL_PORT)) {
       #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("[BOT]Conection error"));
+        MYDEBUG_PRINTLN(F("[BOT]Conection error"));
       #endif
     }
   }
   if (client->connected()) {
 
     #ifdef TELEGRAM_DEBUG  
-        Serial.println("sending: " + command);
+        MYDEBUG_PRINTLN("sending: " + command);
     #endif  
 
     client->print(F("GET /"));
@@ -98,9 +98,9 @@ bool MyTelegramBot::readHTTPAnswer(String &body, String &headers) {
 
     if (responseReceived) {
       #ifdef TELEGRAM_DEBUG  
-        Serial.println();
-        Serial.println("readHTTPAnswer():" + body);
-        Serial.println();
+        MYDEBUG_PRINTLN();
+        MYDEBUG_PRINTLN("readHTTPAnswer():" + body);
+        MYDEBUG_PRINTLN();
       #endif
       break;
     }
@@ -116,11 +116,11 @@ String MyTelegramBot::sendPostToTelegram(const String& command, JsonObject paylo
   // Connect with api.telegram.org if not already connected
   if (!client->connected()) {
     #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("sendPostToTelegram()->[BOT Client]Connecting to server...."));
+        MYDEBUG_PRINTLN(F("sendPostToTelegram()->[BOT Client]Connecting to server...."));
     #endif
     if (!client->connect(TELEGRAM_HOST, TELEGRAM_SSL_PORT)) {
       #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("[BOT Client]Conection error"));
+        MYDEBUG_PRINTLN(F("[BOT Client]Conection error"));
       #endif
     }
   }
@@ -146,7 +146,7 @@ String MyTelegramBot::sendPostToTelegram(const String& command, JsonObject paylo
     
     client->println(out);
     #ifdef TELEGRAM_DEBUG
-        Serial.println(String("Posting:") + out);
+        MYDEBUG_PRINTLN(String("Posting:") + out);
     #endif
 
     readHTTPAnswer(body, headers);
@@ -184,14 +184,14 @@ bool MyTelegramBot::setMyCommands(const String& commandArray) {
   bool sent = false;
   String response = "";
   #if defined(_debug)
-  Serial.println(F("sendSetMyCommands: SEND Post /setMyCommands"));
+  MYDEBUG_PRINTLN(F("sendSetMyCommands: SEND Post /setMyCommands"));
   #endif  // defined(_debug)
   unsigned long sttime = millis();
 
   while (millis() - sttime < 8000ul) { // loop for a while to send the message
     response = sendPostToTelegram(BOT_CMD("setMyCommands"), payload.as<JsonObject>());
     #ifdef _debug  
-    Serial.println("setMyCommands response" + response);
+    MYDEBUG_PRINTLN("setMyCommands response" + response);
     #endif
     sent = checkForOkResponse(response);
     if (sent) break;
@@ -210,7 +210,7 @@ bool MyTelegramBot::setMyCommands(const String& commandArray) {
 int MyTelegramBot::getUpdates(long offset) {
 
   #ifdef TELEGRAM_DEBUG  
-    Serial.println(F("GET Update Messages"));
+    MYDEBUG_PRINTLN(F("GET Update Messages"));
   #endif
   String command = BOT_CMD("getUpdates?offset=");
   command += offset;
@@ -225,7 +225,7 @@ int MyTelegramBot::getUpdates(long offset) {
 
   if (response == "") {
     #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("Received empty string in response!"));
+        MYDEBUG_PRINTLN(F("Received empty string in response!"));
     #endif
     // close the client as there's nothing to do with an empty string
     // closeClient();
@@ -233,8 +233,8 @@ int MyTelegramBot::getUpdates(long offset) {
   } else {
     #ifdef TELEGRAM_DEBUG  
       Serial.print(F("incoming message length "));
-      Serial.println(response.length());
-      Serial.println(F("Creating DynamicJsonBuffer"));
+      MYDEBUG_PRINTLN(response.length());
+      MYDEBUG_PRINTLN(F("Creating DynamicJsonBuffer"));
     #endif
 
     // Parse response into Json object
@@ -245,7 +245,7 @@ int MyTelegramBot::getUpdates(long offset) {
       #ifdef TELEGRAM_DEBUG  
         Serial.print(F("GetUpdates parsed jsonObj: "));
         serializeJson(doc, Serial);
-        Serial.println();
+        MYDEBUG_PRINTLN();
       #endif
       if (doc["result"].is<JsonArray>()) {
         int resultArrayLength = doc["result"].size();
@@ -257,7 +257,7 @@ int MyTelegramBot::getUpdates(long offset) {
             #ifdef TELEGRAM_DEBUG  
               Serial.print(F("Parsed result: "));
               serializeJson(result, Serial);
-              Serial.println();
+              MYDEBUG_PRINTLN();
             #endif
             if (processResult(result, newMessageIndex)) newMessageIndex++;
           }
@@ -266,18 +266,18 @@ int MyTelegramBot::getUpdates(long offset) {
           return newMessageIndex;
         } else {
           #ifdef TELEGRAM_DEBUG  
-            Serial.println(F("no new messages"));
+            MYDEBUG_PRINTLN(F("no new messages"));
           #endif
         }
       } else {
         #ifdef TELEGRAM_DEBUG  
-            Serial.println(F("Response contained no 'result'"));
+            MYDEBUG_PRINTLN(F("Response contained no 'result'"));
         #endif
       }
     } else { // Parsing failed
       if (response.length() < 2) { // Too short a message. Maybe a connection issue
         #ifdef TELEGRAM_DEBUG  
-            Serial.println(F("Parsing error: Message too short"));
+            MYDEBUG_PRINTLN(F("Parsing error: Message too short"));
         #endif
       } else {
         // Buffer may not be big enough, increase buffer or reduce max number of
@@ -285,7 +285,7 @@ int MyTelegramBot::getUpdates(long offset) {
         #ifdef TELEGRAM_DEBUG 
             Serial.print(F("Failed to parse update, the message could be too "
                            "big for the buffer. Error code: "));
-            Serial.println(error.c_str()); // debug print of parsing error
+            MYDEBUG_PRINTLN(error.c_str()); // debug print of parsing error
         #endif     
       }
     }
@@ -394,7 +394,7 @@ bool MyTelegramBot::sendSimpleMessage(const String& chat_id, const String& text,
 
   bool sent = false;
   #ifdef TELEGRAM_DEBUG  
-    Serial.println(F("sendSimpleMessage: SEND Simple Message"));
+    MYDEBUG_PRINTLN(F("sendSimpleMessage: SEND Simple Message"));
   #endif
   unsigned long sttime = millis();
 
@@ -408,7 +408,7 @@ bool MyTelegramBot::sendSimpleMessage(const String& chat_id, const String& text,
       command += parse_mode;
       String response = sendGetToTelegram(command);
       #ifdef TELEGRAM_DEBUG  
-        Serial.println(response);
+        MYDEBUG_PRINTLN(response);
       #endif
       sent = checkForOkResponse(response);
       if (sent) break;
@@ -492,7 +492,7 @@ bool MyTelegramBot::sendPostMessage(JsonObject payload, bool edit) { // added me
   #ifdef TELEGRAM_DEBUG 
     Serial.print(F("sendPostMessage: SEND Post Message: "));
     serializeJson(payload, Serial);
-    Serial.println();
+    MYDEBUG_PRINTLN();
   #endif 
   unsigned long sttime = millis();
 
@@ -500,7 +500,7 @@ bool MyTelegramBot::sendPostMessage(JsonObject payload, bool edit) { // added me
     while (millis() < sttime + 8000) { // loop for a while to send the message
         String response = sendPostToTelegram((edit ? BOT_CMD("editMessageText") : BOT_CMD("sendMessage")), payload); // if edit is true we send a editMessageText CMD
         #ifdef TELEGRAM_DEBUG  
-        Serial.println("sendPostMessage():" + response);
+        MYDEBUG_PRINTLN("sendPostMessage():" + response);
         #endif
         sent = checkForOkResponse(response);
         if (sent) break;
@@ -530,7 +530,7 @@ bool MyTelegramBot::checkForOkResponse(const String& response) {
   // Проверка на ошибки десериализации
   if (error) {
       Serial.print(F("Failed to parse JSON: "));
-      Serial.println(error.f_str());
+      MYDEBUG_PRINTLN(error.f_str());
       return false; // Если произошла ошибка, возвращаем false
   }
 
@@ -539,7 +539,7 @@ bool MyTelegramBot::checkForOkResponse(const String& response) {
       // Сохраняем last_sent_message_id
       last_sent_message_id = doc["result"][0]["message_id"] | 0; // Установим в 0, если message_id отсутствует
       // #ifdef TELEGRAM_DEBUG  
-      //   Serial.println("last_sent_message_id:"+String(last_sent_message_id));
+      //   MYDEBUG_PRINTLN("last_sent_message_id:"+String(last_sent_message_id));
       // #endif
       return true; // Возвращаем true, если всё в порядке
   }
@@ -551,7 +551,7 @@ bool MyTelegramBot::sendChatAction(const String& chat_id, const String& text) {
 
   bool sent = false;
   #ifdef TELEGRAM_DEBUG  
-    Serial.println(F("SEND Chat Action Message"));
+    MYDEBUG_PRINTLN(F("SEND Chat Action Message"));
   #endif
   unsigned long sttime = millis();
 
@@ -565,7 +565,7 @@ bool MyTelegramBot::sendChatAction(const String& chat_id, const String& text) {
       String response = sendGetToTelegram(command);
 
       #ifdef TELEGRAM_DEBUG  
-        Serial.println(response);
+        MYDEBUG_PRINTLN(response);
       #endif
       sent = checkForOkResponse(response);
 
@@ -581,7 +581,7 @@ bool MyTelegramBot::sendChatAction(const String& chat_id, const String& text) {
 void MyTelegramBot::closeClient() {
   if (client->connected()) {
     #ifdef TELEGRAM_DEBUG  
-        Serial.println(F("Closing client"));
+        MYDEBUG_PRINTLN(F("Closing client"));
     #endif
     client->stop();
   }
@@ -620,7 +620,7 @@ bool MyTelegramBot::answerCallbackQuery(const String &query_id, const String &te
   String response = sendPostToTelegram(BOT_CMD("answerCallbackQuery"), payload.as<JsonObject>());
   #ifdef _debug  
      Serial.print(F("answerCallbackQuery response:"));
-     Serial.println(response);
+     MYDEBUG_PRINTLN(response);
   #endif
   bool answer = checkForOkResponse(response);
   closeClient();

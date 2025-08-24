@@ -13,11 +13,11 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 }
 
 int16_t UpdatePID(uint8_t cn){
-  int16_t error, max = 500, min = -500;
+  int16_t error, max = TRIACON * 2, min = -max;         // 255 * 2 = 510 -> 200 %
   // float output;
   if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
-    max = settings.sp_structs[1].pulse * 1000 / 2; 
-    min = -max / 2;
+    max = settings.sp_structs[1].pulse * TRIACON / 2;  // 255 * 10 = 2550 -> 10 секунд
+    min = -max;
   }
   // Вычисление ошибки
   error = checkPV(cn);
@@ -89,7 +89,7 @@ uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 �
 
 void OutPulse(void){
   int16_t err = checkPV(1);                     // err > 0 -> холодно
-  uint16_t maxPulse = settings.sp_structs[1].pulse * 1000 / 2;// длительность впрыска не должна превышать пол периода
+  uint16_t maxPulse = settings.sp_structs[1].pulse * TRIACON / 2;// длительность впрыска не должна превышать пол периода
   if(err == 0){pvPulse = 0; return;};
   if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
   pvPulse = UpdatePID(1);                       // определение длительности ВКЛ. состояния

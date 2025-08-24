@@ -46,9 +46,9 @@ void setup(){
     // **ВНИМАНИЕ: Раскомментирование следующей строки приведет к форматированию LittleFS при каждом запуске!**
     // Проверка и форматирование, если необходимо
     // if (LittleFS.format()) {
-    //   Serial.println("LittleFS formatted successfully");
+    //   MYDEBUG_PRINTLN("LittleFS formatted successfully");
     // } else {
-    //   Serial.println("Failed to format LittleFS");
+    //   MYDEBUG_PRINTLN("Failed to format LittleFS");
     // }
     //--------------------- checkSetpoint ----------------------------------
     dataLed[2] = checkSetpoint();
@@ -261,12 +261,12 @@ void loop(){
   //************************************************ TELEGRAM *************************************************/
   if (now - lastSendTime > interval) {
     if(earlyMode != mode){
-      // Serial.printf("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
+      // DEBUG_PRINTF("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
       earlyMode = mode;
     }
     lastSendTime = now;
     // Serial.print("Free heap size: ");
-    // Serial.println(system_get_free_heap_size());
+    // MYDEBUG_PRINTLN(system_get_free_heap_size());
 
     if(seconds==0 && mode == READDEFAULT) {mode = READEEPROM; interval = INTERVAL_1000;}
     else if(tableData[0][0]==0 && settings.sp_structs[1].state) {mode = READPROG; interval = INTERVAL_1000; quarter = GET_PROG1;}
@@ -276,7 +276,7 @@ void loop(){
     // int16_t lostHeapSize = ESP.getFreeHeap()-begHeapSize;
     // if(lostHeapSize != previousHeapSize){
     //   previousHeapSize = lostHeapSize;
-    //   Serial.printf("Lost heap size: %d bytes\n", lostHeapSize);
+    //   DEBUG_PRINTF("Lost heap size: %d bytes\n", lostHeapSize);
     // }
     /* switch (mode){
       case READEEPROM: getData(GET_EEPROM); break;

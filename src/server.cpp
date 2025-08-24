@@ -88,7 +88,7 @@ void respondsValues() {
     
     serializeJson(data, jsonResponse);
     // DEBUG_PRINTF("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
-    // Serial.println("out=" + response);
+    // MYDEBUG_PRINTLN("out=" + response);
     server.send(200, "application/json", jsonResponse);
     // DEBUG_PRINTF("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
 }

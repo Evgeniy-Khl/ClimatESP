@@ -1,6 +1,9 @@
 #include "main.h"
 #include <AT24C32.h>
 
+// AT24C32 имеет страницы по 32 байта. 128 страниц ВСЕГО 4 096 байт
+// каждые 5 мин. по 4 байта за сутки 1 152 байт ровно 36 стр.
+
 // ----- Функции для работы с EEPROM -----
 
 /**
@@ -110,6 +113,20 @@ void eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length) 
 
 // ----- Функции для работы с разными типами данных -----
 
+void eepromWriteInt16(uint16_t address, int16_t value) {
+  uint8_t buffer[sizeof(int16_t)];
+  memcpy(buffer, &value, sizeof(int16_t));
+  eepromWriteBuffer(address, buffer, sizeof(int16_t));
+}
+
+int16_t eepromReadInt16(uint16_t address) {
+  int16_t value = 0;
+  uint8_t buffer[sizeof(int16_t)];
+  eepromReadBuffer(address, buffer, sizeof(int16_t));
+  memcpy(&value, buffer, sizeof(int16_t));
+  return value;
+}
+
 void eepromWriteFloat(uint16_t address, float value) {
   uint8_t buffer[sizeof(float)];
   memcpy(buffer, &value, sizeof(float));
@@ -124,7 +141,7 @@ float eepromReadFloat(uint16_t address) {
   return value;
 }
 
-void eepromWriteString(uint16_t address, const String& str) {
+/* void eepromWriteString(uint16_t address, const String& str) {
   // Записываем длину строки первым байтом, затем саму строку (макс. длина 254 + 1 байт для null)
   // или просто строку до \0, если не хотим хранить длину явно.
   // Для простоты запишем строку как есть, включая нулевой терминатор.
@@ -145,3 +162,4 @@ String eepromReadString(uint16_t address, uint16_t maxLength) {
   }
   return String(charBuf);
 }
+ */

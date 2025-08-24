@@ -79,7 +79,7 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
     }
     
 }
-// Інкубація курячих яєць.
+// Інкубація курячих яєць. 2 дня в одной странице, 31 день ВСНГО 496 байт = 15 страниц
 void prepareProg1(){
     MYDEBUG_PRINTLN("PROGRAMM: 1");
     prepareTable(1, 1, 5,379,310,600,60, 0, 0, 0);// 1-5	37,9 оС	31,0 оС(60,0%)	закрита	увімкнено	вимкнуто

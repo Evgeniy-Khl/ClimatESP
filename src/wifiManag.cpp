@@ -74,7 +74,7 @@ void initWiFiManag(void){
         //-------------- Проверяем, что botToken не пустая -----------------
         if (strlen(botToken) > 0) {
             bot.updateToken(botToken);
-            // if(botSetup()) Serial.println("The command list was updated successfully.");
+            // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
             uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
             DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
             uint8_t num = settings.sp_structs[1].special & 0x0F;
