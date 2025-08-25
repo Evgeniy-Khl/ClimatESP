@@ -125,7 +125,7 @@ void checkkey(uint8_t key){
                     }
           break;
         case KEY_5_4_6: reset(); break;
-        case KEY_7_1: prepareProg1(); beeperOn(100); break;
+        case KEY_7_1: clearIncubationData(); beeperOn(100); break;
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
         case KEY_7_3: prepareProg3(); beeperOn(100); break;
         case KEY_7_4: prepareProg4(); beeperOn(100); break;
