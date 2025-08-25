@@ -90,9 +90,10 @@ void setup(){
   pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
 
   displ_IP();//--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
-
-  pvTimer = settings.sp_structs[0].timer;                  // инициализация времени выключенного состояния таймера
-  pvAeration = settings.sp_structs[0].aeration;            // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
+  eepromWriteInt16(0x0000, 0);                              // в первую ячейку памяти всегда записывается мусор
+  eepromWriteInt16(0x0000 + sizeof(int16_t), 0);            // в первую ячейку памяти всегда записывается мусор
+  pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
+  pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;

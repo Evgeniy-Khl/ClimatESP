@@ -287,15 +287,20 @@ void acceptEeprom() {
  * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
  */
 void handleArchiveList() {
-    String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Инкубатор - Архив</title><style>body{font-family:Arial,sans-serif;background-color:#f4f4f4}div{max-width:600px;margin:40px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}h1{text-align:center;color:#333}ul{list-style-type:none;padding:0}li{margin:10px 0}a{display:block;padding:15px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:5px;transition:background-color .3s}a:hover{background-color:#0056b3}a.back{background-color:#6c757d}a.back:hover{background-color:#5a6268}</style></head><body><div><h1>Выберите день для просмотра</h1><ul>";
+    String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Інкубатор - Архів</title><style>body{font-family:Arial,sans-serif;background-color:#f4f4f4}div{max-width:600px;margin:40px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}h1{text-align:center;color:#333}ul{list-style-type:none;padding:0}li{margin:10px 0}a{display:block;padding:15px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:5px;transition:background-color .3s}a:hover{background-color:#0056b3}a.back{background-color:#6c757d}a.back:hover{background-color:#5a6268}</style></head><body><div><h1>Виберіть день для перегляду</h1><ul>";
     Dir dir = LittleFS.openDir("/");
     while (dir.next()) {
         String fileName = dir.fileName();
-        if (fileName.startsWith("/day_") && fileName.endsWith("_graph.json")) {
-            int start = 5;
+        // Ищем файлы, начинающиеся с "day_" (без слэша)
+        if (fileName.startsWith("day_") && fileName.endsWith("_graph.json")) {
+            int start = 4; // Позиция после "day_"
             int end = fileName.indexOf('_', start);
-            String day = fileName.substring(start, end);
-            html += "<li><a href='/data?day=" + day + "'>Просмотр данных за День " + day + "</a></li>";
+            
+            // Надежная проверка, что номер дня существует
+            if (end > start) { 
+                String day = fileName.substring(start, end);
+                html += "<li><a href='/data?day=" + day + "'>Перегляд даних за День " + day + "</a></li>";
+            }
         }
     }
     html += "</ul><a href='/' class='back' style='margin-top: 20px;'>Назад на головну</a></div></body></html>";
@@ -304,37 +309,92 @@ void handleArchiveList() {
 
 
 /**
- * @brief Генерирует HTML-страницу с таблицей данных для конкретного дня.
- * День передается как GET-параметр, например: /data?day=21
+ * @brief Финальная версия. Читает оба файла (stats и graph),
+ * выводит сначала строку со статистикой, а затем основную таблицу.
  */
 void handleShowData() {
-    if (!server.hasArg("day")) {
-        server.send(400, "text/plain", "Bad Request: Missing 'day' parameter");
+    if (!server.hasArg("day") || server.arg("day") == "") {
+        server.send(400, "text/plain", "Bad Request: 'day' parameter is missing or empty");
         return;
     }
     String day = server.arg("day");
-    String filename = "/day_" + day + "_graph.json";
 
-    File file = LittleFS.open(filename, "r");
-    if (!file) {
-        server.send(404, "text/plain", "File Not Found: " + filename);
+    // --- V-- НАЧАЛО НОВОГО БЛОКА 1: ЧТЕНИЕ ФАЙЛА СТАТИСТИКИ --V ---
+    String statsFilename = "/day_" + day + "_stats.json";
+    File statsFile = LittleFS.open(statsFilename, "r");
+    
+    // Создаем маленький JSON документ для статистики
+    JsonDocument statsDoc;
+
+    if (statsFile) {
+        // Если файл статистики успешно открыт, парсим его
+        deserializeJson(statsDoc, statsFile);
+        statsFile.close();
+    } else {
+        Serial.printf("Файл статистики %s не знайдено.\n", statsFilename.c_str());
+    }
+    // --- ^-- КОНЕЦ НОВОГО БЛОКА 1 --^ ---
+
+
+    // --- Основной блок чтения файла графика (без изменений) ---
+    String graphFilename = "/day_" + day + "_graph.json";
+    File graphFile = LittleFS.open(graphFilename, "r");
+    if (!graphFile) {
+        server.send(404, "text/plain", "File Not Found: " + graphFilename);
         return;
     }
 
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-    file.close();
+    JsonDocument graphDoc;
+    DeserializationError error = deserializeJson(graphDoc, graphFile);
+    graphFile.close();
 
     if (error) {
-        server.send(500, "text/plain", "JSON Parse Error");
+        server.send(500, "text/plain", "JSON Parse Error: " + String(error.c_str()));
         return;
     }
 
-    String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Инкубатор - День " + day + "</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:50%;margin:20px auto}th,td{border:1px solid #ddd;text-align:center;padding:8px}th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}a{display:block;text-align:center;margin-bottom:20px;font-size:18px}</style></head><body><h1 style='text-align:center;'>Данные инкубации за День " + day + "</h1><a href='/archive'>Назад к списку дней</a><table><tr><th>Период (5 мин)</th><th>Температура T1 (°C)</th><th>Температура T2 (°C)</th></tr>";
-    JsonArray array = doc.as<JsonArray>();
-    for (JsonObject point : array) {
-        html += "<tr><td>" + String(point["p"].as<int>()) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+    // --- Отправка HTML по частям ---
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html", "");
+
+    // Отправляем "шапку" HTML
+    server.sendContent("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Инкубатор - День " + day + "</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:60%;margin:20px auto}th,td{border:1px solid #ddd;text-align:center;padding:8px}th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}a{display:block;text-align:center;margin-bottom:20px;font-size:18px}.summary{background-color:#eef; font-weight: bold;}</style></head><body><h1 style='text-align:center;'>Дані інкубації за День " + day + "</h1><a href='/archive'>Назад до списку днів</a><table>");
+    
+    // Отправляем заголовки основной таблицы
+    server.sendContent("<tr><th>Номер періоду кожні 5 хвилин</th><th>Температура T1 (°C)</th><th>Температура T2 (°C)</th></tr>");
+
+
+    // --- V-- НАЧАЛО НОВОГО БЛОКА 2: ФОРМИРОВАНИЕ И ОТПРАВКА СТРОКИ СТАТИСТИКИ --V ---
+    if (!statsDoc.isNull()) { // Проверяем, что JSON статистики был успешно распарсен
+        String summaryRow = "<tr class='summary'><td colspan='3'>"; // colspan='3' растягивает ячейку на 3 колонки
+        
+        summaryRow += "Температура T1 [Середнє: " + String(statsDoc["avg_t1"].as<float>(), 1);
+        summaryRow += " | Min: " + String(statsDoc["min_t1"].as<float>(), 1);
+        summaryRow += " | Max: " + String(statsDoc["max_t1"].as<float>(), 1) + "] ";
+        
+        summaryRow += "&nbsp;&nbsp;&nbsp;&nbsp;"; // Несколько пробелов для разделения
+        
+        summaryRow += "Температура T2 [Середнє: " + String(statsDoc["avg_t2"].as<float>(), 1);
+        summaryRow += " | Min: " + String(statsDoc["min_t2"].as<float>(), 1);
+        summaryRow += " | Max: " + String(statsDoc["max_t2"].as<float>(), 1) + "]";
+
+        summaryRow += "</td></tr>";
+        server.sendContent(summaryRow);
     }
-    html += "</table></body></html>";
-    server.send(200, "text/html", html);
+    // --- ^-- КОНЕЦ НОВОГО БЛОКА 2 --^ ---
+
+
+    // --- Цикл вывода основных данных (без изменений) ---
+    JsonArray array = graphDoc.as<JsonArray>();
+    for (JsonObject point : array) {
+        String row = "<tr><td>" + String(point["p"].as<int>()) + "</td>";
+        row += "<td>" + String(point["t1"].as<float>(), 1) + "</td>";
+        row += "<td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+        
+        server.sendContent(row);
+        yield();
+    }
+
+    server.sendContent("</table></body></html>");
+    server.sendContent("");
 }
