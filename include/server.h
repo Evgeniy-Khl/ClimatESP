@@ -35,12 +35,21 @@ extern ESP8266WebServer server;
 // Функция для обработки параметров
 void notFoundHandler();
 void respondsEeprom();
-void respondsProgram();
+uint8_t respondsProgram();
 void acceptEeprom();
 void acceptProgram();
 void respondsValues();
 String getFloat(float val, uint8_t brackets);
 byte calculateChecksum(byte* data, int length);
 void OutStatusLed();  // для HTML страницы
+/**
+ * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
+ */
+void handleArchiveList();
+/**
+ * @brief Генерирует HTML-страницу с таблицей данных для конкретного дня.
+ * День передается как GET-параметр, например: /data?day=21
+ */
+void handleShowData();
 
 #endif //SERVER_H

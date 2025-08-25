@@ -44,101 +44,108 @@ uint8_t eepromReadByte(uint16_t memoryAddress) {
   return readData;
 }
 
-/**
- * @brief Записывает массив байт (буфер) в EEPROM.
- * @param memoryAddress Начальный 16-битный адрес ячейки памяти.
- * @param buffer Указатель на массив байт для записи.
- * @param length Количество байт для записи.
- * Примечание: Эта функция записывает байты последовательно.
- * AT24C32 имеет страницы по 32 байта. Для оптимальной записи больших блоков
- * следует учитывать границы страниц, эта функция делает явно.
- * Однако, последовательная запись через Wire.write() для AT24C32 обычно работает корректно
- * в пределах страницы. Для записи через границы страниц может потребоваться несколько транзакций.
- * AT24C32 адреса страниц: 0-31, 32-63, ...
- */
-void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length) {
+bool eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length) {
+  if (buffer == nullptr || length == 0) {
+    return true; // Нет данных для записи, считаем операцию успешной.
+  }
+
   uint16_t currentBufferIndex = 0;
   while (currentBufferIndex < length) {
-    // Рассчитываем, сколько байт можно записать до конца текущей физической страницы EEPROM
-    uint8_t bytesToWriteInThisPageSegment = 32 - (memoryAddress % 32);
+    // Рассчитываем, сколько байт можно записать до конца текущей страницы EEPROM
+    uint8_t bytesToWrite = EEPROM_PAGE_SIZE - (memoryAddress % EEPROM_PAGE_SIZE);
 
-    // Не записываем больше, чем осталось в буфере
-    if (bytesToWriteInThisPageSegment > (length - currentBufferIndex)) {
-      bytesToWriteInThisPageSegment = length - currentBufferIndex;
+    // Убеждаемся, что не пытаемся записать больше, чем осталось в буфере
+    uint16_t remainingBytes = length - currentBufferIndex;
+    if (bytesToWrite > remainingBytes) {
+      bytesToWrite = remainingBytes;
     }
 
     Wire.beginTransmission(EEPROM_I2C_ADDRESS);
     Wire.write((uint8_t)(memoryAddress >> 8));   // Старший байт адреса
     Wire.write((uint8_t)(memoryAddress & 0xFF)); // Младший байт адреса
 
-    for (uint8_t i = 0; i < bytesToWriteInThisPageSegment; ++i) {
-      Wire.write(buffer[currentBufferIndex + i]);
-    }
+    // Записываем порцию данных одним вызовом
+    Wire.write(buffer + currentBufferIndex, bytesToWrite);
 
-    byte status = Wire.endTransmission();
-    if (status != 0) {
-      MYDEBUG_PRINT("I2C Write Error in buffer (addr "); MYDEBUG_PRINT(memoryAddress);
-      MYDEBUG_PRINT("). Status: "); MYDEBUG_PRINTLN(status);
-      // Прервать дальнейшую запись этого буфера, если есть ошибка
-      return; 
+    // Завершаем передачу и проверяем на ошибки
+    if (Wire.endTransmission() != 0) {
+      // Serial.println("I2C Write Error!"); // Раскомментируйте для отладки
+      return false; // Сообщаем о неудаче
     }
-    delay(EEPROM_WRITE_DELAY); // Ожидание завершения цикла записи страницы
+    
+    // Ожидание завершения внутреннего цикла записи EEPROM
+    delay(EEPROM_WRITE_DELAY);
 
-    memoryAddress += bytesToWriteInThisPageSegment;      // Сдвигаем адрес в EEPROM
-    currentBufferIndex += bytesToWriteInThisPageSegment; // Сдвигаем указатель в буфере данных
+    // Сдвигаем адреса для следующей итерации
+    memoryAddress += bytesToWrite;
+    currentBufferIndex += bytesToWrite;
   }
+  
+  return true; // Все данные успешно записаны
 }
 
-/**
- * @brief Читает массив байт (буфер) из EEPROM.
- * @param memoryAddress Начальный 16-битный адрес ячейки памяти.
- * @param buffer Указатель на буфер для сохранения прочитанных данных.
- * @param length Количество байт для чтения.
- */
-void eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length) {
+uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length) {
+  if (buffer == nullptr || length == 0) {
+    return 0;
+  }
+
+  // Сначала устанавливаем внутренний указатель адреса в EEPROM
   Wire.beginTransmission(EEPROM_I2C_ADDRESS);
   Wire.write((uint8_t)(memoryAddress >> 8));
   Wire.write((uint8_t)(memoryAddress & 0xFF));
-  Wire.endTransmission();
-
-  Wire.requestFrom(EEPROM_I2C_ADDRESS, (int)length); // Запросить 'length' байт
-  for (uint16_t i = 0; i < length; i++) {
-    if (Wire.available()) {
-      buffer[i] = Wire.read();
-    } else {
-      buffer[i] = 0; // В случае ошибки заполнить нулем
-    }
+  if (Wire.endTransmission() != 0) {
+    // Не удалось даже установить адрес для чтения
+    return 0;
   }
+
+  uint16_t bytesRead = 0;
+  // Теперь читаем данные порциями, чтобы не переполнять внутренний буфер Wire
+  // Для ESP8266 можно и больше, но 32 - универсальное и безопасное значение
+  const uint8_t chunkSize = 32; 
+
+  while (bytesRead < length) {
+    uint16_t bytesToRequest = length - bytesRead;
+    if (bytesToRequest > chunkSize) {
+      bytesToRequest = chunkSize;
+    }
+
+    uint16_t received = Wire.requestFrom((uint8_t)EEPROM_I2C_ADDRESS, (uint8_t)bytesToRequest);
+
+    // Если устройство вернуло 0 байт, значит, что-то пошло не так
+    if (received == 0) {
+      break; // Прерываем цикл, возвращаем то, что успели прочитать
+    }
+
+    for (uint16_t i = 0; i < received; i++) {
+      buffer[bytesRead + i] = Wire.read();
+    }
+    
+    bytesRead += received;
+  }
+
+  return bytesRead;
 }
 
 // ----- Функции для работы с разными типами данных -----
-
-void eepromWriteInt16(uint16_t address, int16_t value) {
-  uint8_t buffer[sizeof(int16_t)];
-  memcpy(buffer, &value, sizeof(int16_t));
-  eepromWriteBuffer(address, buffer, sizeof(int16_t));
+bool eepromWriteInt16(uint16_t address, int16_t value) {
+  // Просто преобразуем значение в байты и передаем в нашу основную функцию
+  return eepromWriteBuffer(address, (const uint8_t*)&value, sizeof(value));
 }
 
-int16_t eepromReadInt16(uint16_t address) {
-  int16_t value = 0;
-  uint8_t buffer[sizeof(int16_t)];
-  eepromReadBuffer(address, buffer, sizeof(int16_t));
-  memcpy(&value, buffer, sizeof(int16_t));
-  return value;
+bool eepromReadInt16(uint16_t address, int16_t& value) {
+  uint16_t bytesRead = eepromReadBuffer(address, (uint8_t*)&value, sizeof(value));
+  
+  // Успешным считаем только то чтение, где количество байт совпало с ожидаемым
+  return (bytesRead == sizeof(value));
 }
 
-void eepromWriteFloat(uint16_t address, float value) {
-  uint8_t buffer[sizeof(float)];
-  memcpy(buffer, &value, sizeof(float));
-  eepromWriteBuffer(address, buffer, sizeof(float));
+bool eepromWriteFloat(uint16_t address, float value) {
+  return eepromWriteBuffer(address, (const uint8_t*)&value, sizeof(value));
 }
 
-float eepromReadFloat(uint16_t address) {
-  float value = 0.0f;
-  uint8_t buffer[sizeof(float)];
-  eepromReadBuffer(address, buffer, sizeof(float));
-  memcpy(&value, buffer, sizeof(float));
-  return value;
+bool eepromReadFloat(uint16_t address, float& value) {
+  uint16_t bytesRead = eepromReadBuffer(address, (uint8_t*)&value, sizeof(value));
+  return (bytesRead == sizeof(value));
 }
 
 /* void eepromWriteString(uint16_t address, const String& str) {

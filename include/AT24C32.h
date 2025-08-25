@@ -5,7 +5,8 @@
 // Если A0, A1, A2 подключены к GND, адрес 0x50.
 // Адрес может быть от 0x50 до 0x57 в зависимости от состояния пинов A0-A2.
 #define EEPROM_I2C_ADDRESS 0x57
-
+// Размер страницы для AT24C32 (для AT24C128 будет 64)
+#define EEPROM_PAGE_SIZE   32 
 // Задержка после операции записи в мс (время записи страницы для AT24C32 до 5мс)
 #define EEPROM_WRITE_DELAY 5
 
@@ -24,30 +25,34 @@ void eepromWriteByte(uint16_t memoryAddress, uint8_t data);
 uint8_t eepromReadByte(uint16_t memoryAddress);
 
 /**
- * @brief Записывает массив байт (буфер) в EEPROM.
+ * @brief Записывает массив байт (буфер) в I2C EEPROM с обработкой границ страниц.
  * @param memoryAddress Начальный 16-битный адрес ячейки памяти.
  * @param buffer Указатель на массив байт для записи.
  * @param length Количество байт для записи.
- * Примечание: Эта функция записывает байты последовательно.
- * AT24C32 имеет страницы по 32 байта. Для оптимальной записи больших блоков
- * следует учитывать границы страниц, но эта функция для простоты этого не делает явно.
- * Однако, последовательная запись через Wire.write() для AT24C32 обычно работает корректно
- * в пределах страницы. Для записи через границы страниц может потребоваться несколько транзакций.
+ * @return true, если вся операция записи прошла успешно, иначе false.
  */
-void eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length);
+bool eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t length);
 
 /**
- * @brief Читает массив байт (буфер) из EEPROM.
+ * @brief Читает массив байт (буфер) из I2C EEPROM.
  * @param memoryAddress Начальный 16-битный адрес ячейки памяти.
  * @param buffer Указатель на буфер для сохранения прочитанных данных.
  * @param length Количество байт для чтения.
+ * @return Количество фактически прочитанных байт. В случае ошибки может быть меньше, чем length.
  */
-void eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length);
+uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length);
 
-// ----- Функции для работы с разными типами данных -----
-void eepromWriteInt16(uint16_t address, int16_t value);
-int16_t eepromReadInt16(uint16_t address);
-void eepromWriteFloat(uint16_t address, float value);
-float eepromReadFloat(uint16_t address);
+/** @return true в случае успеха, иначе false. */
+bool eepromWriteInt16(uint16_t address, int16_t value);
+
+/** @return true и записывает значение в 'value' в случае успеха, иначе false. */
+bool eepromReadInt16(uint16_t address, int16_t& value);
+
+/** @return true в случае успеха, иначе false. */
+bool eepromWriteFloat(uint16_t address, float value);
+
+/** @return true и записывает значение в 'value' в случае успеха, иначе false. */
+bool eepromReadFloat(uint16_t address, float& value);
+
 void eepromWriteString(uint16_t address, const String& str);
 String eepromReadString(uint16_t address, uint16_t maxLength);

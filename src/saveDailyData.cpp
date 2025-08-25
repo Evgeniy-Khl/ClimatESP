@@ -23,9 +23,9 @@ void saveDailyDataToFile(int day) {
   for (int period = 0; period < totalPeriods; ++period) {
         // Адрес вычисляется так же, как и при записи
         int currentAddress = period * sizeof(int16_t) * 2;
-        
-        int16_t raw_t1 = eepromReadInt16(currentAddress);
-        int16_t raw_t2 = eepromReadInt16(currentAddress + sizeof(int16_t));
+        int16_t raw_t1, raw_t2;
+        eepromReadInt16(currentAddress, raw_t1);
+        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
 
         // Проверяем, была ли вообще сделана запись (если EEPROM пуст, там будут нули или -1)
         if (raw_t1 == 0 && raw_t2 == 0) {
@@ -205,4 +205,42 @@ void startIncubation() {
   rtc.adjust(DateTime(1, 1, 1, 0, 0, 0));
   eepromWriteByte(STARTINCUBADRES, 1);          // старт инкубации
   INCUBATION = 1;                               // установим флаг
+}
+
+/**
+ * @brief Выводит в Serial Monitor список всех файлов и их размеры.
+ * Также показывает общую информацию о занятом и свободном месте.
+ */
+void listFilesAndSizes() {
+  Serial.println("\n--- Список файлов в LittleFS ---");
+  
+  Dir dir = LittleFS.openDir("/");
+  long totalSize = 0;
+  int fileCount = 0;
+
+  while (dir.next()) {
+    // Для каждого элемента получаем объект File
+    File entry = dir.openFile("r");
+    if (entry) {
+      Serial.print("Файл: ");
+      Serial.print(entry.name());
+      Serial.print("\tРазмер: ");
+      Serial.print(entry.size());
+      Serial.println(" Байт");
+      totalSize += entry.size();
+      fileCount++;
+      entry.close(); // Важно закрывать файл после использования
+    }
+  }
+
+  Serial.println("------------------------------------");
+  Serial.printf("Всего файлов: %d\n", fileCount);
+  Serial.printf("Общий размер: %ld Байт\n", totalSize);
+
+  // Дополнительная информация о файловой системе
+  FSInfo fs_info;
+  LittleFS.info(fs_info);
+  Serial.printf("Всего места:  %d Байт\n", fs_info.totalBytes);
+  Serial.printf("Использовано: %d Байт\n", fs_info.usedBytes);
+  Serial.println("------------------------------------");
 }

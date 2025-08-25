@@ -585,7 +585,7 @@ void newMinute(){
       } 
     }
   }
-  DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
+  // DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
   // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
   if(disableBeep) disableBeep--;
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
@@ -594,16 +594,16 @@ void newMinute(){
   
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
   if((countMinutes % 5) == 0){
+    DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ:%02u day  %02u:%02u:00\n",countDays,countHours,countMinutes);
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
     int address = period_of_day * sizeof(int16_t) * 2;        // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM
     if (countDays != lastDayProcessed) {
       saveDailyDataToFile(lastDayProcessed);
       lastDayProcessed = countDays;
-    } else {
-      eepromWriteInt16(address, ds[0].pvT);
-      eepromWriteInt16(address + sizeof(int16_t), ds[1].pvT);
-      DEBUG_PRINTF("PerOfDay=%03u; Addr0: 0x%04x; t0=%6.1f; Addr1: 0x%04x; t1=%6.1f;",period_of_day,address,(float)ds[0].pvT/10,address + sizeof(int16_t),(float)ds[1].pvT/10);
-    }
+    } 
+    eepromWriteInt16(address, ds[0].pvT);
+    eepromWriteInt16(address + sizeof(int16_t), ds[1].pvT);
+    DEBUG_PRINTF("PerOfDay=%03u; Addr0: 0x%04x; t0=%6.1f; Addr1: 0x%04x; t1=%6.1f;",period_of_day,address,(float)ds[0].pvT/10,address + sizeof(int16_t),(float)ds[1].pvT/10);
   }
 }

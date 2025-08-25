@@ -13,49 +13,6 @@ uint16_t eepromMemoryAddressForDay(uint8_t prg, uint8_t day){
 	return addressPage;
 }
 
-byte eepromWrBuff(uint16_t memoryAddress, const uint8_t* buffer, uint8_t length) {
-  uint8_t currentBufferIndex = 0;
- 
-    Wire.beginTransmission(EEPROM_I2C_ADDRESS);
-    Wire.write((uint8_t)(memoryAddress >> 8));   // Старший байт адреса
-    Wire.write((uint8_t)(memoryAddress & 0xFF)); // Младший байт адреса
-
-    for (uint8_t i = 0; i < length; ++i) {
-      Wire.write(buffer[currentBufferIndex + i]);
-    }
-
-    byte status = Wire.endTransmission();
-    if (status != 0) {
-      MYDEBUG_PRINT("I2C Write Error in buffer (addr "); MYDEBUG_PRINT(memoryAddress);
-      MYDEBUG_PRINT("). Status: "); MYDEBUG_PRINTLN(status);
-      // Прервать дальнейшую запись этого буфера, если есть ошибка
-    }
-    delay(EEPROM_WRITE_DELAY); // Ожидание завершения цикла записи страницы
-    return status; 
-}
-
-/**
- * @brief Читает массив байт (буфер) из EEPROM.
- * @param memoryAddress Начальный 16-битный адрес ячейки памяти.
- * @param buffer Указатель на буфер для сохранения прочитанных данных.
- * @param length Количество байт для чтения.
- */
-void eepromRdBuff(uint16_t memoryAddress, uint8_t* buffer, uint8_t length) {
-  Wire.beginTransmission(EEPROM_I2C_ADDRESS);
-  Wire.write((uint8_t)(memoryAddress >> 8));
-  Wire.write((uint8_t)(memoryAddress & 0xFF));
-  Wire.endTransmission();
-
-  Wire.requestFrom(EEPROM_I2C_ADDRESS, (int)length); // Запросить 'length' байт
-  for (uint16_t i = 0; i < length; i++) {
-    if (Wire.available()) {
-      buffer[i] = Wire.read();
-    } else {
-      buffer[i] = 0; // В случае ошибки заполнить нулем
-    }
-  }
-}
-
 // ----- Функция для подготовки стандартной талицы ----------
 void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16_t t1, 
   int16_t rh, int16_t timer, int16_t aer0, int16_t aer1, int16_t fl){
@@ -72,7 +29,7 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
     for (size_t i = 0; i < amountday; i++){
         uint8_t curday = day + i;
         uint16_t memoryAddress = eepromMemoryAddressForDay(prg, curday);
-        byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+        byte res = eepromWriteBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
         MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(curday); 
         MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
         MYDEBUG_PRINT("; RES:"); MYDEBUG_PRINTLN(res);
@@ -119,33 +76,39 @@ void prepareProg4(){
     prepareTable(4,29, 2,280,200,450, 0, 0, 0,90);// 29-31	28,0 оС	20,0 оС(45,0%)	90%	вимкнений	вимкнуто
 }
 
-void testProgs(){
+uint8_t testProgs(){
+  uint8_t err = 0;
   MYDEBUG_PRINTLN("AT24C32 EEPROM Test.");
   uint16_t memoryAddress = eepromMemoryAddressForDay(1, 1);
-  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  uint16_t res = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  if(res < sizeof(unBuf)) err = 1;
   if(unBuf.spDay.spT0 == -1){
     prepareProg1();
     MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N1");
   } else MYDEBUG_PRINTLN("PROGRAMM N1 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(2, 1);
-  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  res = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  if(res < sizeof(unBuf)) err |= 2;
   if(unBuf.spDay.spT0 == -1){
     prepareProg2();
     MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N2");
   } else MYDEBUG_PRINTLN("PROGRAMM N2 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(3, 1);
-  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  res = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  if(res < sizeof(unBuf)) err |= 4;
   if(unBuf.spDay.spT0 == -1){
     prepareProg3();
     MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N3");
   } else MYDEBUG_PRINTLN("PROGRAMM N3 Ok");
 
   memoryAddress = eepromMemoryAddressForDay(4, 1);
-  eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  res = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+  if(res < sizeof(unBuf)) err |= 8;
   if(unBuf.spDay.spT0 == -1){
     prepareProg4();
     MYDEBUG_PRINTLN("ПЕРЕЗАПИСАНА PROG N4");
   } else MYDEBUG_PRINTLN("PROGRAMM N4 Ok");
+  return err;
 }

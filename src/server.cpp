@@ -186,7 +186,8 @@ void acceptEeprom() {
   saveSetpoint();
 }
 
-  void respondsProgram(){
+  uint8_t respondsProgram(){
+    uint8_t err = 0;
     String jsonResponse;
     JsonDocument doc;
     mode = SAVEPROG; interval = INTERVAL_1000; quarter = SET_PROG4+1;
@@ -195,7 +196,8 @@ void acceptEeprom() {
       for (int i = 1; i < 31; i++) {
           JsonArray row = doc.add<JsonArray>();
           uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
-          eepromRdBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+          uint16_t res = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+          if(res < sizeof(unBuf)) err++;
           row.add(unBuf.spDay.spT0);
           row.add(unBuf.spDay.spT1);
           row.add(unBuf.spDay.spRH);
@@ -210,6 +212,7 @@ void acceptEeprom() {
       MYDEBUG_PRINTLN("jsonResponse:"+jsonResponse);
       server.send(200, "application/json", jsonResponse);
     }
+    return err;
   }
 
   //https://arduinojson.org/v7/assistant/#/step1
@@ -249,7 +252,7 @@ void acceptEeprom() {
       MYDEBUG_PRINT("aeration1="); MYDEBUG_PRINT(unBuf.spDay.aeration1); MYDEBUG_PRINT("; ");
       MYDEBUG_PRINTLN();
       uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
-      byte res = eepromWrBuff(memoryAddress, unBuf.buffer, sizeof(unBuf));
+      byte res = eepromWriteBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
 
       MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(i); 
       MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
@@ -279,3 +282,59 @@ void acceptEeprom() {
         server.send(400, "text/plain", "Ошибка: нет данных");
     }
   }
+
+  /**
+ * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
+ */
+void handleArchiveList() {
+    String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Инкубатор - Архив</title><style>body{font-family:Arial,sans-serif;background-color:#f4f4f4}div{max-width:600px;margin:40px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}h1{text-align:center;color:#333}ul{list-style-type:none;padding:0}li{margin:10px 0}a{display:block;padding:15px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:5px;transition:background-color .3s}a:hover{background-color:#0056b3}a.back{background-color:#6c757d}a.back:hover{background-color:#5a6268}</style></head><body><div><h1>Выберите день для просмотра</h1><ul>";
+    Dir dir = LittleFS.openDir("/");
+    while (dir.next()) {
+        String fileName = dir.fileName();
+        if (fileName.startsWith("/day_") && fileName.endsWith("_graph.json")) {
+            int start = 5;
+            int end = fileName.indexOf('_', start);
+            String day = fileName.substring(start, end);
+            html += "<li><a href='/data?day=" + day + "'>Просмотр данных за День " + day + "</a></li>";
+        }
+    }
+    html += "</ul><a href='/' class='back' style='margin-top: 20px;'>Назад на головну</a></div></body></html>";
+    server.send(200, "text/html", html);
+}
+
+
+/**
+ * @brief Генерирует HTML-страницу с таблицей данных для конкретного дня.
+ * День передается как GET-параметр, например: /data?day=21
+ */
+void handleShowData() {
+    if (!server.hasArg("day")) {
+        server.send(400, "text/plain", "Bad Request: Missing 'day' parameter");
+        return;
+    }
+    String day = server.arg("day");
+    String filename = "/day_" + day + "_graph.json";
+
+    File file = LittleFS.open(filename, "r");
+    if (!file) {
+        server.send(404, "text/plain", "File Not Found: " + filename);
+        return;
+    }
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, file);
+    file.close();
+
+    if (error) {
+        server.send(500, "text/plain", "JSON Parse Error");
+        return;
+    }
+
+    String html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Инкубатор - День " + day + "</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:50%;margin:20px auto}th,td{border:1px solid #ddd;text-align:center;padding:8px}th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}a{display:block;text-align:center;margin-bottom:20px;font-size:18px}</style></head><body><h1 style='text-align:center;'>Данные инкубации за День " + day + "</h1><a href='/archive'>Назад к списку дней</a><table><tr><th>Период (5 мин)</th><th>Температура T1 (°C)</th><th>Температура T2 (°C)</th></tr>";
+    JsonArray array = doc.as<JsonArray>();
+    for (JsonObject point : array) {
+        html += "<tr><td>" + String(point["p"].as<int>()) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+    }
+    html += "</table></body></html>";
+    server.send(200, "text/html", html);
+}

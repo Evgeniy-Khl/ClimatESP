@@ -1,4 +1,5 @@
 #include "main.h"
+#include "server.h"
 void initWiFiManag(void){
     // The extra parameters to be configured (can be either global or just in the setup)
     // After connecting, parameter.getValue() will get you the configured value
@@ -132,6 +133,10 @@ void initWiFiManag(void){
           server.streamFile(file, "text/html");
           file.close();
         });
+        // V-- ДОБАВЬТЕ ЭТИ ДВЕ СТРОКИ --V
+        server.on("/archive", HTTP_GET, handleArchiveList); // Страница со списком дней
+        server.on("/data", HTTP_GET, handleShowData);       // Страница с таблицей для дня
+        // ^-- КОНЕЦ ДОБАВЛЕНИЯ --^
         server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
         server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
         server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
