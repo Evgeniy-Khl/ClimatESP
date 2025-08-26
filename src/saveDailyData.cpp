@@ -106,7 +106,7 @@ void clearIncubationData() {
   while (dir.next()) {
     String fileName = dir.fileName();
     // Проверяем, что имя файла соответствует нашему шаблону
-    if (fileName.startsWith("/day_") && fileName.endsWith(".json")) {
+    if (fileName.startsWith("day_") && fileName.endsWith(".json")) {
       if (LittleFS.remove(fileName)) {
         DEBUG_PRINTF("Файл удален: %s\n", fileName.c_str());
         filesRemoved++;
@@ -202,7 +202,8 @@ void checkAndManageSpace() {
 
 void startIncubation() {
   clearIncubationData();
-  rtc.adjust(DateTime(1, 1, 1, 0, 0, 0));
+  // Установка времени: 25 год, 1 месяц, 1 день, 00:00:00
+  rtc.adjust(DateTime(2025, 1, 1, 0, 0, 0));
   eepromWriteByte(STARTINCUBADRES, 1);          // старт инкубации
   INCUBATION = 1;                               // установим флаг
 }

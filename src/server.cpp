@@ -283,31 +283,45 @@ void acceptEeprom() {
     }
   }
 
-/**
- * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
+  /**
+ * @brief Отправляет общую "шапку" HTML для всех страниц, включая CSS-стили.
+ * @param title Заголовок страницы, который будет отображаться во вкладке браузера.
  */
-void handleArchiveList() {
-    // 1. Отправляем HTTP заголовки
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send(200, "text/html", "");
-
-    // 2. Отправляем шапку HTML по частям
+void sendPageHeader(String title) {
     server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
     server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
-    server.sendContent(F("<title>Інкубатор - Архів</title>"));
+    server.sendContent("<title>" + title + "</title>");
     server.sendContent(F("<style>"));
     server.sendContent(F("body{font-family:Arial,sans-serif;background-color:#f4f4f4}"));
     server.sendContent(F("div{max-width:600px;margin:20px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}"));
-    server.sendContent(F("h1{text-align:center;color:#333}ul{list-style-type:none;padding:0}li{margin:15px 0}"));
+    server.sendContent(F("h1{text-align:center;color:#333}"));
+    server.sendContent(F("table{border-collapse:collapse;width:95%;margin:20px auto}"));
+    server.sendContent(F("th,td{border:1px solid #ddd;text-align:center;padding:12px; font-size:1.1rem;}"));
+    server.sendContent(F("th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}"));
+    server.sendContent(F("ul{list-style-type:none;padding:0}li{margin:15px 0}"));
     server.sendContent(F("a{display:block;padding:20px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:8px;font-size:1.2rem;font-weight:bold;transition:background-color .3s}"));
-    server.sendContent(F("a:hover{background-color:#0056b3}a.back{background-color:#6c757d}a.back:hover{background-color:#5a6268}"));
-    // V-- НОВЫЙ СТИЛЬ ДЛЯ КНОПКИ "ТЕКУЩИЙ ДЕНЬ" --V
+    server.sendContent(F("a:hover{background-color:#0056b3}"));
+    server.sendContent(F("a.back, a.btn{background-color:#6c757d; display:inline-block; padding:12px 24px; margin:20px 0;} a.back:hover, a.btn:hover{background-color:#5a6268}"));
     server.sendContent(F("a.live{background-color:#28a745}a.live:hover{background-color:#218838}"));
-    server.sendContent(F("</style></head><body><div><h1>Виберіть день для перегляду</h1><ul>"));
-    // V-- НОВАЯ КНОПКА --V
-    server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОГО дня</a>"));
+    server.sendContent(F(".summary{background-color:#eef; font-weight: bold;}"));
+    server.sendContent(F("</style></head><body>"));
+}
 
-    // 3. В цикле находим файлы и отправляем ТОЛЬКО одну строку-ссылку за итерацию
+/**
+ * @brief Генерирует страницу со списком дней в обратном порядке (новые вверху).
+ */
+void handleArchiveList() {
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html", "");
+
+    sendPageHeader("Інкубатор - Архів");
+
+    server.sendContent(F("<div><h1>Виберіть добу для перегляду</h1>"));
+    server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОЇ доби</a>"));
+    server.sendContent(F("<ul>"));
+    
+    // Шаг 1: Собираем все номера дней в вектор
+    std::vector<int> days;
     Dir dir = LittleFS.openDir("/");
     while (dir.next()) {
         String fileName = dir.fileName();
@@ -315,18 +329,26 @@ void handleArchiveList() {
             int start = 4;
             int end = fileName.indexOf('_', start);
             if (end > start) {
-                String day = fileName.substring(start, end);
-                // Формируем и сразу отправляем маленькую строку для одной ссылки
-                String link = "<li><a href='/data?day=" + day + "'>Перегляд даних за " + day + " день</a></li>";
-                server.sendContent(link);
-                yield(); // Даем "вздохнуть" системе, если файлов очень много
+                // Преобразуем номер дня в число и добавляем в вектор
+                days.push_back(fileName.substring(start, end).toInt());
             }
         }
     }
 
-    // 4. Завершаем страницу и передачу
-    server.sendContent(F("</ul><a href='/' class='back' style='margin-top: 20px;'>Назад на головну</a></div></body></html>"));
-    server.sendContent("");
+    // Шаг 2: Сортируем вектор по возрастанию (например, 1, 2, 10, 11)
+    std::sort(days.begin(), days.end());
+
+    // Шаг 3: Идем по отсортированному вектору в ОБРАТНОМ порядке и генерируем ссылки
+    for (int i = days.size() - 1; i >= 0; i--) {
+        int day = days[i];
+        String link = "<li><a href='/data?day=" + String(day) + "'>Перегляд даних за " + String(day) + " добу</a></li>";
+        server.sendContent(link);
+        yield();
+    }
+
+    server.sendContent(F("</ul><div style='text-align:center;'><a href='/' class='back'>Назад на головну</a></div>"));
+    server.sendContent(F("</div></body></html>"));
+    server.sendContent(F(""));
 }
 
 
@@ -367,34 +389,19 @@ void handleShowData() {
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
 
-    // 1. Отправляем шапку HTML по частям
-    server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
-    server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
-    server.sendContent(F("<title>Інкубатор - День "));
-    server.sendContent(day);
-    server.sendContent(F("</title>"));
-    server.sendContent(F("<style>"));
-    server.sendContent(F("body{font-family:Arial,sans-serif}"));
-    server.sendContent(F("table{border-collapse:collapse;width:95%;margin:20px auto}")); 
-    server.sendContent(F("th,td{border:1px solid #ddd;text-align:center;padding:12px; font-size:1.1rem;}"));
-    server.sendContent(F("th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}"));
-    server.sendContent(F("a{display:block;text-align:center;margin-bottom:20px;font-size:18px}"));
-    server.sendContent(F(".summary{background-color:#eef; font-weight: bold;}"));
-    // V-- ШАГ 1: ДОБАВЛЕН СТИЛЬ ДЛЯ КНОПКИ-ССЫЛКИ --V
-    server.sendContent(F("a.btn{display:inline-block;padding:12px 24px;margin:20px 0;background-color:#6c757d;color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:1.1rem;transition:background-color .3s}"));
-    server.sendContent(F("a.btn:hover{background-color:#5a6268}"));
-    server.sendContent(F("</style></head><body>"));
-    server.sendContent(F("<h1 style='text-align:center;'>Дані інкубації за "));
+    sendPageHeader("Инкубатор - День " + day);
+
+    server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(day); 
-    server.sendContent(F(" день</h1>"));
+    server.sendContent(F(" добу</h1>"));
     // V-- ШАГ 2: К ССЫЛКЕ ДОБАВЛЕН class="btn" --V
-    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку днів</a></div>"));
+    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("<table>"));
-    server.sendContent(F("<tr><th>Номер періоду</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th></tr>"));
+    server.sendContent(F("<tr><th>Відлік часу від початку інкубації</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th></tr>"));
 
     // 2. Отправляем строку статистики, если она есть
     if (!statsDoc.isNull()) {
-        String summaryRow = "<tr><th>кожні 5 хвилин</th><th>Середнє: ";
+        String summaryRow = "<tr><th>через кожні 5 хвилин</th><th>Середнє: ";
         summaryRow += String(statsDoc["avg_t1"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t1"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t1"].as<float>(), 1);
         summaryRow += "</th><th>Середнє: " + String(statsDoc["avg_t2"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t2"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t2"].as<float>(), 1);
         summaryRow += "</th></tr>";
@@ -403,27 +410,32 @@ void handleShowData() {
     
     // 3. В цикле отправляем строки с данными, по одной за раз
     JsonArray array = graphDoc.as<JsonArray>();
-    for (JsonObject point : array) {
-        String row = "<tr><td>" + formatTime(point["p"].as<int>()) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+    for (int i = array.size() - 1; i >= 0; i--) {
+        JsonObject point = array[i]; // Получаем элемент по индексу `i`
+        String row = "<tr><td>" + formatTime(point["p"].as<int>(), array.size()-1) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
         server.sendContent(row);
         yield();
     }
 
     // 4. Завершаем страницу и передачу
-    server.sendContent(F("</table></body></html>"));
+    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
+    server.sendContent(F("</div></body></html>"));
     server.sendContent("");
 }
 
-String formatTime(int period) {
-  int totalMinutes = period * 5;
+String formatTime(int period, int count) {
+  String formattedTime = "нульовий час";
+  int totalMinutes = (count - period) * 5;
   int hours = totalMinutes / 60;
   int minutes = totalMinutes % 60;
-  String formattedTime = "";
-  if (hours < 10) { formattedTime += "0"; }
-  formattedTime += String(hours);
-  formattedTime += ":";
-  if (minutes < 10) { formattedTime += "0"; }
-  formattedTime += String(minutes);
+  if(totalMinutes) {
+    formattedTime = "мінус ";
+    if (hours < 10) { formattedTime += "0"; }
+    formattedTime += String(hours);
+    formattedTime += ":";
+    if (minutes < 10) { formattedTime += "0"; }
+    formattedTime += String(minutes);
+  }
   return formattedTime;
 }
 
@@ -432,32 +444,36 @@ String formatTime(int period) {
  */
 void handleCurrentData() {
     // Получаем текущее время, чтобы знать, сколько данных уже записано
-    DateTime now = rtc.now();
+    // DateTime now = rtc.now();                      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Вычисляем, какой сейчас 5-минутный период (от 0 до 287)
-    int currentPeriod = (now.hour() * 60 + now.minute()) / 5;
+    // int currentPeriod = (now.hour() * 60 + now.minute()) / 5;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    int currentPeriod = (countHours * 60 + countMinutes) / 5;
 
     // --- Начинаем отправку HTML ---
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
-    server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
-    server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
-    server.sendContent(F("<title>Инкубатор - Текущий день</title>"));
-    // ... стили можно скопировать из handleShowData ...
-    server.sendContent(F("<style>...</style></head><body>"));
-    server.sendContent(F("<h1 style='text-align:center;'>Данные за ТЕКУЩИЙ день</h1>"));
-    server.sendContent(F("<p style='text-align:center;'>Информация обновлена в "));
+
+    sendPageHeader("Інкубатор - Поточна доба");
+
+    // Отправляем уникальный контент этой страницы
+    server.sendContent(F("<div><h1 style='text-align:center;'>Дані за поточну добу</h1>"));
+    server.sendContent(F("<p style='text-align:center;'>Інформація оновлена ​​в "));
     // Добавим точное время обновления
-    if(now.hour() < 10) server.sendContent("0");
-    server.sendContent(String(now.hour()));
+    // if(now.hour() < 10) server.sendContent("0"); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if(countHours < 10) server.sendContent("0");
+    // server.sendContent(String(now.hour()));      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    server.sendContent(String(countHours));
     server.sendContent(":");
-    if(now.minute() < 10) server.sendContent("0");
-    server.sendContent(String(now.minute()));
+    // if(now.minute() < 10) server.sendContent("0");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if(countMinutes < 10) server.sendContent("0");
+    // server.sendContent(String(now.minute()));    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    server.sendContent(String(countMinutes));
     server.sendContent(F("</p>"));
-    server.sendContent(F("<a href='/archive' class='btn'>Назад к архиву</a>")); // Предполагается, что у вас есть стиль .btn
-    server.sendContent(F("<table><tr><th>Время</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));
+    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>")); // Предполагается, что у вас есть стиль .btn
+    server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));
     
     // В цикле читаем из EEPROM и сразу отправляем в браузер
-    for (int period = 0; period <= currentPeriod; ++period) {
+    for (int period = currentPeriod; period >= 0; period--) {
         int currentAddress = period * sizeof(int16_t) * 2;
         int16_t raw_t1, raw_t2;
         eepromReadInt16(currentAddress, raw_t1);
@@ -471,14 +487,14 @@ void handleCurrentData() {
         float t1 = (float)raw_t1 / 10.0;
         float t2 = (float)raw_t2 / 10.0;
 
-        String row = "<tr><td>" + formatTime(period) + "</td>";
+        String row = "<tr><td>" + formatTime(period,currentPeriod) + "</td>";
         row += "<td>" + String(t1, 1) + "</td>";
         row += "<td>" + String(t2, 1) + "</td></tr>";
         
         server.sendContent(row);
         yield();
     }
-
-    server.sendContent(F("</table></body></html>"));
+    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
+    server.sendContent(F("</div></body></html>"));
     server.sendContent(F(""));
 }

@@ -570,21 +570,21 @@ void newSecond(){
 }
 
 void newMinute(){
-  if(INCUBATION){
-    countSeconds = now.second();
-    countMinutes = now.minute();
-    countHours   = now.hour();
-    countDays    = now.day();
-  } else {
+  // if(RTCENABLE){
+  //   countSeconds = now.second();
+  //   countMinutes = now.minute();
+  //   countHours   = now.hour();
+  //   countDays    = now.day();
+  // } else {
     countSeconds = 0;
     if(++countMinutes > 59){
       countMinutes = 0;
       if(++countHours > 23){
         countHours = 0;
-        if(++countDays > 30) countDays = 0;
+        if(++countDays > 30) countDays = 1;
       } 
     }
-  }
+  // }
   // DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
   // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
   if(disableBeep) disableBeep--;
@@ -594,7 +594,9 @@ void newMinute(){
   
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
   if((countMinutes % 5) == 0){
-    DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ:%02u day  %02u:%02u:00\n",countDays,countHours,countMinutes);
+    now = rtc.now();       // текущее время из DS3231 в формате Unix, сконвертированное для нашего часового пояса
+    DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ:%02u.%02u day  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
+    DEBUG_PRINTF("=== ----- ЗАПИСЬ:%02u.%02u day  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
     int address = period_of_day * sizeof(int16_t) * 2;        // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM

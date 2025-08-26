@@ -64,6 +64,18 @@ const byte ERROR_DATA[] = {
   0
 };
 
+// definition for Clean
+const byte CLEAN_DATA[] = {
+  0b00111001, // (67)	C
+  0b00111000, // (76)	L
+  0b01111001, // (69)	E
+  0,
+  0,
+  0,
+  0b01110111, // (65)	A
+  0b01010100, //(110)	n
+};
+
 // definition for the displayable ASCII chars
 const byte FONT_DEFAULT[] = {
   0b00000000, // (32)  <space>

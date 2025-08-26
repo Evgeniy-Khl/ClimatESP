@@ -143,9 +143,7 @@ void clearEEPROM() {
     eepromWriteInt16(currentAddress + sizeof(int16_t), 0);
 
     // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
-    if (period % 10 == 0) {
-      Serial.print(".");
-    }
+    if (period % 10 == 0) Serial.print(".");
   }
   
   Serial.println("\nОчистка AT24C32 завершена.");

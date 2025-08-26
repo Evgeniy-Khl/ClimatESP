@@ -165,10 +165,12 @@ void display_setup(void){
 void displ_IP(void){
     int8_t duration = 0;
     for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
+    if(dataLed[0]) {data[2] = NUMBER_FONT[dataLed[0]]; duration++;}   //"--1 --- --" ошибка RTC не найдена!
+    if(dataLed[1]) {data[3] = NUMBER_FONT[dataLed[1]]; duration++;}   //"--- 1-- --" ошибка RTC lost power!
     if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration++;}   //"--- -1- --" ошибка checkSetpoint
     if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration++;}   //"--- --1 --" ошибка checkConfig
     if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration++;}           //"--- --- F-" ошибка MOUNTING FS
-    if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration++;}           //"---     -C" ошибка writePCF8574
+    if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration++;}           //"--- --- -C" ошибка writePCF8574
     module.setDisplay(data, 8);
     do {
       digitalWrite(BEEP_PIN, LOW); // Включаем бипер
