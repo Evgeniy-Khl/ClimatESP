@@ -133,10 +133,9 @@ void initWiFiManag(void){
           server.streamFile(file, "text/html");
           file.close();
         });
-        // V-- ДОБАВЬТЕ ЭТИ ДВЕ СТРОКИ --V
-        server.on("/archive", HTTP_GET, handleArchiveList); // Страница со списком дней
-        server.on("/data", HTTP_GET, handleShowData);       // Страница с таблицей для дня
-        // ^-- КОНЕЦ ДОБАВЛЕНИЯ --^
+        server.on("/archive", HTTP_GET, handleArchiveList); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
+        server.on("/data", HTTP_GET, handleShowData);       // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
+        server.on("/current", HTTP_GET, handleCurrentData); // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
         server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
         server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
         server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client

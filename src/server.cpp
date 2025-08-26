@@ -301,7 +301,11 @@ void handleArchiveList() {
     server.sendContent(F("h1{text-align:center;color:#333}ul{list-style-type:none;padding:0}li{margin:15px 0}"));
     server.sendContent(F("a{display:block;padding:20px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:8px;font-size:1.2rem;font-weight:bold;transition:background-color .3s}"));
     server.sendContent(F("a:hover{background-color:#0056b3}a.back{background-color:#6c757d}a.back:hover{background-color:#5a6268}"));
+    // V-- НОВЫЙ СТИЛЬ ДЛЯ КНОПКИ "ТЕКУЩИЙ ДЕНЬ" --V
+    server.sendContent(F("a.live{background-color:#28a745}a.live:hover{background-color:#218838}"));
     server.sendContent(F("</style></head><body><div><h1>Виберіть день для перегляду</h1><ul>"));
+    // V-- НОВАЯ КНОПКА --V
+    server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОГО дня</a>"));
 
     // 3. В цикле находим файлы и отправляем ТОЛЬКО одну строку-ссылку за итерацию
     Dir dir = LittleFS.openDir("/");
@@ -376,12 +380,14 @@ void handleShowData() {
     server.sendContent(F("th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}"));
     server.sendContent(F("a{display:block;text-align:center;margin-bottom:20px;font-size:18px}"));
     server.sendContent(F(".summary{background-color:#eef; font-weight: bold;}"));
+    // V-- ШАГ 1: ДОБАВЛЕН СТИЛЬ ДЛЯ КНОПКИ-ССЫЛКИ --V
     server.sendContent(F("a.btn{display:inline-block;padding:12px 24px;margin:20px 0;background-color:#6c757d;color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:1.1rem;transition:background-color .3s}"));
     server.sendContent(F("a.btn:hover{background-color:#5a6268}"));
     server.sendContent(F("</style></head><body>"));
     server.sendContent(F("<h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(day); 
     server.sendContent(F(" день</h1>"));
+    // V-- ШАГ 2: К ССЫЛКЕ ДОБАВЛЕН class="btn" --V
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку днів</a></div>"));
     server.sendContent(F("<table>"));
     server.sendContent(F("<tr><th>Номер періоду</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th></tr>"));
@@ -419,4 +425,60 @@ String formatTime(int period) {
   if (minutes < 10) { formattedTime += "0"; }
   formattedTime += String(minutes);
   return formattedTime;
+}
+
+/**
+ * @brief Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
+ */
+void handleCurrentData() {
+    // Получаем текущее время, чтобы знать, сколько данных уже записано
+    DateTime now = rtc.now();
+    // Вычисляем, какой сейчас 5-минутный период (от 0 до 287)
+    int currentPeriod = (now.hour() * 60 + now.minute()) / 5;
+
+    // --- Начинаем отправку HTML ---
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html", "");
+    server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
+    server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
+    server.sendContent(F("<title>Инкубатор - Текущий день</title>"));
+    // ... стили можно скопировать из handleShowData ...
+    server.sendContent(F("<style>...</style></head><body>"));
+    server.sendContent(F("<h1 style='text-align:center;'>Данные за ТЕКУЩИЙ день</h1>"));
+    server.sendContent(F("<p style='text-align:center;'>Информация обновлена в "));
+    // Добавим точное время обновления
+    if(now.hour() < 10) server.sendContent("0");
+    server.sendContent(String(now.hour()));
+    server.sendContent(":");
+    if(now.minute() < 10) server.sendContent("0");
+    server.sendContent(String(now.minute()));
+    server.sendContent(F("</p>"));
+    server.sendContent(F("<a href='/archive' class='btn'>Назад к архиву</a>")); // Предполагается, что у вас есть стиль .btn
+    server.sendContent(F("<table><tr><th>Время</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));
+    
+    // В цикле читаем из EEPROM и сразу отправляем в браузер
+    for (int period = 0; period <= currentPeriod; ++period) {
+        int currentAddress = period * sizeof(int16_t) * 2;
+        int16_t raw_t1, raw_t2;
+        eepromReadInt16(currentAddress, raw_t1);
+        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
+
+        // Пропускаем пустые записи, если инкубатор только что включился
+        if (raw_t1 == 0 && raw_t2 == 0) {
+            continue; 
+        }
+
+        float t1 = (float)raw_t1 / 10.0;
+        float t2 = (float)raw_t2 / 10.0;
+
+        String row = "<tr><td>" + formatTime(period) + "</td>";
+        row += "<td>" + String(t1, 1) + "</td>";
+        row += "<td>" + String(t2, 1) + "</td></tr>";
+        
+        server.sendContent(row);
+        yield();
+    }
+
+    server.sendContent(F("</table></body></html>"));
+    server.sendContent(F(""));
 }

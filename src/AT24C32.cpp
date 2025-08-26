@@ -126,6 +126,31 @@ uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t leng
   return bytesRead;
 }
 
+/**
+ * @brief Очищает область памяти в AT24C32, используемую для хранения суточных данных.
+ * Заполняет нулями 288 записей (t1 и t2).
+ */
+void clearEEPROM() {
+  Serial.println("Начало очистки AT24C32...");
+  
+  // Проходим по всем 288 пятиминутным периодам
+  for (int period = 0; period < 288; ++period) {
+    // Вычисляем адрес для текущего периода
+    int currentAddress = period * sizeof(int16_t) * 2;
+    
+    // Записываем 0 для t1 и t2
+    eepromWriteInt16(currentAddress, 0);
+    eepromWriteInt16(currentAddress + sizeof(int16_t), 0);
+
+    // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
+    if (period % 10 == 0) {
+      Serial.print(".");
+    }
+  }
+  
+  Serial.println("\nОчистка AT24C32 завершена.");
+}
+
 // ----- Функции для работы с разными типами данных -----
 bool eepromWriteInt16(uint16_t address, int16_t value) {
   // Просто преобразуем значение в байты и передаем в нашу основную функцию

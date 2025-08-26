@@ -42,6 +42,12 @@ bool eepromWriteBuffer(uint16_t memoryAddress, const uint8_t* buffer, uint16_t l
  */
 uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t length);
 
+/**
+ * @brief Очищает область памяти в AT24C32, используемую для хранения суточных данных.
+ * Заполняет нулями 288 записей (t1 и t2).
+ */
+void clearEEPROM();
+
 /** @return true в случае успеха, иначе false. */
 bool eepromWriteInt16(uint16_t address, int16_t value);
 

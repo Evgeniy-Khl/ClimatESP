@@ -41,9 +41,10 @@ void acceptProgram();
 void respondsValues();
 String getFloat(float val, uint8_t brackets);
 byte calculateChecksum(byte* data, int length);
-void OutStatusLed();  // для HTML страницы
+void OutStatusLed();      // для HTML страницы
 void handleArchiveList(); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
 void handleShowData();    // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
 String formatTime(int period);
+void handleCurrentData(); // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
 
 #endif /*SERVER_H*/
