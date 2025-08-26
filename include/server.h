@@ -42,14 +42,8 @@ void respondsValues();
 String getFloat(float val, uint8_t brackets);
 byte calculateChecksum(byte* data, int length);
 void OutStatusLed();  // для HTML страницы
-/**
- * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
- */
-void handleArchiveList();
-/**
- * @brief Генерирует HTML-страницу с таблицей данных для конкретного дня.
- * День передается как GET-параметр, например: /data?day=21
- */
-void handleShowData();
+void handleArchiveList(); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
+void handleShowData();    // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
+String formatTime(int period);
 
-#endif //SERVER_H
+#endif /*SERVER_H*/

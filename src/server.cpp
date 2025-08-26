@@ -284,8 +284,7 @@ void acceptEeprom() {
   }
 
 /**
- * @brief Генерирует страницу со списком дней, отправляя HTML по частям.
- * Максимально экономный по памяти вариант.
+ * @brief Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
  */
 void handleArchiveList() {
     // 1. Отправляем HTTP заголовки
@@ -399,7 +398,7 @@ void handleShowData() {
     // 3. В цикле отправляем строки с данными, по одной за раз
     JsonArray array = graphDoc.as<JsonArray>();
     for (JsonObject point : array) {
-        String row = "<tr><td>" + String(point["p"].as<int>()) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+        String row = "<tr><td>" + formatTime(point["p"].as<int>()) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
         server.sendContent(row);
         yield();
     }
@@ -407,4 +406,17 @@ void handleShowData() {
     // 4. Завершаем страницу и передачу
     server.sendContent(F("</table></body></html>"));
     server.sendContent("");
+}
+
+String formatTime(int period) {
+  int totalMinutes = period * 5;
+  int hours = totalMinutes / 60;
+  int minutes = totalMinutes % 60;
+  String formattedTime = "";
+  if (hours < 10) { formattedTime += "0"; }
+  formattedTime += String(hours);
+  formattedTime += ":";
+  if (minutes < 10) { formattedTime += "0"; }
+  formattedTime += String(minutes);
+  return formattedTime;
 }
