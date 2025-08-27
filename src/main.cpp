@@ -65,16 +65,12 @@ void setup(){
   //------------------------------------------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
-  DEBUG_SPRINTF(displStr,"Пропорц.0=%g  Ітеграл.0=%g", pid[0].Kp,pid[0].Ki);
-  MYDEBUG_PRINTLN(displStr);
-  DEBUG_SPRINTF(displStr,"Пропорц.1=%g  Ітеграл.1=%g", pid[1].Kp,pid[1].Ki);
-  MYDEBUG_PRINTLN(displStr);
   //---------- Инициализация DS3231 ----------------------------------------
   if(rtc.begin()){
     RTCENABLE = 1;
     if(rtc.lostPower()) {                     // у RTC села батарейка
         MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
-        dataLed[1] = 1;
+        dataLed[1] = 1;                       // RTC lost power
         // Установка времени: 1 год, 1 месяц, 1 день, 00:00:00
         rtc.adjust(DateTime(2025, 1, 1, 0, 0, 0));
         eepromWriteByte(STARTINCUBADRES, 0);  // если и был старт инкубации то теперь сброшен
@@ -83,7 +79,7 @@ void setup(){
     } else {
       if(eepromReadByte(STARTINCUBADRES)) INCUBATION = 1; // установим флаг
     }
-  } else dataLed[0] = 1;
+  } else dataLed[0] = 1;      // DS3231 не инициализирован
   //------------------------------------------------------------------------------
   // testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
@@ -104,13 +100,12 @@ void setup(){
 
 void loop(){
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
-  bool hasChanged = false;
-  long now = millis();
-  
+  long nowMillis = millis();
   server.handleClient(); // Обработка входящих запросов
   //-------------------------------------------- 10 mSec. --------------------------------------
-  if(now - counter10 > 10){
-    counter10 = now;
+  if(nowMillis - counter10 > 10){
+    counter10 = nowMillis;
+    hasChanged = false;
     hasChanged |= heaterPwm.update();
     hasChanged |= humidiPwm.update();
 
@@ -131,8 +126,8 @@ void loop(){
     if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}  // если не удерживается ни одна кнопка то сброс времени ожидания.
   }
   //-------------------------------------------- КЛАВИАТУРА --------------------------------------
-    if(now - counterWait > waitCheckKeyPad){
-      counterWait = now;
+    if(nowMillis - counterWait > waitCheckKeyPad){
+      counterWait = nowMillis;
       keys = module.getButtons();
       
       if(lastKey == keys && keys > 0){
@@ -146,9 +141,9 @@ void loop(){
       else lastKey = keys;
     }
   //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
-  if(now - counter500 > 500){
+  if(nowMillis - counter500 > 500){
     halfSecond++;
-    counter500 = now; 
+    counter500 = nowMillis; 
 
     if(resetDispl) --resetDispl;
     else if(numSetup) saveset();  // сохраняем установки
@@ -162,9 +157,8 @@ void loop(){
     // writePCF8574(portOut.value);  // ??????????????
   }
   //================================ НОВАЯ СЕКУНДА =================================
-  if(now - counter1000 > 1000){
-    counter1000 = now;
-    // DateTime now = rtc.now();  
+  if(nowMillis - counter1000 > 1000){
+    counter1000 = nowMillis;
     newSecond();
     heaterPwm.write(heaterValue);
     humidiPwm.write(humidiValue);
@@ -173,12 +167,12 @@ void loop(){
     if(++countSeconds > 0) newMinute();
   }
   //************************************************ TELEGRAM *************************************************/
-  if (now - lastSendTime > interval) {
+  if (nowMillis - lastSendTime > interval) {
     if(earlyMode != mode){
       // DEBUG_PRINTF("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
       earlyMode = mode;
     }
-    lastSendTime = now;
+    lastSendTime = nowMillis;
     // Serial.print("Free heap size: ");
     // MYDEBUG_PRINTLN(system_get_free_heap_size());
 

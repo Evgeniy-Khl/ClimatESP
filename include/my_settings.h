@@ -10,6 +10,7 @@ SensorType detectedSensor = UNKNOWN;    // Переменная для хран�
 
 bool shouldSaveConfig = false;//flag for saving data
 bool enabledListen = false;
+bool hasChanged = false;
 
 uint8_t numberOfDevices,    // число найденых датчиков
         displNum,           // вариант дисплея

@@ -65,12 +65,12 @@ String MyTelegramBot::sendGetToTelegram(const String& command) {
 
 bool MyTelegramBot::readHTTPAnswer(String &body, String &headers) {
   int ch_count = 0;
-  unsigned long now = millis();
+  unsigned long nowMillis = millis();
   bool finishedHeaders = false;
   bool currentLineIsBlank = true;
   bool responseReceived = false;
 
-  while (millis() - now < longPoll * 1000 + waitForResponse) {
+  while (millis() - nowMillis < longPoll * 1000 + waitForResponse) {
     while (client->available()) {
       char c = client->read();
       responseReceived = true;

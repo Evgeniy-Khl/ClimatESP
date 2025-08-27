@@ -21,16 +21,16 @@ void SoftwarePWMBit::write(int value) {
 
 // Главный метод обновления
 bool SoftwarePWMBit::update() {
-    unsigned long now = millis();
+    unsigned long nowMillis = millis();
     bool stateChanged = false;
 
-    if (now - lastCycleStartMicros >= periodMillis) {
+    if (nowMillis - lastCycleStartMicros >= periodMillis) {
         lastCycleStartMicros += periodMillis;
     }
 
     unsigned long onTime = (periodMillis * dutyCycle) / 255;// (1000 * (0-255))/255 = 0 - 1000
     
-    bool shouldBeOn = (now - lastCycleStartMicros < onTime);
+    bool shouldBeOn = (nowMillis - lastCycleStartMicros < onTime);
     bool isCurrentlyOn = (*targetByte & bitMask) != 0;
 
     if (shouldBeOn != isCurrentlyOn) {
