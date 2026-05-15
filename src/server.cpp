@@ -10,6 +10,12 @@ void notFoundHandler() {
   server.send(404, "text/plain", "Not found");
 }
 
+void formatFloat(char* buf, size_t size, float val, bool brackets) {
+    if (brackets) snprintf(buf, size, "[%.1f]", val);
+    else snprintf(buf, size, "%.1f", val);
+    for (int i = 0; buf[i]; i++) if (buf[i] == '.') buf[i] = ',';
+}
+
 void respondsValues() {
     tmrTelegramOff = 300;
     JsonDocument data;
@@ -18,18 +24,36 @@ void respondsValues() {
     snprintf_P(model, sizeof(model), PSTR("Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№ %d"), settings.sp_structs[1].special & 0x0F);
     data["model"] = model;
     
-    data["temperature0"] = (float)ds[0].pvT/10.0; // Передаем как число, фронтенд сам отформатирует
-    data["settemp0"] = (float)settings.sp_structs[0].spT/10.0;
+    char t0[16], t0s[16], t1[16], t1s[16], hum[16], hums[16];
+
+    formatFloat(t0, sizeof(t0), (float)ds[0].pvT/10.0, false);
+    formatFloat(t0s, sizeof(t0s), (float)settings.sp_structs[0].spT/10.0, true);
+    data["temperature0"] = t0;
+    data["settemp0"] = t0s;
     
     if(detectedSensor == SENSOR_DS18B20 && numberOfDevices > 1){
-        data["temperature1"] = (float)ds[1].pvT/10.0;
-        data["settemp1"] = (float)settings.sp_structs[1].spT/10.0;
-        if(pvRH == 255) {data["humidity"] = "не визначено"; data["sethum"] = " ";}
-        else {data["humidity"] = pvRH; data["sethum"] = "%";}
-        if(HIH5030) data["sethum"] = (float)settings.sp_structs[1].spRH/10.0;
+        formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
+        formatFloat(t1s, sizeof(t1s), (float)settings.sp_structs[1].spT/10.0, true);
+        data["temperature1"] = t1;
+        data["settemp1"] = t1s;
+
+        if(pvRH == 255) {
+            data["humidity"] = "не визначено"; 
+            data["sethum"] = " ";
+        } else {
+            snprintf(hum, sizeof(hum), "%d", pvRH);
+            data["humidity"] = hum; 
+            data["sethum"] = "%";
+        }
+        if(HIH5030) {
+            formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
+            data["sethum"] = hums;
+        }
     } else if(detectedSensor == SENSOR_DHT22){
-      data["humidity"] = (float)ds[1].pvT/10.0;
-      data["sethum"] = (float)settings.sp_structs[1].spRH/10.0;
+        formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
+        formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
+        data["humidity"] = t1; // Для DHT22 второй "температурный" канал это влажность
+        data["sethum"] = hums;
     }
     
     const char* str;
