@@ -62,7 +62,8 @@ void initWiFiManag(void){
         data[5] = GR;  // ooo
         module.setDisplay(data, 8);
         delay(1000);
-        client.setInsecure();        // Говорим клиенту не проверять сертификат
+        client.setBufferSizes(1024, 512); // Оптимизация буферов для Telegram (RX:1KB, TX:0.5KB)
+        client.setInsecure();             // Говорим клиенту не проверять сертификат
         //------------------ read updated parameters -----------------------
         strcpy(botToken, custom_botToken.getValue());
         strcpy(chatID, custom_chatID.getValue());
