@@ -295,10 +295,12 @@ void sendPageHeader(String title) {
     server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
     server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
     server.sendContent("<title>" + title + "</title>");
+    server.sendContent(F("<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>"));
     server.sendContent(F("<style>"));
     server.sendContent(F("body{font-family:Arial,sans-serif;background-color:#f4f4f4}"));
-    server.sendContent(F("div{max-width:600px;margin:20px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}"));
+    server.sendContent(F("div{max-width:800px;margin:20px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}"));
     server.sendContent(F("h1{text-align:center;color:#333}"));
+    server.sendContent(F(".chart-container{position:relative;margin:auto;height:40vh;width:100%}"));
     server.sendContent(F("table{border-collapse:collapse;width:95%;margin:20px auto}"));
     server.sendContent(F("th,td{border:1px solid #ddd;text-align:center;padding:12px; font-size:1.1rem;}"));
     server.sendContent(F("th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}"));
@@ -309,6 +311,47 @@ void sendPageHeader(String title) {
     server.sendContent(F("a.live{background-color:#28a745}a.live:hover{background-color:#218838}"));
     server.sendContent(F(".summary{background-color:#eef; font-weight: bold;}"));
     server.sendContent(F("</style></head><body>"));
+}
+
+void handleGetGraph() {
+    if (!server.hasArg("day") || server.arg("day") == "") {
+        server.send(400, "text/plain", F("Bad Request: 'day' parameter is missing"));
+        return;
+    }
+    String day = server.arg("day");
+    String filename = "/day_" + day + "_graph.json";
+    
+    if (LittleFS.exists(filename)) {
+        File file = LittleFS.open(filename, "r");
+        server.streamFile(file, "application/json");
+        file.close();
+    } else {
+        server.send(404, "text/plain", "File Not Found");
+    }
+}
+
+void handleGetCurrentGraph() {
+    int currentPeriod = (countHours * 60 + countMinutes) / 5;
+    JsonDocument doc;
+    JsonArray array = doc.to<JsonArray>();
+
+    for (int period = 0; period <= currentPeriod; period++) {
+        int currentAddress = period * sizeof(int16_t) * 2;
+        int16_t raw_t1, raw_t2;
+        eepromReadInt16(currentAddress, raw_t1);
+        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
+
+        if (raw_t1 == 0 && raw_t2 == 0) continue; 
+
+        JsonObject point = array.add<JsonObject>();
+        point["p"] = period;
+        point["t1"] = (float)raw_t1 / 10.0;
+        point["t2"] = (float)raw_t2 / 10.0;
+    }
+    
+    server.setContentLength(measureJson(doc));
+    server.send(200, "application/json", "");
+    serializeJson(doc, server.client());
 }
 
 /**
@@ -399,6 +442,42 @@ void handleShowData() {
     server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(day); 
     server.sendContent(F(" добу</h1>"));
+
+    // --- Вставка графика ---
+    server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<script>"));
+    server.sendContent("const dayNum = " + day + ";");
+    server.sendContent(F(R"raw(
+    fetch('/get_graph?day=' + dayNum)
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(p => {
+            let total = p.p * 5;
+            let h = Math.floor(total / 60);
+            let m = total % 60;
+            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+        });
+        const t1 = data.map(p => p.t1);
+        const t2 = data.map(p => p.t2);
+        new Chart(document.getElementById('tempChart'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
+              { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 }
+            ]
+          },
+          options: { 
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: false } },
+            interaction: { intersect: false, mode: 'index' }
+          }
+        });
+      });
+    )raw"));
+    server.sendContent(F("</script>"));
+
     // V-- ШАГ 2: К ССЫЛКЕ ДОБАВЛЕН class="btn" --V
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("<table>"));
@@ -459,6 +538,40 @@ void handleCurrentData() {
     char timeStr[32];
     snprintf_P(timeStr, sizeof(timeStr), PSTR("<p style='text-align:center;'>Інформація оновлена в %02u:%02u</p>"), countHours, countMinutes);
     server.sendContent(timeStr);
+
+    // --- Вставка графика для текущей суток ---
+    server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<script>"));
+    server.sendContent(F(R"raw(
+    fetch('/get_current_graph')
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(p => {
+            let total = p.p * 5;
+            let h = Math.floor(total / 60);
+            let m = total % 60;
+            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+        });
+        const t1 = data.map(p => p.t1);
+        const t2 = data.map(p => p.t2);
+        new Chart(document.getElementById('tempChart'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
+              { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 }
+            ]
+          },
+          options: { 
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: false } },
+            interaction: { intersect: false, mode: 'index' }
+          }
+        });
+      });
+    )raw"));
+    server.sendContent(F("</script>"));
 
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
     server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));

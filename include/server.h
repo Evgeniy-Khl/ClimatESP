@@ -44,6 +44,8 @@ void OutStatusLed();      // для HTML страницы
 void sendPageHeader(String title);  // Отправляет общую "шапку" HTML для всех страниц, включая CSS-стили.
 void handleArchiveList();           // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
 void handleShowData();              // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
+void handleGetGraph();              // Отдает сырой JSON файл для графика.
+void handleGetCurrentGraph();       // Генерирует JSON для текущего графика из EEPROM.
 void handleCurrentData();           // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
 
 #endif /*SERVER_H*/

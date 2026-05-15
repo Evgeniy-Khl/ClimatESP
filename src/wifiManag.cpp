@@ -135,6 +135,8 @@ void initWiFiManag(void){
         });
         server.on("/archive", HTTP_GET, handleArchiveList); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
         server.on("/data", HTTP_GET, handleShowData);       // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
+        server.on("/get_graph", HTTP_GET, handleGetGraph);   // Отдает сырой JSON файл для графика.
+        server.on("/get_current_graph", HTTP_GET, handleGetCurrentGraph); 
         server.on("/current", HTTP_GET, handleCurrentData); // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
         server.on("/getvalues", HTTP_GET, respondsValues);      // the server responds the completed index.html to the client
         server.on("/geteeprom", HTTP_GET, respondsEeprom);      // the server responds the completed setup.html to the client
