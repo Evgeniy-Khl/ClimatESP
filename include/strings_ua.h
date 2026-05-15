@@ -9,8 +9,10 @@
     {\"command\":\"start\", \"description\":\"Повідомлення яке надсилається, коли ви відкриваєте чат із ботом\"}, \
     {\"command\":\"status\",\"description\":\"Поточний стан пристрою.\"} \
     ]")
-#define WORD_TITLE          F("```\n Клімат-5.")
-#define ID_TITLE            F("  ID:")
+#define GRAVE_ACCENT        F("```")
+#define WORD_TITLE          F("```\n Клімат-5.25")
+#define ID_TITLE            F("  №:")
+#define WORD_IP             F("IP:")
 #define WORD_AIR            F("- повітря: ")
 #define WORD_PRODUCT        F("- продукт: ")
 #define WORD_HUMIDITY       F("- вологість:  ")

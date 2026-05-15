@@ -52,6 +52,7 @@ void setup(){
     // } else {
     //   MYDEBUG_PRINTLN("Failed to format LittleFS");
     // }
+    //--------------------------------------------------------------------------------------
     //--------------------- checkSetpoint ----------------------------------
     dataLed[2] = checkSetpoint();
     dataLed[3] = checkConfig();
@@ -96,13 +97,14 @@ void setup(){
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
   delay(3000);
+  begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+  DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
 }
 
 void loop(){
-  //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ ---------------------------------
-  long nowMillis = millis();
   server.handleClient(); // Обработка входящих запросов
-  //-------------------------------------------- 10 mSec. --------------------------------------
+  //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ 10 mSec. ---------------------------------
+  long nowMillis = millis();
   if(nowMillis - counter10 > 10){
     counter10 = nowMillis;
     hasChanged = false;

@@ -29,7 +29,7 @@ uint8_t numberOfDevices,    // число найденых датчиков
         countSeconds,       // счетчик секунд
         countMinutes,       // счетчик минут
         countHours,         // счетчик часов
-        countDays = 1;      // счетчик дней
+        countDays = 31;      // счетчик дней
 
 int16_t pvAeration,         // текущее время проветривания
         pvVenting,          // ? текущее время проветривания

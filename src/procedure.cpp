@@ -600,7 +600,7 @@ void newMinute(){
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
     int address = period_of_day * sizeof(int16_t) * 2;        // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM
-    if (countDays != lastDayProcessed) {
+    if (countDays != lastDayProcessed && countDays <= 30) {
       saveDailyDataToFile(lastDayProcessed);
       lastDayProcessed = countDays;
     } 

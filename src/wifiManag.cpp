@@ -7,7 +7,7 @@ void initWiFiManag(void){
     WiFiManagerParameter custom_botToken("botToken", "BOT token", botToken, 50);
     WiFiManagerParameter custom_chatID("chatID", "Chat ID", chatID, 11);
 
-    //WiFiManager
+    //WiFiManager https://github.com/tzapu/WiFiManager
     //Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wifiManager;
 
@@ -22,6 +22,7 @@ void initWiFiManag(void){
     if(settings.sp_structs[0].special & 0x08){
       settings.sp_structs[0].special &= 0xF7;
       saveSetpoint();
+      MYDEBUG_PRINTLN("Сброс настроек WiFi!");
       wifiManager.resetSettings();
     } 
     //----------------------------------------------------------
@@ -61,10 +62,7 @@ void initWiFiManag(void){
         data[5] = GR;  // ooo
         module.setDisplay(data, 8);
         delay(1000);
-       #ifdef ESP8266
-          X509List cert(TELEGRAM_CERTIFICATE_ROOT);
-          client.setTrustAnchors(&cert);      // Add root certificate for api.telegram.org
-       #endif
+        client.setInsecure();        // Говорим клиенту не проверять сертификат
         //------------------ read updated parameters -----------------------
         strcpy(botToken, custom_botToken.getValue());
         strcpy(chatID, custom_chatID.getValue());
@@ -73,13 +71,16 @@ void initWiFiManag(void){
         MYDEBUG_PRINTLN("chatID:" + String(chatID));
         MYDEBUG_PRINTLN();
         //-------------- Проверяем, что botToken не пустая -----------------
-        if (strlen(botToken) > 0) {
+        if (strlen(botToken) > 40) {
             bot.updateToken(botToken);
+            MYDEBUG_PRINTLN("bot.updateToken:" + bot.getToken());
             // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
             uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
             DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
-            uint8_t num = settings.sp_structs[1].special & 0x0F;
-            bot.sendMessage(chatID, "Climate-5.25  №" + String(num), "");
+            String statusMess = WORD_TITLE + String(settings.sp_structs[1].special) + NEW_STR;
+            statusMess += WORD_IP + WiFi.localIP().toString() + NEW_STR;
+            statusMess += GRAVE_ACCENT;
+            bot.sendMessage(chatID, statusMess, "Markdown");
             BOTENABLE = 1;
             MYDEBUG_PRINTLN("bot.updateToken!");
         }
@@ -96,9 +97,8 @@ void initWiFiManag(void){
           serializeJson(json, Serial);
           serializeJson(json, configFile);
           configFile.close();
-          
         }
-        //============================== END SAVE =====================================
+        //============================== END =====================================
         server.on("/", HTTP_GET, []() {
           mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 300;
           if (!LittleFS.exists("/index.html")) {

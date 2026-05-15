@@ -9,8 +9,10 @@
     {\"command\":\"start\", \"description\":\"A message is sent when you open a chat with a bot\"}, \
     {\"command\":\"status\",\"description\":\"Current device status.\"} \
     ]")
-#define WORD_TITLE          F("```\n Climate-5.")
+#define GRAVE_ACCENT        F("```")
+#define WORD_TITLE          F("```\n Climate-5.25")
 #define ID_TITLE            F("  ID:")
+#define WORD_IP             F("IP:")
 #define WORD_AIR            F("- air: ")
 #define WORD_PRODUCT        F("- product: ")
 #define WORD_HUMIDITY       F("- humidity:  ")
