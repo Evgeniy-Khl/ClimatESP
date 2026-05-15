@@ -282,11 +282,13 @@ function fetchGraphData() {
         });
         const t1 = data.map(p => p.t1);
         const t2 = data.map(p => p.t2);
+        const rh = data.map(p => p.rh);
 
         if (mainChart) {
             mainChart.data.labels = labels;
             mainChart.data.datasets[0].data = t1;
             mainChart.data.datasets[1].data = t2;
+            mainChart.data.datasets[2].data = rh;
             mainChart.update('none'); // Обновляем без анимации для плавности
         } else {
             const ctx = document.getElementById('mainChart').getContext('2d');
@@ -296,12 +298,16 @@ function fetchGraphData() {
                     labels: labels,
                     datasets: [
                         { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 1 },
-                        { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 1 }
+                        { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 1 },
+                        { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 1, yAxisID: 'y1' }
                     ]
                 },
                 options: { 
                     responsive: true, maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: false } },
+                    scales: { 
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
+                        y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
+                    },
                     interaction: { intersect: false, mode: 'index' },
                     plugins: { legend: { display: true, labels: { boxWidth: 10 } } }
                 }

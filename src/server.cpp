@@ -371,6 +371,13 @@ void handleGetCurrentGraph() {
         point["p"] = period;
         point["t1"] = (float)raw_t1 / 10.0;
         point["t2"] = (float)raw_t2 / 10.0;
+
+        if (detectedSensor == SENSOR_DHT22) {
+            point["rh"] = (float)raw_t2 / 10.0;
+        } else if (numberOfDevices == 2) {
+            uint8_t rh = tableRH(raw_t1, raw_t2);
+            if (rh <= 100) point["rh"] = rh;
+        }
     }
     
     server.setContentLength(measureJson(doc));
@@ -494,18 +501,23 @@ void handleShowData() {
         });
         const t1 = data.map(p => p.t1);
         const t2 = data.map(p => p.t2);
+        const rh = data.map(p => p.rh);
         new Chart(document.getElementById('tempChart'), {
           type: 'line',
           data: {
             labels: labels,
             datasets: [
               { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 }
+              { label: 'T2 (Яйце/Звол.)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
           options: { 
             responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: false } },
+            scales: { 
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
+                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
+            },
             interaction: { intersect: false, mode: 'index' }
           }
         });
@@ -578,18 +590,23 @@ void handleCurrentData() {
         });
         const t1 = data.map(p => p.t1);
         const t2 = data.map(p => p.t2);
+        const rh = data.map(p => p.rh);
         new Chart(document.getElementById('tempChart'), {
           type: 'line',
           data: {
             labels: labels,
             datasets: [
               { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 }
+              { label: 'T2 (Яйце/Звол.)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
           options: { 
             responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: false } },
+            scales: { 
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
+                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
+            },
             interaction: { intersect: false, mode: 'index' }
           }
         });

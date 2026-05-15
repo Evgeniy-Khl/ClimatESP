@@ -41,6 +41,13 @@ void saveDailyDataToFile(int day) {
         point["t1"] = t1;
         point["t2"] = t2;
 
+        if (detectedSensor == SENSOR_DHT22) {
+            point["rh"] = t2;
+        } else if (numberOfDevices == 2) {
+            uint8_t rh = tableRH(raw_t1, raw_t2);
+            if (rh <= 100) point["rh"] = rh;
+        }
+
 
         // Обновляем общую дневную статистику
         total_sum_t1 += t1;

@@ -490,6 +490,12 @@ void newSecond(){
   errorsFlag.value = 0; 
           
   sensorCheck();        // Опрос датчиков должен быть всегда
+  if (numberOfDevices == 2) { // если нет ни одного датчика температуры
+  uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
+  if(valTable == 255) pvRH = valTable;
+  else if(valTable > 100) pvRH = 100;
+  else pvRH = valTable;
+  }
   
   #ifdef DEBUG  
     // В режиме отладки можно оставить симуляцию, если датчики не подключены
