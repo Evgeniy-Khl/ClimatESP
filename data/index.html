@@ -8,9 +8,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
-  <!--link rel="icon" href="https://www.flaticon.com/packs/metaverse-18872723" type="image/png"-->
-  <!--link rel="stylesheet" type="text/css" href="style.css"-->
-  <title>Клімат-5</title>
+  <title>Клімат-5.25</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Стилі для елементів сторінки -->
   <style>
 	html {
@@ -21,8 +20,9 @@
 	}
     #grad1 {
       height: 0px auto;
-      background-color: #9d9e9b; /* For browsers that do not support gradients */
+      background-color: #9d9e9b;
       background-image: linear-gradient(to bottom, #2389fc, #f4fc58);
+      padding-bottom: 20px;
     }
     h1 {
   	  color: white;
@@ -44,11 +44,11 @@
 	
 	.container {
 	  display: grid;
-	  grid-template-columns: 1fr auto; /* Первый элемент занимает доступное пространство, второй — по содержимому */
-	  align-items: center; /* Выравнивает элементы по вертикали */
+	  grid-template-columns: 1fr auto;
+	  align-items: center;
 	  border-radius: 10px;
 	  padding: 5px;
-	  width: 300px; /* Занимает всю доступную ширину */
+	  width: 300px;
 	  height: 0px auto;
 	  margin: 0px auto;
 	  background: LightGray;
@@ -62,10 +62,15 @@
 	  color: white;
 	  padding: 10px 10px;
 	  text-decoration: none;
-	  font-size: 30px;
-	  margin: 2px;
+	  font-size: 24px;
+	  margin: 4px;
 	  cursor: pointer;
+      width: 250px;
 	}
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
 
 	.sensor-labels {
 	  font-size: 1.5rem;
@@ -85,19 +90,24 @@
         text-align: center;
 		background-color: #6e6e6e;
     }
-	/*
-    .sun { background-color: #ffdd00; }
-    .water { background-color: #00aaff; }
-    .cyclone { background-color: #cccccc; }
-    .siren { background-color: #ff0000; }
-	*/
+    .chart-container {
+      position: relative;
+      margin: 15px auto;
+      height: 30vh;
+      width: 95%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
   <div id="grad1">
   <h1>Слава Україні! 
   <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" alt="Прапор України" width="40"></h1>
-    <h1 id="model">Клімат-5</h1>
+    <h1 id="model">Клімат-5.25</h1>
     <p id="rcorners0">
       <span class="sensor-labels">Температура №1</span><br/>
       <span style="font-size:2.0em; color:#000000" id="temperature0">--.-</span>
@@ -150,6 +160,12 @@
       <span class="sensor-labels">Інкубація</span>
       <span style="font-size:2.0em; color:#000000" id="currDay">--- сут.</span>
     </div>
+
+    <!-- Графік на головній сторінці -->
+    <div class="chart-container">
+      <canvas id="mainChart"></canvas>
+    </div>
+
     <p><a href="/setup"><button>Налаштування</button></a></p>
 	<!--p><a href="/table"><button>Програма</button></a></p-->
 	<p><a id="programLink" href="/table"><button id="programButton" disabled>Програма</button></a></p>
@@ -252,10 +268,55 @@ function fetchData() {
     xhttp.send();
 }
 
+let mainChart;
+
+function fetchGraphData() {
+    fetch('/get_current_graph')
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(p => {
+            let total = p.p * 5;
+            let h = Math.floor(total / 60);
+            let m = total % 60;
+            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+        });
+        const t1 = data.map(p => p.t1);
+        const t2 = data.map(p => p.t2);
+
+        if (mainChart) {
+            mainChart.data.labels = labels;
+            mainChart.data.datasets[0].data = t1;
+            mainChart.data.datasets[1].data = t2;
+            mainChart.update('none'); // Обновляем без анимации для плавности
+        } else {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 1 },
+                        { label: 'T2 (Яйце)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 1 }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false } },
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { legend: { display: true, labels: { boxWidth: 10 } } }
+                }
+            });
+        }
+      })
+      .catch(err => console.error("Ошибка загрузки графика:", err));
+}
+
 // Первичное заполнение данных при загрузке страницы
 window.onload = function() {
-    fetchData(); // Первоначальный запрос
-    setInterval(fetchData, 2000); // Периодические обновления
+    fetchData(); // Первоначальный запрос цифр
+    fetchGraphData(); // Первоначальная отрисовка графика
+    setInterval(fetchData, 2000); // Обновление цифр каждые 2 сек
+    setInterval(fetchGraphData, 60000); // Обновление графика каждую минуту
 };
 </script>
 </html>
