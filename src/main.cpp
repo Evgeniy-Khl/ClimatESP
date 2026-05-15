@@ -216,6 +216,31 @@ void ledSet(void){
     }
 }
 
+// Функция для восстановления шины I2C (если SDA завис в LOW)
+void recoverI2C() {
+  MYDEBUG_PRINTLN("Attempting I2C bus recovery...");
+  
+  // В ESP8266 SDA=GPIO4, SCL=GPIO5 по умолчанию для Wire.begin()
+  const uint8_t sda = 4; 
+  const uint8_t scl = 5;
+
+  pinMode(sda, INPUT_PULLUP);
+  pinMode(scl, OUTPUT);
+
+  // Если SDA завис в LOW, пытаемся проталкивать такты SCL (до 9 раз)
+  for (int i = 0; i < 9; i++) {
+    digitalWrite(scl, LOW);
+    delayMicroseconds(5);
+    digitalWrite(scl, HIGH);
+    delayMicroseconds(5);
+    if (digitalRead(sda) == HIGH) break;
+  }
+
+  // Сброс и повторная инициализация Wire
+  Wire.begin();
+  Wire.setClock(400000); // Опционально: ускоряем шину до 400 кГц
+}
+
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
   Wire.beginTransmission(PCF8574_ADDRESS);
@@ -224,18 +249,25 @@ byte writePCF8574(byte data) {
   if(error) {
     MYDEBUG_PRINT("\nError writing to PCF8574. Error code: ");
     MYDEBUG_PRINTLN(error);
+    recoverI2C(); // Попытка восстановления шины при любой ошибке
+    
+    // Повторная попытка после восстановления
+    Wire.beginTransmission(PCF8574_ADDRESS);
+    Wire.write(data);
+    error = Wire.endTransmission();
   }
   return error;
 }
 
 // Функция для чтения байта с PCF8574
 byte readPCF8574() {
-  Wire.requestFrom(PCF8574_ADDRESS, 1); // Запросить 1 байт данных
+  Wire.requestFrom(PCF8574_ADDRESS, (uint8_t)1); // Запросить 1 байт данных
   if (Wire.available()) {
     return Wire.read();
   } else {
     MYDEBUG_PRINTLN("Error reading from PCF8574: No data available.");
-    return 0xFF; // Возвращаем 0xFF в случае ошибки (можно выбрать другое значение)
+    recoverI2C(); // Попытка восстановления
+    return 0xFF; // Возвращаем 0xFF в случае ошибки
   }
 }
 
