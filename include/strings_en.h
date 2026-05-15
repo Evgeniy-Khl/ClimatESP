@@ -33,6 +33,7 @@
 #define SENSOR_ERROR_2      F("SENSOR ERROR #2\n")
 #define SENSOR_ERROR_4      F("TEMPERATURE DEVIATION #1\n")
 #define SENSOR_ERROR_8      F("TEMPERATURE DEVIATION #2\n")
+#define RUNAWAY_ERROR       F("!!! RUNAWAY PROTECTION: Heater is at 100% but temperature is not rising !!!\n")
 #define NEW_STR             F("\n")
 
 #endif // STRINGS_EN_H

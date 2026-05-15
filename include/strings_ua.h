@@ -33,6 +33,7 @@
 #define SENSOR_ERROR_2      F("ПОМИЛКА ДАТЧИКА №2\n")
 #define SENSOR_ERROR_4      F("ВІДХИЛЕННЯ ТЕМПЕРАТУРИ №1\n")
 #define SENSOR_ERROR_8      F("ВІДХИЛЕННЯ ТЕМПЕРАТУРИ №2\n")
+#define RUNAWAY_ERROR       F("!!! ЗАХИСТ ВІД РОЗНОСУ: Нагрів 100%, але температура не росте !!!\n")
 #define NEW_STR             F("\n")
 
 #endif // STRINGS_UA_H

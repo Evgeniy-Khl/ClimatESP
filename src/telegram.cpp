@@ -33,6 +33,7 @@ void sendErrMessages(int err){
     errMess += SENSOR_ERROR_8;
     errMess += WORD_PRODUCT + getFloat((float)ds[1].pvT/10,0) + NEW_STR;
   }
+  if(RUNAWAY_ERR) errMess += RUNAWAY_ERROR;
   errMess += "```";
   bot.sendMessage(chatID, errMess, "Markdown");
   // String keyboardJson = "[[{ \"text\" : \"Get a report\",  \"callback_data\" : \"/status\" }],[{ \"text\" : \"Help\", \"callback_data\" : \"/start\" }]]";

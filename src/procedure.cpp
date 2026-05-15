@@ -110,6 +110,10 @@ void OutStatusLed(void){
 }
 
 void checkModeDevice(){
+  if(RUNAWAY_ERR) {
+    heaterValue = TRIACOFF;
+    return;
+  }
   //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
   switch (settings.sp_structs[1].mode) {
     uint8_t val;
@@ -485,20 +489,16 @@ void reset(void){
 void newSecond(){
   errorsFlag.value = 0; 
           
-  #ifndef DEBUG  
-    sensorCheck();
-  #else
-    //-----температура воздуха------
-    dpv0 += pctHeater/50 + pid[0].iPart/10;
-    ds[0].pvT = dpv0;
-    dpv1 += pctHimidifier/50 + pid[1].iPart/10; //pid[1].pPart/250 + pid[1].iPart*8;
-    ds[1].pvT = dpv1;
-
-    uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
-    if(valTable == 255) pvRH = valTable;
-    else if(valTable > 100) pvRH = 100;
-    else pvRH = valTable;
-    
+  sensorCheck();        // Опрос датчиков должен быть всегда
+  
+  #ifdef DEBUG  
+    // В режиме отладки можно оставить симуляцию, если датчики не подключены
+    if(detectedSensor == UNKNOWN){
+      dpv0 += pctHeater/50 + pid[0].iPart/10;
+      ds[0].pvT = dpv0;
+      dpv1 += pctHimidifier/50 + pid[1].iPart/10; 
+      ds[1].pvT = dpv1;
+    }
   #endif
     //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
       checkModeDevice();
@@ -570,13 +570,30 @@ void newSecond(){
 }
 
 void newMinute(){
-  // if(RTCENABLE){
-  //   countSeconds = now.second();
-  //   countMinutes = now.minute();
-  //   countHours   = now.hour();
-  //   countDays    = now.day();
-  // } else {
-    countSeconds = 0;
+  //---------------------------- ЗАЩИТА ОТ РАЗНОСА -------------------------
+  if(pctHeater == 100){
+    // Если текущая температура не выше той, что была минуту назад
+    if(ds[0].pvT <= lastMinuteT){
+       if(++stagnationTimer > 5){ // 5 минут нет роста при 100% мощности
+          stagnationTimer = 5;
+          // Если мы все еще далеко от уставки (ошибка больше аварийного порога)
+          if(ds[0].pvErr > settings.sp_structs[0].alarm) {
+             RUNAWAY_ERR = 1;
+             heaterValue = TRIACOFF; // Принудительно выключаем нагрев для безопасности
+             MYDEBUG_PRINTLN("!!! WARNING: Runaway protection triggered (stagnation) !!!");
+          }
+       }
+    } else {
+       stagnationTimer = 0; // Есть рост - сбрасываем счетчик
+       RUNAWAY_ERR = 0;
+    }
+  } else {
+    stagnationTimer = 0;
+    RUNAWAY_ERR = 0;
+  }
+  lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
+  //------------------------------------------------------------------------
+  countSeconds = 0;
     if(++countMinutes > 59){
       countMinutes = 0;
       if(++countHours > 23){

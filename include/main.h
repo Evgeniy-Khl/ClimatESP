@@ -151,7 +151,7 @@ extern union Byte portFlag;
 #define ERROR4	  errorsFlag.bitfield.a2  // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
 #define ERROR8	  errorsFlag.bitfield.a3  // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
 #define ERROR10	  errorsFlag.bitfield.a4  // отказ одного из двух датчиков температуры
-#define ERROR20	  errorsFlag.bitfield.a5  // отказ вспомогательного датчика температуры
+#define RUNAWAY_ERR	errorsFlag.bitfield.a5  // ЗАЩИТА ОТ РАЗНОСА (нагреватель на 100%, а темп. не растет)
 #define OVERHEAT  errorsFlag.bitfield.a6  // перегрев симистора
 #define FROZE	    errorsFlag.bitfield.a7  // завис датчик.
 
@@ -263,7 +263,9 @@ extern uint8_t
         countSeconds,       // счетчик секунд
         countMinutes,       // счетчик минут
         countHours,         // счетчик часов
-        countDays;          // счетчик дней
+        countDays,          // счетчик дней
+        stagnationTimer;    // счетчик минут отсутствия роста температуры
+extern int16_t lastMinuteT; // температура минуту назад
 
 extern int16_t 
         pvAeration,         // текущее время проветривания
