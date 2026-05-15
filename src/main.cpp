@@ -261,7 +261,7 @@ byte writePCF8574(byte data) {
 
 // Функция для чтения байта с PCF8574
 byte readPCF8574() {
-  Wire.requestFrom(PCF8574_ADDRESS, (uint8_t)1); // Запросить 1 байт данных
+  Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1); // Запросить 1 байт данных
   if (Wire.available()) {
     return Wire.read();
   } else {

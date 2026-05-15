@@ -400,6 +400,17 @@ void handleArchiveList() {
 }
 
 
+void formatTimeBuffer(char* buf, size_t size, int period, int count) {
+  int totalMinutes = (count - period) * 5;
+  if(totalMinutes == 0) {
+    strncpy_P(buf, PSTR("нульовий час"), size);
+    return;
+  }
+  int hours = totalMinutes / 60;
+  int minutes = totalMinutes % 60;
+  snprintf_P(buf, size, PSTR("мінус %02d:%02d"), hours, minutes);
+}
+
 /**
  * @brief Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
  * Максимально экономный по памяти вариант.
@@ -509,17 +520,6 @@ void handleShowData() {
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("</div></body></html>"));
     server.sendContent("");
-}
-
-void formatTimeBuffer(char* buf, size_t size, int period, int count) {
-  int totalMinutes = (count - period) * 5;
-  if(totalMinutes == 0) {
-    strncpy_P(buf, PSTR("нульовий час"), size);
-    return;
-  }
-  int hours = totalMinutes / 60;
-  int minutes = totalMinutes % 60;
-  snprintf_P(buf, size, PSTR("мінус %02d:%02d"), hours, minutes);
 }
 
 /**

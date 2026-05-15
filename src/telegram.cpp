@@ -86,25 +86,25 @@ void handleNewMessages(int numNewMessages) {
     MYDEBUG_PRINTLN("handleNewMessages...");
     for (int i=0; i<numNewMessages; i++) {
         // Chat id of the requester
-        if (strcmp(bot.messages[i].chat_id, chatID) != 0){
+        if (strcmp(bot.messages[i].chat_id.c_str(), chatID) != 0){
           bot.sendMessage(bot.messages[i].chat_id, "Unauthorized user", "");
           continue;
         }
         
-        const char* text = bot.messages[i].text;
+        const char* text = bot.messages[i].text.c_str();
         MYDEBUG_PRINTLN("received message: ");
         MYDEBUG_PRINTLN(text);
     
-        if (strcmp(text, TXT_START) == 0) {
+        if (bot.messages[i].text == TXT_START) {
           char welcome[256];
-          snprintf_P(welcome, sizeof(welcome), PSTR("Welcome, %s.\nUse the following commands to control your outputs.\n\n/status - Get status\n/options - Show options"), bot.messages[i].from_name);
+          snprintf_P(welcome, sizeof(welcome), PSTR("Welcome, %s.\nUse the following commands to control your outputs.\n\n/status - Get status\n/options - Show options"), bot.messages[i].from_name.c_str());
           bot.sendMessage(chatID, welcome, "");
         }
-        if (strcmp(text, TXT_OPTIONS) == 0){
+        if (bot.messages[i].text == TXT_OPTIONS){
           const char* keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
           bot.sendMessageWithInlineKeyboard(chatID, "Choose from one of the following options", "", keyboardJson);
         }
-        if (strcmp(text, TXT_STATUS) == 0) sendStatus();
+        if (bot.messages[i].text == TXT_STATUS) sendStatus();
     }
 }
   
