@@ -22,68 +22,89 @@ bool botSetup(){
 * errors = 0x80   // ПЕРЕГРЕВ СИМИСТОРА ! [ПРГ] 
 *******************************************************************/
 void sendErrMessages(int err){
-  String errMess = WORD_TITLE + String("Клімат-5.25") + ID_TITLE + String(1) + NEW_STR + NEW_STR;
-  if(errorsFlag.value & 1) errMess += SENSOR_ERROR_1;
-  if(errorsFlag.value & 2) errMess += SENSOR_ERROR_2;
+  char buffer[512];
+  int pos = 0;
+  
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_TITLE);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("Клімат-5.25"));
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)ID_TITLE);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("1\n\n"));
+
+  if(errorsFlag.value & 1) pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)SENSOR_ERROR_1);
+  if(errorsFlag.value & 2) pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)SENSOR_ERROR_2);
   if(errorsFlag.value & 4){
-    errMess += SENSOR_ERROR_4;
-    errMess += WORD_AIR + getFloat((float)ds[0].pvT/10,0) + NEW_STR;
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)SENSOR_ERROR_4);
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_AIR);
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%.1f\n"), (float)ds[0].pvT/10);
   }
   if(errorsFlag.value & 8){
-    errMess += SENSOR_ERROR_8;
-    errMess += WORD_PRODUCT + getFloat((float)ds[1].pvT/10,0) + NEW_STR;
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)SENSOR_ERROR_8);
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_PRODUCT);
+    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%.1f\n"), (float)ds[1].pvT/10);
   }
-  if(RUNAWAY_ERR) errMess += RUNAWAY_ERROR;
-  errMess += "```";
-  bot.sendMessage(chatID, errMess, "Markdown");
-  // String keyboardJson = "[[{ \"text\" : \"Get a report\",  \"callback_data\" : \"/status\" }],[{ \"text\" : \"Help\", \"callback_data\" : \"/start\" }]]";
-  // bot.sendMessageWithInlineKeyboard(chatID, errMess, "Markdown", keyboardJson);
+  if(RUNAWAY_ERR) pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)RUNAWAY_ERROR);
+  
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("```"));
+  
+  bot.sendMessage(chatID, buffer, "Markdown");
 }
 
 void sendStatus(){
-  String welcome = WORD_TITLE + String("Клімат-5.25") + ID_TITLE + String(1) + NEW_STR + NEW_STR;
-  welcome += WORD_AIR + getFloat((float)ds[0].pvT/10,0) + NEW_STR;
-  welcome += WORD_PRODUCT + getFloat((float)ds[1].pvT/10,0) + NEW_STR;
-  welcome += WORD_HUMIDITY + String(pvRH) + "%" + NEW_STR;
-  welcome += WORD_HEATING + String(pctHeater) + "%" + NEW_STR;
-  welcome += WORD_DAMPER + String(pvFlap) + "%" + NEW_STR;
-  // welcome += WORD_TOTAL + String(upv.pv.currDay) + WORD_DAYS + NEW_STR;
-  welcome += WORD_MISTAKES + String(errorsFlag.value) + NEW_STR;
-  // welcome += WORD_WARNING + String(upv.pv.warning) + NEW_STR;
-  welcome += "```";
-  bot.sendMessage(chatID, welcome, "Markdown");
+  char buffer[512];
+  int pos = 0;
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_TITLE);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("Клімат-5.25"));
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)ID_TITLE);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("1\n\n"));
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_AIR);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%.1f\n"), (float)ds[0].pvT/10);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_PRODUCT);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%.1f\n"), (float)ds[1].pvT/10);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_HUMIDITY);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%d%%\n"), pvRH);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_HEATING);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%d%%\n"), pctHeater);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_DAMPER);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%d%%\n"), pvFlap);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_MISTAKES);
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%d\n"), errorsFlag.value);
+
+  pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("```"));
+  
+  bot.sendMessage(chatID, buffer, "Markdown");
 }
 
 // Handle what happens when you receive new messages
 void handleNewMessages(int numNewMessages) {
-    MYDEBUG_PRINTLN("handleNewMessages: "+String(numNewMessages));
+    MYDEBUG_PRINTLN("handleNewMessages...");
     for (int i=0; i<numNewMessages; i++) {
         // Chat id of the requester
-        String chat_id = String(bot.messages[i].chat_id);
-        if (chat_id != chatID){
-          bot.sendMessage(chat_id, "Unauthorized user", "");
+        if (strcmp(bot.messages[i].chat_id, chatID) != 0){
+          bot.sendMessage(bot.messages[i].chat_id, "Unauthorized user", "");
           continue;
         }
         
-        // Print the received message
-        String text = bot.messages[i].text;
-        MYDEBUG_PRINTLN("received message: " + text);
+        const char* text = bot.messages[i].text;
+        MYDEBUG_PRINTLN("received message: ");
+        MYDEBUG_PRINTLN(text);
     
-        String from_name = bot.messages[i].from_name;
-    
-        if (text == TXT_START) {
-          String welcome = "Welcome, " + from_name + ".\n";
-          welcome += "Use the following commands to control your outputs.\n\n";
-          welcome += "/led_on to turn GPIO ON \n";
-          welcome += "/led_off to turn GPIO OFF \n";
-          welcome += "/state to request current GPIO state \n";
-          bot.sendMessage(chat_id, welcome, "");
+        if (strcmp(text, TXT_START) == 0) {
+          char welcome[256];
+          snprintf_P(welcome, sizeof(welcome), PSTR("Welcome, %s.\nUse the following commands to control your outputs.\n\n/status - Get status\n/options - Show options"), bot.messages[i].from_name);
+          bot.sendMessage(chatID, welcome, "");
         }
-        if (text == TXT_OPTIONS){
-          String keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
-          bot.sendMessageWithInlineKeyboard(chat_id, "Choose from one of the following options", "", keyboardJson);
+        if (strcmp(text, TXT_OPTIONS) == 0){
+          const char* keyboardJson = "[[{ \"text\" : \"Go to Graviton\", \"url\" : \"https://graviton.com.ua/ua/\" }],[{ \"text\" : \"Send\", \"callback_data\" : \"/start\" }]]";
+          bot.sendMessageWithInlineKeyboard(chatID, "Choose from one of the following options", "", keyboardJson);
         }
-        if (text == TXT_STATUS) sendStatus();
+        if (strcmp(text, TXT_STATUS) == 0) sendStatus();
     }
 }
   

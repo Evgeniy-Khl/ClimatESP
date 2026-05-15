@@ -10,91 +10,94 @@ void notFoundHandler() {
   server.send(404, "text/plain", "Not found");
 }
 
-String getFloat(float val, uint8_t brackets) {
-  char buffer[8];
-  if(brackets) snprintf(buffer, sizeof(buffer), "[%.1f]", val);
-  else snprintf(buffer, sizeof(buffer), "%.1f", val);
-  for (unsigned int i = 0; i < sizeof(buffer); i++) {
-    if (buffer[i] == '.') {
-      buffer[i] = ',';
-      break;
-    }
-  }
-  return String(buffer); // Возвращаем отформатированную строку
-}
-
 void respondsValues() {
-    String string, jsonResponse;
     tmrTelegramOff = 300;
     JsonDocument data;
-    data["model"] = "Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№ " + String(settings.sp_structs[1].special & 0x0F);
-    data["temperature0"] = getFloat((float)ds[0].pvT/10,0);
-    data["settemp0"] = getFloat((float)settings.sp_structs[0].spT/10,1);
+    
+    char model[64];
+    snprintf_P(model, sizeof(model), PSTR("Клімат-5.25&nbsp;&nbsp;&nbsp;&nbsp;№ %d"), settings.sp_structs[1].special & 0x0F);
+    data["model"] = model;
+    
+    data["temperature0"] = (float)ds[0].pvT/10.0; // Передаем как число, фронтенд сам отформатирует
+    data["settemp0"] = (float)settings.sp_structs[0].spT/10.0;
+    
     if(detectedSensor == SENSOR_DS18B20 && numberOfDevices > 1){
-        data["temperature1"] = getFloat((float)ds[1].pvT/10,0);
-        data["settemp1"] = getFloat((float)settings.sp_structs[1].spT/10,1);
+        data["temperature1"] = (float)ds[1].pvT/10.0;
+        data["settemp1"] = (float)settings.sp_structs[1].spT/10.0;
         if(pvRH == 255) {data["humidity"] = "не визначено"; data["sethum"] = " ";}
-        else {data["humidity"] = String(pvRH);data["sethum"] = "%";}
-        if(HIH5030) data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
+        else {data["humidity"] = pvRH; data["sethum"] = "%";}
+        if(HIH5030) data["sethum"] = (float)settings.sp_structs[1].spRH/10.0;
     } else if(detectedSensor == SENSOR_DHT22){
-      data["humidity"] = getFloat((float)ds[1].pvT/10,0);
-      data["sethum"] = getFloat((float)settings.sp_structs[1].spRH/10,1);
+      data["humidity"] = (float)ds[1].pvT/10.0;
+      data["sethum"] = (float)settings.sp_structs[1].spRH/10.0;
     }
     
+    const char* str;
     switch (settings.sp_structs[1].extendMode){
-      case 1: string = "охолодження"; break;
-      case 2: string = "осущення"; break;
-      case 3: string = "охол. и осуш."; break;
-      default: string = ""; break;
-      }
-    data["ventmode"] = string;
+      case 1: str = "охолодження"; break;
+      case 2: str = "осущення"; break;
+      case 3: str = "охол. и осуш."; break;
+      default: str = ""; break;
+    }
+    data["ventmode"] = str;
 
     switch (settings.sp_structs[0].extendMode){
-      case 0: string = "сирена"; break;
-      case 1: string = "відключення"; break;
-      default: string = ""; break;
+      case 0: str = "сирена"; break;
+      case 1: str = "відключення"; break;
+      default: str = ""; break;
     }
-    data["extmode"] = string;
+    data["extmode"] = str;
     
     switch (settings.sp_structs[1].mode){
-      case 0: string = "немає"; break;
-      case 1: string = "канал №1"; break;
-      case 2: string = "канал №2"; break;
-      case 3: string = "№1 и №2"; break;
-      case 4: string = "імпульс"; break;
-      default: string = ""; break;
+      case 0: str = "немає"; break;
+      case 1: str = "канал №1"; break;
+      case 2: str = "канал №2"; break;
+      case 3: str = "№1 и №2"; break;
+      case 4: str = "імпульс"; break;
+      default: str = ""; break;
     }
-    data["relaymode"] = string;
+    data["relaymode"] = str;
     data["checkDry"] = (settings.sp_structs[0].mode) ? "встановлене" : "немає";
-    data["rotation"] = String(pvTimer) + (TURNSECOND ? " сек." : " хвл.");
-
-    data["power"] = String(pctHeater) + "%";
-    data["error1"] = ERROR1;
-    data["error2"] = ERROR2;
-    data["error4"] = ERROR4;
-    data["error8"] = ERROR8;
-    data["overheat"] = OVERHEAT;
-    data["flap"] = String(pvFlap) + "%";
-    if(settings.sp_structs[1].state==0) string = "немає";
-    else string = "№"+String(settings.sp_structs[1].state);
-    data["program"] = string;
-    data["currDay"] = "0 діб.";//String(upv.pv.currDay) + "діб.";
-    data["led0"] = dataLed[0] ? "OFF" : "ON" ;  // Поворот лотков
-    data["led1"] = dataLed[1] ? "OFF" : "ON" ;  // НАГРЕВАТЕЛЬ
-    data["led2"] = dataLed[2] ? "OFF" : "ON" ;  // УВЛАЖНИТЕЛЬ
-    data["led3"] = dataLed[3] ? "OFF" : "ON" ;  // Заслонка/вентилятор охлаждения
-    data["led4"] = dataLed[4] ? "OFF" : "ON" ;  // Вспомогательный нагреватель
-    data["led5"] = dataLed[5] ? "OFF" : "ON" ;  // Авария
     
-    serializeJson(data, jsonResponse);
-    // DEBUG_PRINTF("SERVER responds to the client with VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
-    // MYDEBUG_PRINTLN("out=" + response);
-    server.send(200, "application/json", jsonResponse);
-    // DEBUG_PRINTF("END VALUES: %d,%ld\n",seconds,millis()-lastSendTime);
+    char rotation[32];
+    snprintf_P(rotation, sizeof(rotation), PSTR("%d %s"), pvTimer, TURNSECOND ? "сек." : "хвл.");
+    data["rotation"] = rotation;
+
+    char power[16];
+    snprintf_P(power, sizeof(power), PSTR("%d%%"), pctHeater);
+    data["power"] = power;
+    
+    data["error1"] = (bool)ERROR1;
+    data["error2"] = (bool)ERROR2;
+    data["error4"] = (bool)ERROR4;
+    data["error8"] = (bool)ERROR8;
+    data["overheat"] = (bool)OVERHEAT;
+    
+    char flap[16];
+    snprintf_P(flap, sizeof(flap), PSTR("%d%%"), pvFlap);
+    data["flap"] = flap;
+    
+    if(settings.sp_structs[1].state==0) data["program"] = "немає";
+    else {
+      char prgStr[16];
+      snprintf_P(prgStr, sizeof(prgStr), PSTR("№%d"), settings.sp_structs[1].state);
+      data["program"] = prgStr;
+    }
+    data["currDay"] = "0 діб.";
+    
+    data["led0"] = dataLed[0] ? "OFF" : "ON" ;
+    data["led1"] = dataLed[1] ? "OFF" : "ON" ;
+    data["led2"] = dataLed[2] ? "OFF" : "ON" ;
+    data["led3"] = dataLed[3] ? "OFF" : "ON" ;
+    data["led4"] = dataLed[4] ? "OFF" : "ON" ;
+    data["led5"] = dataLed[5] ? "OFF" : "ON" ;
+    
+    server.setContentLength(measureJson(data));
+    server.send(200, "application/json", "");
+    serializeJson(data, server.client());
 }
 
 void respondsEeprom(){
-    String jsonResponse;
     JsonDocument doc;
         doc["spT0"] = settings.sp_structs[0].spT;
         doc["spT1"] = settings.sp_structs[1].spT;
@@ -129,12 +132,12 @@ void respondsEeprom(){
         doc["identif"] = settings.sp_structs[1].special;
         doc["status"] = 1;
 
-        serializeJson(doc, jsonResponse); // Сериализуем JSON
+        server.setContentLength(measureJson(doc));
+        server.send(200, "application/json", "");
+        serializeJson(doc, server.client());
+
         DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
-        MYDEBUG_PRINTLN(jsonResponse);
         mode = SAVEEEPROM; interval = INTERVAL_1000;
-        server.send(200, "application/json", jsonResponse); // Отправляем ответ
-        // DEBUG_PRINTF("END EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
 }
 
 void acceptEeprom() {
@@ -188,7 +191,6 @@ void acceptEeprom() {
 
   uint8_t respondsProgram(){
     uint8_t err = 0;
-    String jsonResponse;
     JsonDocument doc;
     mode = SAVEPROG; interval = INTERVAL_1000; quarter = SET_PROG4+1;
     uint8_t prg = settings.sp_structs[1].state;
@@ -207,10 +209,12 @@ void acceptEeprom() {
           row.add(unBuf.spDay.aeration0);
           row.add(unBuf.spDay.aeration1);
       }
-      serializeJson(doc, jsonResponse);
+      
+      server.setContentLength(measureJson(doc));
+      server.send(200, "application/json", "");
+      serializeJson(doc, server.client());
+      
       DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
-      MYDEBUG_PRINTLN("jsonResponse:"+jsonResponse);
-      server.send(200, "application/json", jsonResponse);
     }
     return err;
   }
@@ -341,7 +345,8 @@ void handleArchiveList() {
     // Шаг 3: Идем по отсортированному вектору в ОБРАТНОМ порядке и генерируем ссылки
     for (int i = days.size() - 1; i >= 0; i--) {
         int day = days[i];
-        String link = "<li><a href='/data?day=" + String(day) + "'>Перегляд даних за " + String(day) + " добу</a></li>";
+        char link[128];
+        snprintf_P(link, sizeof(link), PSTR("<li><a href='/data?day=%d'>Перегляд даних за %d добу</a></li>"), day, day);
         server.sendContent(link);
         yield();
     }
@@ -412,7 +417,11 @@ void handleShowData() {
     JsonArray array = graphDoc.as<JsonArray>();
     for (int i = array.size() - 1; i >= 0; i--) {
         JsonObject point = array[i]; // Получаем элемент по индексу `i`
-        String row = "<tr><td>" + formatTime(point["p"].as<int>(), array.size()-1) + "</td><td>" + String(point["t1"].as<float>(), 1) + "</td><td>" + String(point["t2"].as<float>(), 1) + "</td></tr>";
+        char row[128];
+        char fmtTime[32];
+        formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), array.size()-1);
+        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td></tr>"), 
+                   fmtTime, point["t1"].as<float>(), point["t2"].as<float>());
         server.sendContent(row);
         yield();
     }
@@ -423,78 +432,54 @@ void handleShowData() {
     server.sendContent("");
 }
 
-String formatTime(int period, int count) {
-  String formattedTime = "нульовий час";
+void formatTimeBuffer(char* buf, size_t size, int period, int count) {
   int totalMinutes = (count - period) * 5;
+  if(totalMinutes == 0) {
+    strncpy_P(buf, PSTR("нульовий час"), size);
+    return;
+  }
   int hours = totalMinutes / 60;
   int minutes = totalMinutes % 60;
-  if(totalMinutes) {
-    formattedTime = "мінус ";
-    if (hours < 10) { formattedTime += "0"; }
-    formattedTime += String(hours);
-    formattedTime += ":";
-    if (minutes < 10) { formattedTime += "0"; }
-    formattedTime += String(minutes);
-  }
-  return formattedTime;
+  snprintf_P(buf, size, PSTR("мінус %02d:%02d"), hours, minutes);
 }
 
 /**
  * @brief Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
  */
 void handleCurrentData() {
-    // Получаем текущее время, чтобы знать, сколько данных уже записано
-    // DateTime now = rtc.now();                      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Вычисляем, какой сейчас 5-минутный период (от 0 до 287)
-    // int currentPeriod = (now.hour() * 60 + now.minute()) / 5;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
 
-    // --- Начинаем отправку HTML ---
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
 
     sendPageHeader("Інкубатор - Поточна доба");
 
-    // Отправляем уникальный контент этой страницы
     server.sendContent(F("<div><h1 style='text-align:center;'>Дані за поточну добу</h1>"));
-    server.sendContent(F("<p style='text-align:center;'>Інформація оновлена ​​в "));
-    // Добавим точное время обновления
-    // if(now.hour() < 10) server.sendContent("0"); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if(countHours < 10) server.sendContent("0");
-    // server.sendContent(String(now.hour()));      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    server.sendContent(String(countHours));
-    server.sendContent(":");
-    // if(now.minute() < 10) server.sendContent("0");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if(countMinutes < 10) server.sendContent("0");
-    // server.sendContent(String(now.minute()));    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    server.sendContent(String(countMinutes));
-    server.sendContent(F("</p>"));
-    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>")); // Предполагается, что у вас есть стиль .btn
+
+    char timeStr[32];
+    snprintf_P(timeStr, sizeof(timeStr), PSTR("<p style='text-align:center;'>Інформація оновлена в %02u:%02u</p>"), countHours, countMinutes);
+    server.sendContent(timeStr);
+
+    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
     server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));
-    
-    // В цикле читаем из EEPROM и сразу отправляем в браузер
+
     for (int period = currentPeriod; period >= 0; period--) {
         int currentAddress = period * sizeof(int16_t) * 2;
         int16_t raw_t1, raw_t2;
         eepromReadInt16(currentAddress, raw_t1);
         eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
 
-        // Пропускаем пустые записи, если инкубатор только что включился
-        if (raw_t1 == 0 && raw_t2 == 0) {
-            continue; 
-        }
+        if (raw_t1 == 0 && raw_t2 == 0) continue; 
 
-        float t1 = (float)raw_t1 / 10.0;
-        float t2 = (float)raw_t2 / 10.0;
+        char row[128];
+        char fmtTime[32];
+        formatTimeBuffer(fmtTime, sizeof(fmtTime), period, currentPeriod);
+        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td></tr>"), 
+                   fmtTime, (float)raw_t1 / 10.0, (float)raw_t2 / 10.0);
 
-        String row = "<tr><td>" + formatTime(period,currentPeriod) + "</td>";
-        row += "<td>" + String(t1, 1) + "</td>";
-        row += "<td>" + String(t2, 1) + "</td></tr>";
-        
         server.sendContent(row);
         yield();
     }
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
     server.sendContent(F("</div></body></html>"));
-    server.sendContent(F(""));
 }
