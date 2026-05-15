@@ -81,7 +81,7 @@ void checkDs18b20(void){
     MYDEBUG_PRINTLN(buff);
     if(tempC == DEVICE_DISCONNECTED_C) {
       ds[i].errDevice++;
-      if(ds[i].errDevice > 5) {ds[i].pvT = 1990; ds[i].errDevice = 5;}
+      if(ds[i].errDevice > 5) {ds[i].pvT = SENSOR_ERROR_VAL; ds[i].errDevice = 5;}
     }
     else {
       ds[i].pvT = round(tempC * 10);
@@ -97,18 +97,19 @@ void checkDs18b20(void){
       ds[i].pvT += alarmL;
     }
     if(check_freeze(i)){
-      ds[i].pvT = 660;    // индикация 66,0 - завис датчик.
+      ds[i].pvT = SENSOR_FROZEN_VAL;    // индикация 66,0 - завис датчик.
       FROZE = 1;
     }
-  }
-  sensors.requestTemperatures();
-  
-  if (HIH5030){
+    }
+    sensors.requestTemperatures();
+
+    if (HIH5030){
     uint16_t adc=1024;
     pvVadcRH = adc;//lowPassF2(adc);           // относительная влажность в Vadc ??????????????????????????????????????????
     if (pvVadcRH>80) pvRH = valDcToRH(pvVadcRH); // относительная влажность в %
-    else pvRH = 1990;
-  } else {
+    else pvRH = SENSOR_ERROR_VAL;
+    } else {
+
     uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
     if(valTable>100) pvRH = 100; else pvRH = valTable;
   }

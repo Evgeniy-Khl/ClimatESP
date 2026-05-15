@@ -58,6 +58,9 @@
 #define MAX_DEVICE        4         // ограничение количества датчиков
 #define STARTINCUBADRES   0xFFF     // адрес хранения начала инкубации
 
+#define SENSOR_ERROR_VAL    1990    // 199,0 °C - датчик отключен или ошибка
+#define SENSOR_FROZEN_VAL   660     // 66,0 °C - датчик "завис" (индикация 66,0)
+
 #define START_MARKER 0xDD	// Начало блока = 221
 #define READDEFAULT 0
 #define READEEPROM  1

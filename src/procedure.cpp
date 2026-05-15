@@ -383,8 +383,8 @@ uint8_t tableRH(int16_t maxT, int16_t minT){
 }
 
 /*
-errors = 0x01   // ОШИБКА ДАТЧИКА 0  199-потерян; 66,0-завис [E01]
-errors = 0x02   // ОШИБКА ДАТЧИКА 1  199-потерян; 66,0-завис [E02]
+errors = 0x01   // ОШИБКА ДАТЧИКА 0  SENSOR_ERROR_VAL; SENSOR_FROZEN_VAL [E01]
+errors = 0x02   // ОШИБКА ДАТЧИКА 1  SENSOR_ERROR_VAL; SENSOR_FROZEN_VAL [E02]
 errors = 0x04   // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
 errors = 0x08   // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
 errors = 0x10   // отказ одного из двух датчиков температуры
