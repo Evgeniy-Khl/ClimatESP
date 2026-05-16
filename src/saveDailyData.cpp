@@ -14,41 +14,47 @@ void saveDailyDataToFile(int day) {
 
   float total_sum_t1 = 0, min_t1 = 200, max_t1 = -200;
   float total_sum_t2 = 0, min_t2 = 200, max_t2 = -200;
+  float total_sum_rh = 0, min_rh = 200, max_rh = -200;
   int validReadingsCount = 0;
 
   const int totalPeriods = 288; // Всего 288 пятиминутных периодов в сутках
 
 
     // --- Основной цикл: читаем 288 готовых записей ---
-  for (int period = 0; period < totalPeriods; ++period) {
-        // Адрес вычисляется так же, как и при записи
-        int currentAddress = period * sizeof(int16_t) * 2;
-        int16_t raw_t1, raw_t2;
+  for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
+        // Адрес вычисляется с учетом нового размера записи
+        int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
+        int16_t raw_t1, raw_t2, raw_rh;
         eepromReadInt16(currentAddress, raw_t1);
-        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
+        eepromReadInt16(currentAddress + 2, raw_t2);
+        eepromReadInt16(currentAddress + 4, raw_rh);
 
-        // Проверяем, была ли вообще сделана запись (если EEPROM пуст, там будут нули или -1)
+        // Проверяем, была ли вообще сделана запись
         if (raw_t1 == 0 && raw_t2 == 0) {
         continue; // Пропускаем пустую запись
         }
 
         float t1 = (float)raw_t1 / 10.0;
         float t2 = (float)raw_t2 / 10.0;
+        float rh = (float)raw_rh;
 
         // Добавляем точку в JSON для графика
         JsonObject point = dataArray.add<JsonObject>();
         point["p"] = period;
         point["t1"] = t1;
         point["t2"] = t2;
-        point["rh"] = pvRH;
+        point["rh"] = rh;
 
         // Обновляем общую дневную статистику
         total_sum_t1 += t1;
         total_sum_t2 += t2;
+        total_sum_rh += rh;
         if (t1 < min_t1) min_t1 = t1;
         if (t1 > max_t1) max_t1 = t1;
         if (t2 < min_t2) min_t2 = t2;
         if (t2 > max_t2) max_t2 = t2;
+        if (rh < min_rh) min_rh = rh;
+        if (rh > max_rh) max_rh = rh;
         validReadingsCount++;
       }
   //----------------- Сохранение файлов --------------------
@@ -74,6 +80,9 @@ void saveDailyDataToFile(int day) {
     statsDoc["avg_t2"] = total_sum_t2 / validReadingsCount;
     statsDoc["min_t2"] = min_t2;
     statsDoc["max_t2"] = max_t2;
+    statsDoc["avg_rh"] = total_sum_rh / validReadingsCount;
+    statsDoc["min_rh"] = min_rh;
+    statsDoc["max_rh"] = max_rh;
 
     String statsFilename = "/day_" + String(day) + "_stats.json";
     File statsFile = LittleFS.open(statsFilename, "w");
@@ -134,9 +143,9 @@ int findOldestDay() {
   while (dir.next()) {
     String fileName = dir.fileName();
     // Ищем файлы, которые соответствуют нашему шаблону
-    if (fileName.startsWith("/day_") && fileName.endsWith("_stats.json")) {
-      // Вырезаем номер дня из имени файла, например, из "/day_12_stats.json" получаем "12"
-      int start = 5; // индекс после "/day_"
+    if (fileName.startsWith("day_") && fileName.endsWith("_stats.json")) {
+      // Вырезаем номер дня из имени файла, например, из "day_12_stats.json" получаем "12"
+      int start = 4; // индекс после "day_"
       int end = fileName.indexOf('_', start);
       int currentDay = fileName.substring(start, end).toInt();
 

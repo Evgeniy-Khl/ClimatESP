@@ -8,8 +8,8 @@ TableBuff unBuf;
  * 0xF00 - 0xFFF резерв 255 байт.
  */
 uint16_t eepromMemoryAddressForDay(uint8_t prg, uint8_t day){
-	// из расчета одна страница на 1 день, 1 прог.=30 страниц всего 30*4=120 страниц плюс 8 страниц резерв.
-    uint16_t addressPage = (day - 1) * 32 + (prg - 1) * (32*30);  
+	// из расчета одна запись на 1 день (16 байт), 1 прог.=31 день
+    uint16_t addressPage = PROGRAMS_START + (day - 1) * 16 + (prg - 1) * (16 * 31);  
 	return addressPage;
 }
 

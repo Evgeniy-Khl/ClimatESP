@@ -56,7 +56,13 @@
 #define LEDPIN            2
 #define ONE_WIRE_BUS_PIN  LEDPIN    // используется номер GPIO2
 #define MAX_DEVICE        4         // ограничение количества датчиков
-#define STARTINCUBADRES   0xFFF     // адрес хранения начала инкубации
+
+// --- Карта памяти AT24C32 (4096 байт) ---
+#define DAILY_DATA_START      0x000  // Начало данных графиков
+#define DAILY_DATA_REC_SIZE   6      // Размер записи (t1, t2, rh по 2 байта)
+#define DAILY_DATA_MAX_REC    288    // Записей в сутки
+#define PROGRAMS_START        0x700  // Начало программ инкубации
+#define STARTINCUBADRES       0xFFF  // Адрес флага начала инкубации
 
 #define SENSOR_ERROR_VAL    1990    // 199,0 °C - датчик отключен или ошибка
 #define SENSOR_FROZEN_VAL   660     // 66,0 °C - датчик "завис" (индикация 66,0)

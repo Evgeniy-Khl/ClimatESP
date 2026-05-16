@@ -134,13 +134,14 @@ void clearEEPROM() {
   Serial.println("Начало очистки AT24C32...");
   
   // Проходим по всем 288 пятиминутным периодам
-  for (int period = 0; period < 288; ++period) {
+  for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
     // Вычисляем адрес для текущего периода
-    int currentAddress = period * sizeof(int16_t) * 2;
+    int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
     
-    // Записываем 0 для t1 и t2
+    // Записываем 0 для t1, t2 и rh
     eepromWriteInt16(currentAddress, 0);
-    eepromWriteInt16(currentAddress + sizeof(int16_t), 0);
+    eepromWriteInt16(currentAddress + 2, 0);
+    eepromWriteInt16(currentAddress + 4, 0);
 
     // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
     if (period % 10 == 0) Serial.print(".");

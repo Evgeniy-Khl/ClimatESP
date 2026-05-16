@@ -617,14 +617,15 @@ void newMinute(){
     DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ:%02u.%02u day  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
     DEBUG_PRINTF("=== ----- ЗАПИСЬ:%02u.%02u day  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
-    int address = period_of_day * sizeof(int16_t) * 2;        // Вычисляем адрес на основе этого периода
+    int address = DAILY_DATA_START + period_of_day * DAILY_DATA_REC_SIZE; // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM
     if (countDays != lastDayProcessed && countDays <= 30) {
       saveDailyDataToFile(lastDayProcessed);
       lastDayProcessed = countDays;
     } 
     eepromWriteInt16(address, ds[0].pvT);
-    eepromWriteInt16(address + sizeof(int16_t), ds[1].pvT);
-    DEBUG_PRINTF("PerOfDay=%03u; Addr0: 0x%04x; t0=%6.1f; Addr1: 0x%04x; t1=%6.1f;",period_of_day,address,(float)ds[0].pvT/10,address + sizeof(int16_t),(float)ds[1].pvT/10);
+    eepromWriteInt16(address + 2, ds[1].pvT);
+    eepromWriteInt16(address + 4, (int16_t)pvRH); // Сохраняем влажность (Вариант Б)
+    DEBUG_PRINTF("PerOfDay=%03u; Addr0: 0x%04x; t0=%6.1f; t1=%6.1f; rh=%u;",period_of_day,address,(float)ds[0].pvT/10, (float)ds[1].pvT/10, pvRH);
   }
 }

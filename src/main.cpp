@@ -84,7 +84,7 @@ void setup(){
     }
   } else dataLed[0] = 1;      // DS3231 не инициализирован
   //------------------------------------------------------------------------------
-  // testProgs();              // тест
+  testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
   sensorType();
   //------------------------------------------------------------------------------------------
@@ -92,7 +92,11 @@ void setup(){
   pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
 
   displ_IP();       // ИНДИКАЦИЯ ОШИБОК и IP адреса 
-  clearEEPROM();    // Заполняет нулями 288 записей область памяти в AT24C32, используемую для хранения суточных данных.
+  
+  #ifdef DEBUG
+    clearEEPROM();    // Заполняет нулями область памяти в AT24C32 (только в режиме отладки)
+  #endif
+
   pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
@@ -169,7 +173,11 @@ void loop(){
     humidiPwm.write(humidiValue);
     writePCF8574(portOut.value);
     OutStatusLed();               // для HTML страницы
-    if(++countSeconds > 0) newMinute();
+    #ifndef DEBUG
+      if(++countSeconds > 59) newMinute();
+    #else
+      if(++countSeconds > 0) newMinute(); // В режиме отладки - каждая секунда это минута
+    #endif
   }
   //************************************************ TELEGRAM *************************************************/
   if (nowMillis - lastSendTime > interval) {

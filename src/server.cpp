@@ -360,10 +360,11 @@ void handleGetCurrentGraph() {
     JsonArray array = doc.to<JsonArray>();
 
     for (int period = 0; period <= currentPeriod; period++) {
-        int currentAddress = period * sizeof(int16_t) * 2;
-        int16_t raw_t1, raw_t2;
+        int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
+        int16_t raw_t1, raw_t2, raw_rh;
         eepromReadInt16(currentAddress, raw_t1);
-        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
+        eepromReadInt16(currentAddress + 2, raw_t2);
+        eepromReadInt16(currentAddress + 4, raw_rh);
 
         if (raw_t1 == 0 && raw_t2 == 0) continue; 
 
@@ -371,7 +372,7 @@ void handleGetCurrentGraph() {
         point["p"] = period;
         point["t1"] = (float)raw_t1 / 10.0;
         point["t2"] = (float)raw_t2 / 10.0;
-        point["rh"] = pvRH;
+        point["rh"] = (float)raw_rh;
     }
     
     server.setContentLength(measureJson(doc));
@@ -522,13 +523,14 @@ void handleShowData() {
     // V-- ШАГ 2: К ССЫЛКЕ ДОБАВЛЕН class="btn" --V
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("<table>"));
-    server.sendContent(F("<tr><th>Відлік часу від початку інкубації</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th></tr>"));
+    server.sendContent(F("<tr><th>Відлік часу від початку інкубації</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th><th>Вологість (%)</th></tr>"));
 
     // 2. Отправляем строку статистики, если она есть
     if (!statsDoc.isNull()) {
         String summaryRow = "<tr><th>через кожні 5 хвилин</th><th>Середнє: ";
         summaryRow += String(statsDoc["avg_t1"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t1"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t1"].as<float>(), 1);
         summaryRow += "</th><th>Середнє: " + String(statsDoc["avg_t2"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t2"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t2"].as<float>(), 1);
+        summaryRow += "</th><th>Середнє: " + String(statsDoc["avg_rh"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_rh"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_rh"].as<float>(), 1);
         summaryRow += "</th></tr>";
         server.sendContent(summaryRow);
     }
@@ -540,8 +542,8 @@ void handleShowData() {
         char row[128];
         char fmtTime[32];
         formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), array.size()-1);
-        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td></tr>"), 
-                   fmtTime, point["t1"].as<float>(), point["t2"].as<float>());
+        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
+                   fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
         server.sendContent(row);
         yield();
     }
@@ -609,21 +611,22 @@ void handleCurrentData() {
     server.sendContent(F("</script>"));
 
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
-    server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th></tr>"));
+    server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th><th>RH (%)</th></tr>"));
 
     for (int period = currentPeriod; period >= 0; period--) {
-        int currentAddress = period * sizeof(int16_t) * 2;
-        int16_t raw_t1, raw_t2;
+        int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
+        int16_t raw_t1, raw_t2, raw_rh;
         eepromReadInt16(currentAddress, raw_t1);
-        eepromReadInt16(currentAddress + sizeof(int16_t), raw_t2);
+        eepromReadInt16(currentAddress + 2, raw_t2);
+        eepromReadInt16(currentAddress + 4, raw_rh);
 
         if (raw_t1 == 0 && raw_t2 == 0) continue; 
 
         char row[128];
         char fmtTime[32];
         formatTimeBuffer(fmtTime, sizeof(fmtTime), period, currentPeriod);
-        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td></tr>"), 
-                   fmtTime, (float)raw_t1 / 10.0, (float)raw_t2 / 10.0);
+        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
+                   fmtTime, (float)raw_t1 / 10.0, (float)raw_t2 / 10.0, (float)raw_rh);
 
         server.sendContent(row);
         yield();
