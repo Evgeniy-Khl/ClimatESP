@@ -75,7 +75,7 @@ void setup(){
         MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
         dataLed[1] = 1;                       // RTC lost power
         // Установка времени: 1 год, 1 месяц, 1 день, 00:00:00
-        rtc.adjust(DateTime(2025, 1, 1, 0, 0, 0));
+        rtc.adjust(DateTime(2026, 1, 1, 0, 0, 0));
         eepromWriteByte(STARTINCUBADRES, 0);  // если и был старт инкубации то теперь сброшен
         settings.sp_structs[1].state = 0;     // [1]-программа текущая обнулена
         // saveSetpoint();  //????????????????????

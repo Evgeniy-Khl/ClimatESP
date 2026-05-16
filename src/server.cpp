@@ -371,13 +371,7 @@ void handleGetCurrentGraph() {
         point["p"] = period;
         point["t1"] = (float)raw_t1 / 10.0;
         point["t2"] = (float)raw_t2 / 10.0;
-
-        if (detectedSensor == SENSOR_DHT22) {
-            point["rh"] = (float)raw_t2 / 10.0;
-        } else if (numberOfDevices == 2) {
-            uint8_t rh = tableRH(raw_t1, raw_t2);
-            if (rh <= 100) point["rh"] = rh;
-        }
+        point["rh"] = pvRH;
     }
     
     server.setContentLength(measureJson(doc));
@@ -507,8 +501,8 @@ void handleShowData() {
           data: {
             labels: labels,
             datasets: [
-              { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (Яйце/Звол.)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
+              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
+              { label: 'T2 (°C)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
               { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
@@ -596,8 +590,8 @@ void handleCurrentData() {
           data: {
             labels: labels,
             datasets: [
-              { label: 'T1 (Повітря)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (Яйце/Звол.)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
+              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
+              { label: 'T2 (°C)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
               { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },

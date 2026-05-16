@@ -217,6 +217,7 @@ void displ_IP(void){
           data[1] = NUMBER_FONT[0];
       break;
     }
+    if(HIH5030) data[2] = NUMBER_FONT[1];                               //oo1 ooo oo
     if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //4oo 1oo oo
     if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //4oo 11o oo
 

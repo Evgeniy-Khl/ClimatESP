@@ -488,23 +488,19 @@ void reset(void){
 
 void newSecond(){
   errorsFlag.value = 0; 
-          
-  sensorCheck();        // Опрос датчиков должен быть всегда
-  if (numberOfDevices == 2) { // если нет ни одного датчика температуры
-  uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
-  if(valTable == 255) pvRH = valTable;
-  else if(valTable > 100) pvRH = 100;
-  else pvRH = valTable;
-  }
-  
-  #ifdef DEBUG  
+  #ifndef DEBUG  
+    sensorCheck();                                                  // Опрос датчиков должен быть всегда
+  #else
     // В режиме отладки можно оставить симуляцию, если датчики не подключены
-    if(detectedSensor == UNKNOWN){
       dpv0 += pctHeater/50 + pid[0].iPart/10;
       ds[0].pvT = dpv0;
       dpv1 += pctHimidifier/50 + pid[1].iPart/10; 
       ds[1].pvT = dpv1;
-    }
+
+      uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH то ...
+      if(valTable == 255) pvRH = valTable;
+      else if(valTable > 100) pvRH = 100;
+      else pvRH = valTable;
   #endif
     //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
       checkModeDevice();

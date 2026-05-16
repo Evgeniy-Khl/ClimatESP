@@ -6,7 +6,7 @@ void sensorType();
 void sensorCheck();
 bool check_freeze(uint8_t i);
 void checkDs18b20(void);
-int16_t valDcToRH(uint16_t Vadc);
-int16_t lowPassF2(int16_t PV);
+int16_t getRelativeHumidityESP8266(void);
+// int16_t lowPassF2(int16_t PV);
 
 #endif /* __SENSORS_H */

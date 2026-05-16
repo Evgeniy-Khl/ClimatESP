@@ -27,6 +27,11 @@ void sensorType(){
           DEBUG_PRINTF("Не удалось получить адрес для датчика %d\n", i);
         }
       }
+      // Инициализируем расчет относительной влажности для HIH-5030
+      if(getRelativeHumidityESP8266() > 100){
+        HIH5030 = 1;
+        MYDEBUG_PRINTLN("Обнаружен датчик: HIH-5030");
+      } 
    } else {
       // 2. Если DS18B20 не найден, пытаемся прочитать данные с DHT22.
       delay(1000);
@@ -100,36 +105,39 @@ void checkDs18b20(void){
       ds[i].pvT = SENSOR_FROZEN_VAL;    // индикация 66,0 - завис датчик.
       FROZE = 1;
     }
-    }
-    sensors.requestTemperatures();
+  }
+  sensors.requestTemperatures();
 
-    if (HIH5030){
-    uint16_t adc=1024;
-    pvVadcRH = adc;//lowPassF2(adc);           // относительная влажность в Vadc ??????????????????????????????????????????
-    if (pvVadcRH>80) pvRH = valDcToRH(pvVadcRH); // относительная влажность в %
-    else pvRH = SENSOR_ERROR_VAL;
-    } else {
-
-    uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH4000 то ...
-    if(valTable>100) pvRH = 100; else pvRH = valTable;
+  if(HIH5030){
+    pvRH = getRelativeHumidityESP8266();                // относительная влажность в %
+    if (pvRH > 100.0 || pvRH < 0) pvRH = 255;           // Ограничиваем диапазон [0% ... 100%]
+  } else if (numberOfDevices == 2){
+    uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);   // если отсутствует HIH то ...
+    if(valTable == 255) pvRH = 255;
+    else if(valTable > 100) pvRH = 100;
+    else pvRH = valTable;
   }
 }
 
-#define V_REF   	5 //?????????????????????????????????????????????????????
-#define ADC_RESOLUTION	512 //?????????????????????????????????????????????????????????????????????
-// для HIH-5030
-// Vadc бинарное значение ADC -> в десятичное значение относительной влажности (%)
-int16_t valDcToRH(uint16_t Vadc){
- float tmpRH, tmpK;
-  tmpRH = (float)Vadc/ADC_RESOLUTION; //????????????????????????????????????????????????????????????????
-  tmpRH -= 0.1515; tmpRH /= 0.00636;
-  if(ds[0].pvT<850){tmpK = 0.00216 * ds[0].pvT/10; tmpK = 1.0546 - tmpK;}// корекция по температуре
-  else tmpK=1;      
-  tmpRH /= tmpK;
-  tmpRH *= 10;
-  tmpRH += settings.sp_structs[0].spRH;             //sp[0].spRH->ПОДСТРОЙКА HIH-5030!!
-  if (tmpRH>1000) tmpRH=1000; else if (tmpRH<0) tmpRH=0;
-  return tmpRH;
+/**
+ * Вычисляет относительную влажность для датчика HIH-5030 на ESP8266.
+ * 
+ * @param temperature  Текущая температура окружающей среды в °C.
+ * @param vSupply      Напряжение питания датчика (3.3V).
+ * @return             Относительная влажность в % RH.
+ */
+int16_t getRelativeHumidityESP8266(void) {
+    // 1. Считываем значение с АЦП ESP8266 (всегда 10 бит: 0 - 1023)
+    int adcValue = analogRead(A0);
+    // 2. Переводим значение АЦП в напряжение.
+    
+    float vOut = (adcValue / 1023.0) * 3.3;                     // максимальное входное напряжение на пине A0 составляет 3.3V.
+    // 3. Расчет влажности без учета температуры (из даташита HIH-5030)
+    float sensorRH = ((vOut / 3.3) - 0.1515) / 0.00636;         // Формула: RH = ((Vout / Vsupply) - 0.1515) / 0.00636
+    // 4. Температурная компенсация (из даташита)
+    float trueRH = sensorRH / (1.0546 - (0.00216 * ds[0].pvT/10));// Формула: True RH = Sensor RH / (1.0546 - 0.00216 * T)
+    trueRH += settings.sp_structs[0].spRH;                      //sp[0].spRH->ПОДСТРОЙКА HIH-5030!!
+    return trueRH;
 }
 
 /* int16_t lowPassF2(int16_t PV)
