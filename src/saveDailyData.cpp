@@ -45,9 +45,12 @@ void saveDailyDataToFile(int day) {
 
     // Обновляем статистику
     total_sum_t1 += t1; total_sum_t2 += t2; total_sum_rh += rh;
-    if (t1 < min_t1) min_t1 = t1; if (t1 > max_t1) max_t1 = t1;
-    if (t2 < min_t2) min_t2 = t2; if (t2 > max_t2) max_t2 = t2;
-    if (rh < min_rh) min_rh = rh; if (rh > max_rh) max_rh = rh;
+    if (t1 < min_t1) min_t1 = t1; 
+    if (t1 > max_t1) max_t1 = t1;
+    if (t2 < min_t2) min_t2 = t2; 
+    if (t2 > max_t2) max_t2 = t2;
+    if (rh < min_rh) min_rh = rh; 
+    if (rh > max_rh) max_rh = rh;
     validReadingsCount++;
   }
 
