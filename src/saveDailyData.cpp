@@ -17,8 +17,6 @@ void saveDailyDataToFile(int day) {
   float total_sum_rh = 0, min_rh = 200, max_rh = -200;
   int validReadingsCount = 0;
 
-  const int totalPeriods = 288; // Всего 288 пятиминутных периодов в сутках
-
 
     // --- Основной цикл: читаем 288 готовых записей ---
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
