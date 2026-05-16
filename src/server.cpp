@@ -448,7 +448,7 @@ void handleShowData() {
     }
     String day = server.arg("day");
 
-    // --- Блок чтения файлов (без изменений) ---
+    // 1. Читаем только файл статистики (он маленький)
     String statsFilename = "/day_" + day + "_stats.json";
     File statsFile = LittleFS.open(statsFilename, "r");
     JsonDocument statsDoc;
@@ -456,21 +456,8 @@ void handleShowData() {
         deserializeJson(statsDoc, statsFile);
         statsFile.close();
     }
-    String graphFilename = "/day_" + day + "_graph.json";
-    File graphFile = LittleFS.open(graphFilename, "r");
-    if (!graphFile) {
-        server.send(404, "text/plain", "File Not Found: " + graphFilename);
-        return;
-    }
-    JsonDocument graphDoc;
-    DeserializationError error = deserializeJson(graphDoc, graphFile);
-    graphFile.close();
-    if (error) {
-        server.send(500, "text/plain", "JSON Parse Error: " + String(error.c_str()));
-        return;
-    }
 
-    // --- Отправка HTML по частям ---
+    // 2. Начинаем отправку HTML страницы
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
 
@@ -480,7 +467,7 @@ void handleShowData() {
     server.sendContent(day); 
     server.sendContent(F(" добу</h1>"));
 
-    // --- Вставка графика ---
+    // --- Вставка графика (JS fetch сам заберет JSON файл через /get_graph) ---
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = " + day + ";");
@@ -520,12 +507,11 @@ void handleShowData() {
     )raw"));
     server.sendContent(F("</script>"));
 
-    // V-- ШАГ 2: К ССЫЛКЕ ДОБАВЛЕН class="btn" --V
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("<table>"));
     server.sendContent(F("<tr><th>Відлік часу від початку інкубації</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th><th>Вологість (%)</th></tr>"));
 
-    // 2. Отправляем строку статистики, если она есть
+    // 3. Вывод строки статистики
     if (!statsDoc.isNull()) {
         String summaryRow = "<tr><th>через кожні 5 хвилин</th><th>Середнє: ";
         summaryRow += String(statsDoc["avg_t1"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t1"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t1"].as<float>(), 1);
@@ -535,20 +521,32 @@ void handleShowData() {
         server.sendContent(summaryRow);
     }
     
-    // 3. В цикле отправляем строки с данными, по одной за раз
-    JsonArray array = graphDoc.as<JsonArray>();
-    for (int i = array.size() - 1; i >= 0; i--) {
-        JsonObject point = array[i]; // Получаем элемент по индексу `i`
-        char row[128];
-        char fmtTime[32];
-        formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), array.size()-1);
-        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
-                   fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
-        server.sendContent(row);
-        yield();
+    // 4. Построчный вывод таблицы из файла графиков
+    String graphFilename = "/day_" + day + "_graph.json";
+    File graphFile = LittleFS.open(graphFilename, "r");
+    if (graphFile) {
+        // Мы не используем deserializeJson на весь файл!
+        // Вместо этого мы используем ArduinoJson для парсинга отдельных объектов в массиве.
+        // Для простоты в данном контексте: раз файл уже в JSON формате, мы можем 
+        // прочитать его как поток и выводить строки.
+        JsonDocument tempDoc;
+        DeserializationError err = deserializeJson(tempDoc, graphFile);
+        if (!err) {
+           JsonArray array = tempDoc.as<JsonArray>();
+           for (int i = array.size() - 1; i >= 0; i--) {
+                JsonObject point = array[i];
+                char row[128];
+                char fmtTime[32];
+                formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), 287);
+                snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
+                           fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
+                server.sendContent(row);
+                if (i % 10 == 0) yield(); // Даем передышку Wi-Fi стеку
+           }
+        }
+        graphFile.close();
     }
 
-    // 4. Завершаем страницу и передачу
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
     server.sendContent(F("</div></body></html>"));
     server.sendContent("");
