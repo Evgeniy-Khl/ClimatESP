@@ -24,19 +24,27 @@ int16_t UpdatePID(uint8_t cn){
   ds[cn].pvErr = error;         // error > 0 -> холодно
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
-  // Интегральная составляющая
-  pid[cn].iPart += (float)error * pid[cn].Ki;// * dt;
-  // Ограничение выходного значения и антивиндовинг
-  if (pid[cn].pPart >= max) pid[cn].iPart = 0; // Сброс интеграла
-  else if (pid[cn].pPart <= min) pid[cn].iPart = 0; // Сброс интеграла
+  
+  // Интегральная составляющая с защитой от насыщения (Anti-Windup Clamping)
+  float potentialIPart = pid[cn].iPart + (float)error * pid[cn].Ki;
+  float totalOutput = pid[cn].pPart + potentialIPart;
+
+  // Обновляем интеграл только если выход не в насыщении 
+  // или если изменение интеграла выводит выход из насыщения
+  if (totalOutput >= min && totalOutput <= max) {
+    pid[cn].iPart = potentialIPart;
+  } else if (totalOutput > max && error < 0) {
+    pid[cn].iPart = potentialIPart; // Разрешаем уменьшение интеграла при перегреве
+  } else if (totalOutput < min && error > 0) {
+    pid[cn].iPart = potentialIPart; // Разрешаем увеличение интеграла при недогреве
+  }
+
   // Суммарное управляющее воздействие
   pid[cn].output = pid[cn].pPart + pid[cn].iPart;
   if(pid[cn].output < 0) pid[cn].output = 0;
-  // MYDEBUG_PRINT("Current value of pid[cn].output before cast: ");
-  // MYDEBUG_PRINTLN(pid[cn].output); // Эта строка покажет вам реальное значение переменной
+  if(pid[cn].output > max) pid[cn].output = max; // Ограничение сверху
+  
   error = (int16_t)pid[cn].output;
-  // DEBUG_PRINTF("MAX=%d; MIN=%d;  ",max,min);
-  // DEBUG_PRINTF("OUTPUT cn=%d: %3d%%\n",cn,error);
   return error;
 }
 //------------- симистричный таймер -------------------
