@@ -28,7 +28,8 @@ void sensorType(){
         }
       }
       // Инициализируем расчет относительной влажности для HIH-5030
-      if(getRelativeHumidityESP8266() > 100){
+      // При старте передаем 25 градусов, так как DS18B20 еще не завершил конвертацию
+      if(getRelativeHumidityESP8266(25.0) > 100){
         HIH5030 = 1;
         MYDEBUG_PRINTLN("Обнаружен датчик: HIH-5030");
       } 
@@ -109,7 +110,7 @@ void checkDs18b20(void){
   sensors.requestTemperatures();
 
   if(HIH5030){
-    pvRH = getRelativeHumidityESP8266();                // относительная влажность в %
+    pvRH = getRelativeHumidityESP8266((float)ds[0].pvT / 10.0); // Передаем реальную температуру
     if (pvRH > 100.0 || pvRH < 0) pvRH = 255;           // Ограничиваем диапазон [0% ... 100%]
   } else if (numberOfDevices == 2){
     uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);   // если отсутствует HIH то ...
@@ -123,10 +124,9 @@ void checkDs18b20(void){
  * Вычисляет относительную влажность для датчика HIH-5030 на ESP8266.
  * 
  * @param temperature  Текущая температура окружающей среды в °C.
- * @param vSupply      Напряжение питания датчика (3.3V).
  * @return             Относительная влажность в % RH.
  */
-int16_t getRelativeHumidityESP8266(void) {
+int16_t getRelativeHumidityESP8266(float temperature) {
     // 1. Считываем значение с АЦП ESP8266 (всегда 10 бит: 0 - 1023)
     int adcValue = analogRead(A0);
     // 2. Переводим значение АЦП в напряжение.
@@ -135,7 +135,7 @@ int16_t getRelativeHumidityESP8266(void) {
     // 3. Расчет влажности без учета температуры (из даташита HIH-5030)
     float sensorRH = ((vOut / 3.3) - 0.1515) / 0.00636;         // Формула: RH = ((Vout / Vsupply) - 0.1515) / 0.00636
     // 4. Температурная компенсация (из даташита)
-    float trueRH = sensorRH / (1.0546 - (0.00216 * ds[0].pvT/10));// Формула: True RH = Sensor RH / (1.0546 - 0.00216 * T)
+    float trueRH = sensorRH / (1.0546 - (0.00216 * temperature));// Формула: True RH = Sensor RH / (1.0546 - 0.00216 * T)
     trueRH += settings.sp_structs[0].spRH;                      //sp[0].spRH->ПОДСТРОЙКА HIH-5030!!
     return trueRH;
 }
