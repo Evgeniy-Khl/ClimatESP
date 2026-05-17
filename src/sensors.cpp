@@ -30,9 +30,8 @@ void sensorType(){
       // Инициализируем расчет относительной влажности для HIH-5030
       // При старте передаем 25 градусов, так как DS18B20 еще не завершил конвертацию
       if(getRelativeHumidityESP8266(25.0) > 10){
-        HIH5030 = 1;
-        MYDEBUG_PRINTLN("Обнаружен датчик: HIH-5030");
-      } 
+        HIH5030 = 1; MYDEBUG_PRINTLN("Обнаружен датчик: HIH-5030");
+      } else HIH5030 = 0;
    } else {
       // 2. Если DS18B20 не найден, пытаемся прочитать данные с DHT22.
       delay(1000);
@@ -57,7 +56,7 @@ void sensorCheck(){
       } else {
         ds[0].errDevice = 0;
         ds[0].pvT = round(t * 10);
-        ds[1].pvT = round(h * 10);
+        pvRH = round(h);
         MYDEBUG_PRINT("t= "); MYDEBUG_PRINT(t); MYDEBUG_PRINTLN(" °C");
         MYDEBUG_PRINT("RH= "); MYDEBUG_PRINT(h); MYDEBUG_PRINT(" %\t");
       }

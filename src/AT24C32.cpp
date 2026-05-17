@@ -131,7 +131,7 @@ uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t leng
  * Заполняет нулями 288 записей (t1 и t2).
  */
 void clearEEPROM() {
-  Serial.println("Начало очистки AT24C32...");
+  MYDEBUG_PRINTLN("Начало очистки AT24C32...");
   
   // Проходим по всем 288 пятиминутным периодам
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
@@ -144,10 +144,10 @@ void clearEEPROM() {
     eepromWriteInt16(currentAddress + 4, 0);
 
     // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
-    if (period % 10 == 0) Serial.print(".");
+    // if (period % 10 == 0) Serial.print(".");
   }
   
-  Serial.println("\nОчистка AT24C32 завершена.");
+  MYDEBUG_PRINTLN("Очистка AT24C32 завершена.");
 }
 
 // ----- Функции для работы с разными типами данных -----

@@ -490,8 +490,8 @@ void handleShowData() {
             labels: labels,
             datasets: [
               { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
+              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
           options: { 
@@ -591,8 +591,8 @@ void handleCurrentData() {
             labels: labels,
             datasets: [
               { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
+              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
           options: { 

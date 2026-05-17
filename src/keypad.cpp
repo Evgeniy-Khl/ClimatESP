@@ -149,7 +149,7 @@ void checkkey(uint8_t key){
                     TURN = PCF_ON;
                     writePCF8574(portOut.value);
             break;
-        case KEY_3: if(++displNum > 4) displNum = 0;
+        case KEY_3: if(++displNum > 6) displNum = 0;
                     resetDispl = RESETDISPLAY;
             break;
         case KEY_4: pvTimer=settings.sp_structs[0].timer; 

@@ -29,7 +29,7 @@ uint8_t numberOfDevices,    // число найденых датчиков
         countSeconds,       // счетчик секунд
         countMinutes,       // счетчик минут
         countHours,         // счетчик часов
-        countDays = 31,     // счетчик дней
+        countDays = 0,      // счетчик дней
         stagnationTimer = 0; // счетчик минут отсутствия роста температуры
 
 int16_t pvAeration,         // текущее время проветривания
@@ -62,7 +62,7 @@ uint16_t begHeapSize, previousHeapSize;
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_1000;
 //---------------------------------
-Ds ds[2] = {{150,0,0,0,0},{100,0,0,0,0}};
+Ds ds[MAX_DEVICE] = {{1990,0,0,0,0,0},{1990,0,0,0,0},{1990,0,0,0,0}};
 
 //---------------------------------
 

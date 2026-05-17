@@ -3,7 +3,7 @@
 
 void displ_top(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0, endComa = 0;
-  if((ERROR4 || comma == 3) && (halfSecond & 1)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
+  if((ERROR4 || comma == 3) && (halfSecond & 1)&&(displNum == 0)){for (i=0; i<3; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma = 0x80; else if(comma == 3){comma = 0; endComa = 0x80;}
     if(val<0) {neg = 1; val = -val;}
@@ -35,7 +35,7 @@ void displ_top(signed int val, unsigned char comma){
 
 void displ_bot(signed int val, unsigned char comma){
   uint8_t i = 0, neg = 0, endComa = 0;
-  if((ERROR8 || comma > 1)&&(halfSecond & 1)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
+  if((ERROR8 || comma > 1)&&(halfSecond & 1)&&(displNum == 0)){for (i=3; i<6; i++) data[i]=BL;} // мигают цифры
   else {
     if(comma == 1) comma=0x80;
     else if(comma == 3){comma = 0; endComa = 0x80;}
@@ -95,7 +95,8 @@ void displ_67(signed int val, unsigned char mode){
           case DAY:     data[6] = DD; break;
           case COOL:    data[6] = GR; break;
           default:      data[6] = BL;
-        }
+      }
+      data[7] = NUMBER_FONT[val];
   } else if(val<100){
       data[6] = NUMBER_FONT[(val/10)&0x0F];
       data[7] = NUMBER_FONT[(val%10)&0x0F];
@@ -112,65 +113,57 @@ void ledDispl(unsigned char mode){
         //------------- pvT0;    	pvT1;    			pvRH / ERRORS / AERATION --------------------
     case 0:
       displ_top(ds[0].pvT,COMMA);
-      if(HIH5030 || SENSOR_DHT22) {displ_bot(pvRH, NOCOMMA); displ_67(-100, NOCOMMA);}  // "--"
+      if(HIH5030 || detectedSensor == SENSOR_DHT22) {displ_bot(pvRH, NOCOMMA); displ_67(-100, NOCOMMA);}  // "--"
       else {displ_bot(ds[1].pvT,COMMA); displ_67(pvRH, NOCOMMA);}
       if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
       else if(AERATION) displ_67(pvVenting, COOL);
-      else displ_67(pvRH, NOCOMMA); // pctHeater -> power %
       break;
        //-------------- pvT1;      pvT2;    			"F1"---------
     case 1: 
       displ_top(ds[1].pvT,COMMA); 
       displ_bot(ds[2].pvT,COMMA); 
       displ_bot(settings.sp_structs[0].state, NOCOMMA); 
-      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
       break;
        //-------------- pvTimer;   pvFlap;    		"F2"---------
     case 2: 
       displ_top(pvTimer, NOCOMMA);
-      displ_bot(settings.sp_structs[0].state, NOCOMMA); 
-      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
+      displ_bot(pvFlap, NOCOMMA); 
       break;
        //-------------- state;     date;    			"F3"---------
     case 3: 
       displ_top(settings.sp_structs[1].state, NOCOMMA);
-      displ_bot(0, NOCOMMA); 
-      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
+      displ_bot(countDays, NOCOMMA); 
       break;
        //-------------- spT0;    	spT1 / spRH;		"F4"---------
     case 4: 
       displ_top(settings.sp_structs[0].spT, COMMA); 
       if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
       else displ_bot(settings.sp_structs[1].spT, COMMA);
-      data[6]=FF; data[7]=NUMBER_FONT[mode];
       break;
-       //-------------- IP0;		IP1;				"F5" -------------
+       //-------------- IP0;		IP1;				      "F5" --------
     case 5:
       if(WIFIENABLE){
         IPAddress myIP = WiFi.localIP();
         displ_top(myIP[0],ENDCOMMA);
         displ_bot(myIP[1],ENDCOMMA);
-        displ_67(1, NOCOMMA);
       } else {
         displ_top(0,ENDCOMMA);
         displ_bot(0,ENDCOMMA);
-        displ_67(1, NOCOMMA);
       }
       break;
-       //-------------- IP2;		IP3;				"F6" -------------
+       //-------------- IP2;		IP3;				      "F6" --------
     case 6:
       if(WIFIENABLE){
         IPAddress myIP = WiFi.localIP();
         displ_top(myIP[2],ENDCOMMA);
         displ_bot(myIP[3],ENDCOMMA);
-        displ_67(2, NOCOMMA);
       } else {
         displ_top(0,ENDCOMMA);
         displ_bot(0,ENDCOMMA);
-        displ_67(2, NOCOMMA);
       }
       break;
  }
+ if(mode) {data[6]=FF; data[7]=NUMBER_FONT[mode];}
  if (OVERHEAT){
     data[6] = PE; data[7] = GE;
     if(halfSecond & 1) {for (uint8_t i=0; i<8; i++) data[i] = BL;}; // мигание дисплея при перегреве симистора
@@ -240,7 +233,7 @@ void displErrors(void){
 
     
     switch (detectedSensor){
-    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break; //4oo ooo oo
+    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break; //2oo ooo oo
     case SENSOR_DHT22:   data[1] = NUMBER_FONT[1]; break;               //o1o ooo oo
     case UNKNOWN: 
           data[0] = NUMBER_FONT[0];                                     //00o ooo oo
@@ -252,7 +245,7 @@ void displErrors(void){
     if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //xxx 1oo oo
     if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //xxx x1o oo
 
-    data[6] = NUMBER_FONT[0];                                           // версия v.00
+    data[6] = UU;                                                       // версия u0
     data[7] = NUMBER_FONT[0];
 
     module.setDisplay(data, 8);

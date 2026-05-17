@@ -29,6 +29,7 @@
 #define YY              0x6E     // У
 #define PP              0x73     // P
 #define GR              0x63     // o
+#define UU              0x62     // u
 
 void ledDispl(unsigned char mode);
 void displ_top(signed int val, unsigned char comma);
