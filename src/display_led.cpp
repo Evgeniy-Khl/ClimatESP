@@ -231,19 +231,18 @@ void displErrors(void){
     //-------------------------------- индикация марки прибора ---------------------------------
     for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}                    //"ooo ooo oo"
 
-    
+    data[1] = DD;
     switch (detectedSensor){
-    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break; //2oo ooo oo
+    case SENSOR_DS18B20: data[0] = NUMBER_FONT[numberOfDevices]; break; //2do ooo oo
     case SENSOR_DHT22:   data[1] = NUMBER_FONT[1]; break;               //o1o ooo oo
     case UNKNOWN: 
-          data[0] = NUMBER_FONT[0];                                     //00o ooo oo
-          data[1] = NUMBER_FONT[0];
+          data[0] = NUMBER_FONT[0];                                     //0do ooo oo
           // TO DO ОСТВНОВИТЬ ПРОГРАММУ!
       break;
     }
-    if(HIH5030) data[2] = NUMBER_FONT[1];                               //xx1 ooo oo
-    if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //xxx 1oo oo
-    if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //xxx x1o oo
+    if(HIH5030) data[2] = NUMBER_FONT[1];                               //xd1 ooo oo
+    if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //xdx 1oo oo
+    if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //xdx x1o oo
 
     data[6] = UU;                                                       // версия u0
     data[7] = NUMBER_FONT[0];

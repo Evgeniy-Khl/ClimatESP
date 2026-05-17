@@ -226,29 +226,64 @@ void ledSet(void){
     }
 }
 
-// Функция для восстановления шины I2C (если SDA завис в LOW)
+// Функция для восстановления шины I2C (если SDA или SCL зависли)
 void recoverI2C() {
+  static unsigned long lastRecoveryTime = 0;
+  if (millis() - lastRecoveryTime < 500) return; // Ограничение частоты попыток (не чаще раза в 0.5 сек)
+  lastRecoveryTime = millis();
+
   MYDEBUG_PRINTLN("Attempting I2C bus recovery...");
-  
+
   // В ESP8266 SDA=GPIO4, SCL=GPIO5 по умолчанию для Wire.begin()
   const uint8_t sda = 4; 
   const uint8_t scl = 5;
 
-  pinMode(sda, INPUT_PULLUP);
+  // 1. Переводим пины в режим ручного управления
   pinMode(scl, OUTPUT);
+  pinMode(sda, INPUT_PULLUP);
+  digitalWrite(scl, HIGH);
+  delayMicroseconds(10);
 
-  // Если SDA завис в LOW, пытаемся проталкивать такты SCL (до 9 раз)
-  for (int i = 0; i < 9; i++) {
-    digitalWrite(scl, LOW);
-    delayMicroseconds(5);
-    digitalWrite(scl, HIGH);
-    delayMicroseconds(5);
-    if (digitalRead(sda) == HIGH) break;
+  // 2. Если SDA прижат к земле ведомым, пытаемся "прощёлкать" SCL (до 16 тактов)
+  if (digitalRead(sda) == LOW) {
+    MYDEBUG_PRINTLN("SDA is LOW, sending recovery pulses...");
+    for (int i = 0; i < 16; i++) {
+      digitalWrite(scl, LOW);
+      delayMicroseconds(10);
+      digitalWrite(scl, HIGH);
+      delayMicroseconds(10);
+      if (digitalRead(sda) == HIGH) {
+        MYDEBUG_PRINTLN("SDA released by slave.");
+        break;
+      }
+    }
   }
 
-  // Сброс и повторная инициализация Wire
-  Wire.begin();
-  Wire.setClock(400000); // Опционально: ускоряем шину до 400 кГц
+  // 3. Генерация START + STOP условий вручную для сброса состояний всех ведомых
+  pinMode(sda, OUTPUT);
+  digitalWrite(sda, LOW);  // START (SDA LOW while SCL is HIGH)
+  delayMicroseconds(10);
+  digitalWrite(scl, LOW);
+  delayMicroseconds(10);
+  digitalWrite(scl, HIGH); // Подготовка к STOP
+  delayMicroseconds(10);
+  digitalWrite(sda, HIGH); // STOP (SDA HIGH while SCL is HIGH)
+  delayMicroseconds(10);
+
+  // 4. Возвращаем пины в исходное состояние (высокий импеданс)
+  pinMode(sda, INPUT_PULLUP);
+  pinMode(scl, INPUT_PULLUP);
+
+  // 5. Повторная инициализация библиотеки Wire
+  Wire.begin(sda, scl);
+  Wire.setClock(400000); 
+  
+  delay(5); // Пауза для стабилизации
+  if (digitalRead(sda) == LOW || digitalRead(scl) == LOW) {
+    MYDEBUG_PRINTLN("I2C recovery: FAILED (Bus still LOW)");
+  } else {
+    MYDEBUG_PRINTLN("I2C recovery: SUCCESS");
+  }
 }
 
 // Функция для записи байта на PCF8574
@@ -256,10 +291,11 @@ byte writePCF8574(byte data) {
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
+  
   if(error) {
-    MYDEBUG_PRINT("\nError writing to PCF8574. Error code: ");
+    MYDEBUG_PRINT("\nError writing to PCF8574. Code: ");
     MYDEBUG_PRINTLN(error);
-    recoverI2C(); // Попытка восстановления шины при любой ошибке
+    recoverI2C(); // Попытка восстановления шины
     
     // Повторная попытка после восстановления
     Wire.beginTransmission(PCF8574_ADDRESS);
@@ -271,11 +307,11 @@ byte writePCF8574(byte data) {
 
 // Функция для чтения байта с PCF8574
 byte readPCF8574() {
-  Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1); // Запросить 1 байт данных
-  if (Wire.available()) {
+  uint8_t count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
     return Wire.read();
   } else {
-    MYDEBUG_PRINTLN("Error reading from PCF8574: No data available.");
+    MYDEBUG_PRINTLN("Error reading from PCF8574: No response.");
     recoverI2C(); // Попытка восстановления
     return 0xFF; // Возвращаем 0xFF в случае ошибки
   }
