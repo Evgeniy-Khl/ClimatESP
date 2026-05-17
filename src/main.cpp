@@ -286,6 +286,8 @@ void recoverI2C() {
   }
 }
 
+static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
+
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
   Wire.beginTransmission(PCF8574_ADDRESS);
@@ -293,14 +295,30 @@ byte writePCF8574(byte data) {
   byte error = Wire.endTransmission();
   
   if(error) {
+    i2c_error_count++;
     MYDEBUG_PRINT("\nError writing to PCF8574. Code: ");
-    MYDEBUG_PRINTLN(error);
-    recoverI2C(); // Попытка восстановления шины
+    MYDEBUG_PRINT(error);
+    MYDEBUG_PRINT(" | Fail count: ");
+    MYDEBUG_PRINTLN(i2c_error_count);
+
+    if (i2c_error_count >= 20) { // Если 20 попыток (с учетом повторов) не помогли
+      MYDEBUG_PRINTLN("CRITICAL I2C ERROR: Restarting ESP...");
+      delay(1000);
+      ESP.restart();
+    }
+
+    recoverI2C(); // Попытка мягкого восстановления шины
     
     // Повторная попытка после восстановления
     Wire.beginTransmission(PCF8574_ADDRESS);
     Wire.write(data);
     error = Wire.endTransmission();
+    
+    if (error == 0) {
+      i2c_error_count = 0; // Сброс при успехе
+    }
+  } else {
+    i2c_error_count = 0; // Ошибок нет - сброс счетчика
   }
   return error;
 }
@@ -309,9 +327,19 @@ byte writePCF8574(byte data) {
 byte readPCF8574() {
   uint8_t count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
   if (count > 0) {
+    i2c_error_count = 0; // Успешное чтение - сброс счетчика
     return Wire.read();
   } else {
-    MYDEBUG_PRINTLN("Error reading from PCF8574: No response.");
+    i2c_error_count++;
+    MYDEBUG_PRINT("\nError reading from PCF8574. Fail count: ");
+    MYDEBUG_PRINTLN(i2c_error_count);
+
+    if (i2c_error_count >= 20) {
+      MYDEBUG_PRINTLN("CRITICAL I2C ERROR: Restarting ESP...");
+      delay(1000);
+      ESP.restart();
+    }
+
     recoverI2C(); // Попытка восстановления
     return 0xFF; // Возвращаем 0xFF в случае ошибки
   }
