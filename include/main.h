@@ -55,7 +55,7 @@
 
 #define LEDPIN            2
 #define ONE_WIRE_BUS_PIN  LEDPIN    // используется номер GPIO2
-#define MAX_DEVICE        4         // ограничение количества датчиков
+#define MAX_DEVICE        3         // ограничение количества датчиков
 
 // --- Карта памяти AT24C32 (4096 байт) ---
 #define DAILY_DATA_START      0x000  // Начало данных графиков

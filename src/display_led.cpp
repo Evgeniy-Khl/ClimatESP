@@ -85,60 +85,90 @@ void displ_67(signed int val, unsigned char mode){
   if(val<0) {neg=1; val=-val;}
   if(neg){
     if(val<10){
-        data[6] = DEF;
-        data[7] = NUMBER_FONT[val%10];
+        data[6] = DEF; data[7] = NUMBER_FONT[val%10];
     } else {
-        data[6] = GR; // o
-        data[7] = GR; // o
+        data[6] = DEF; data[7] = DEF;
     };
-  } else if(val==100){
-      data[6] = GR; data[7] = GR; // oo
-  } else if(val<100){
-      data[6] = NUMBER_FONT[(val/10)&0x0F];
-      data[7] = NUMBER_FONT[(val%10)&0x0F];
-      if(val<10){
-        switch (mode){
+  } else if(val<10){
+      switch (mode){
           case ERRORS:  data[6] = EE; break;
           case DAY:     data[6] = DD; break;
           case COOL:    data[6] = GR; break;
           default:      data[6] = BL;
         }
-      }
+  } else if(val<100){
+      data[6] = NUMBER_FONT[(val/10)&0x0F];
+      data[7] = NUMBER_FONT[(val%10)&0x0F];
+  } else if(val==100){
+      data[6] = GR; data[7] = GR; // oo
+  } else {
+      data[6] = HH; data[7] = HH; // HH
   }
-  else {data[6] = DEF; data[7] = DEF;}; // --
 }
 
 //===================== ledDisplay ========================
 void ledDispl(unsigned char mode){
   switch (mode){
-        //------------- t0; t1 / RH; --------------------
+        //------------- pvT0;    	pvT1;    			pvRH / ERRORS / AERATION --------------------
     case 0:
-      displ_top(ds[0].pvT,COMMA); 
-      displ_bot(ds[1].pvT,COMMA);
+      displ_top(ds[0].pvT,COMMA);
+      if(HIH5030 || SENSOR_DHT22) {displ_bot(pvRH, NOCOMMA); displ_67(-100, NOCOMMA);}  // "--"
+      else {displ_bot(ds[1].pvT,COMMA); displ_67(pvRH, NOCOMMA);}
       if(errorsFlag.value) displ_67(errorsFlag.value, ERRORS); 
       else if(AERATION) displ_67(pvVenting, COOL);
-          // else if(programm) displ_678(date,DAY); 
-      else if(HIH5030) displ_67(pvTimer, NOCOMMA); 
       else displ_67(pvRH, NOCOMMA); // pctHeater -> power %
       break;
-       //-------------- Timer; Flap; ----------"F2"---------
+       //-------------- pvT1;      pvT2;    			"F1"---------
     case 1: 
-      displ_top(pvTimer, NOCOMMA); 
+      displ_top(ds[1].pvT,COMMA); 
+      displ_bot(ds[2].pvT,COMMA); 
       displ_bot(settings.sp_structs[0].state, NOCOMMA); 
-      data[6]=FF; data[7]=NUMBER_FONT[2]; 
+      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
       break;
-       //-------------------Flap;--------------------date;--------------------"F3"---------
+       //-------------- pvTimer;   pvFlap;    		"F2"---------
     case 2: 
-      displ_top(settings.sp_structs[0].state, NOCOMMA); 
-      displ_bot(0,NOCOMMA); 
-      data[6]=FF; data[7]=NUMBER_FONT[3]; 
+      displ_top(pvTimer, NOCOMMA);
+      displ_bot(settings.sp_structs[0].state, NOCOMMA); 
+      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
       break;
-       //---------------уставка t0;-------------------------уставка RH;-----------------------уставка t1-----------------"F4"---------
+       //-------------- state;     date;    			"F3"---------
     case 3: 
+      displ_top(settings.sp_structs[1].state, NOCOMMA);
+      displ_bot(0, NOCOMMA); 
+      data[6]=FF; data[7]=NUMBER_FONT[mode]; 
+      break;
+       //-------------- spT0;    	spT1 / spRH;		"F4"---------
+    case 4: 
       displ_top(settings.sp_structs[0].spT, COMMA); 
       if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
       else displ_bot(settings.sp_structs[1].spT, COMMA);
-      data[6]=FF; data[7]=NUMBER_FONT[4];
+      data[6]=FF; data[7]=NUMBER_FONT[mode];
+      break;
+       //-------------- IP0;		IP1;				"F5" -------------
+    case 5:
+      if(WIFIENABLE){
+        IPAddress myIP = WiFi.localIP();
+        displ_top(myIP[0],ENDCOMMA);
+        displ_bot(myIP[1],ENDCOMMA);
+        displ_67(1, NOCOMMA);
+      } else {
+        displ_top(0,ENDCOMMA);
+        displ_bot(0,ENDCOMMA);
+        displ_67(1, NOCOMMA);
+      }
+      break;
+       //-------------- IP2;		IP3;				"F6" -------------
+    case 6:
+      if(WIFIENABLE){
+        IPAddress myIP = WiFi.localIP();
+        displ_top(myIP[2],ENDCOMMA);
+        displ_bot(myIP[3],ENDCOMMA);
+        displ_67(2, NOCOMMA);
+      } else {
+        displ_top(0,ENDCOMMA);
+        displ_bot(0,ENDCOMMA);
+        displ_67(2, NOCOMMA);
+      }
       break;
  }
  if (OVERHEAT){
@@ -162,15 +192,15 @@ void display_setup(void){
 }
 
 //--------------------- ИНДИКАЦИЯ ОШИБОК и IP адреса ----------------------------
-void displ_IP(void){
+void displErrors(void){
     int8_t duration = 0;
     for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
-    if(dataLed[0]) {data[2] = NUMBER_FONT[dataLed[0]]; duration++;}   //"--1 --- --" ошибка RTC не найдена!
-    if(dataLed[1]) {data[3] = NUMBER_FONT[dataLed[1]]; duration++;}   //"--- 1-- --" ошибка RTC lost power!
-    if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration++;}   //"--- -1- --" ошибка checkSetpoint
-    if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration++;}   //"--- --1 --" ошибка checkConfig
-    if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration++;}           //"--- --- F-" ошибка MOUNTING FS
-    if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration++;}           //"--- --- -C" ошибка writePCF8574
+    if(dataLed[0]) {data[2] = NUMBER_FONT[dataLed[0]]; duration++;}     //"--1 --- --" ошибка RTC не найдена!
+    if(dataLed[1]) {data[3] = NUMBER_FONT[dataLed[1]]; duration +=2;}   //"--- 1-- --" ошибка RTC lost power!
+    if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration +=4;}   //"--- -1- --" ошибка checkSetpoint
+    if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration +=6;}   //"--- --1 --" ошибка checkConfig
+    if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration +=8;}           //"--- --- F-" ошибка MOUNTING FS
+    if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration =127;}          //"--- --- -C" ошибка writePCF8574
     module.setDisplay(data, 8);
     do {
       digitalWrite(BEEP_PIN, LOW); // Включаем бипер
@@ -180,31 +210,31 @@ void displ_IP(void){
       duration--;
     } while (duration > 0);
     //------------------------------ индикация IP (первая пара) --------------------------------
-    if(WIFIENABLE){
-      IPAddress myIP = WiFi.localIP();
+    // if(WIFIENABLE){
+    //   IPAddress myIP = WiFi.localIP();
       
-      displ_top(myIP[0],ENDCOMMA);
-      displ_bot(myIP[1],ENDCOMMA);
-      displ_67(1, NOCOMMA);
-      module.setDisplay(data, 8);
-      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-      delay(100);
-      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      delay(3000);
-      //------------------------------ индикация IP (вторая пара) --------------------------------
-      displ_top(myIP[2],ENDCOMMA);
-      displ_bot(myIP[3],ENDCOMMA);
-      displ_67(2, NOCOMMA);
-      module.setDisplay(data, 8);
-      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-      delay(100);
-      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      delay(100);
-      digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-      delay(100);
-      digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-      delay(3000);
-    }
+    //   displ_top(myIP[0],ENDCOMMA);
+    //   displ_bot(myIP[1],ENDCOMMA);
+    //   displ_67(1, NOCOMMA);
+    //   module.setDisplay(data, 8);
+    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+    //   delay(100);
+    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+    //   delay(3000);
+    //   //------------------------------ индикация IP (вторая пара) --------------------------------
+    //   displ_top(myIP[2],ENDCOMMA);
+    //   displ_bot(myIP[3],ENDCOMMA);
+    //   displ_67(2, NOCOMMA);
+    //   module.setDisplay(data, 8);
+    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+    //   delay(100);
+    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+    //   delay(100);
+    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+    //   delay(100);
+    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+    //   delay(3000);
+    // }
     //-------------------------------- индикация марки прибора ---------------------------------
     for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}                    //"ooo ooo oo"
 
@@ -215,11 +245,12 @@ void displ_IP(void){
     case UNKNOWN: 
           data[0] = NUMBER_FONT[0];                                     //00o ooo oo
           data[1] = NUMBER_FONT[0];
+          // TO DO ОСТВНОВИТЬ ПРОГРАММУ!
       break;
     }
-    if(HIH5030) data[2] = NUMBER_FONT[1];                               //oo1 ooo oo
-    if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //4oo 1oo oo
-    if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //4oo 11o oo
+    if(HIH5030) data[2] = NUMBER_FONT[1];                               //xx1 ooo oo
+    if(RTCENABLE) data[3] = NUMBER_FONT[1];                             //xxx 1oo oo
+    if(WIFIENABLE) data[4] = NUMBER_FONT[1];                            //xxx x1o oo
 
     data[6] = NUMBER_FONT[0];                                           // версия v.00
     data[7] = NUMBER_FONT[0];
