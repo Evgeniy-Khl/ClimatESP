@@ -115,7 +115,7 @@ void respondsValues() {
       snprintf_P(prgStr, sizeof(prgStr), PSTR("№%d"), settings.sp_structs[1].state);
       data["program"] = prgStr;
     }
-    data["currDay"] = "0 діб.";
+    data["currDay"] = "1 доба";
     
     data["led0"] = dataLed[0] ? "OFF" : "ON" ;
     data["led1"] = dataLed[1] ? "OFF" : "ON" ;
@@ -423,7 +423,7 @@ void handleArchiveList() {
     for (int i = days.size() - 1; i >= 0; i--) {
         int day = days[i];
         char link[128];
-        snprintf_P(link, sizeof(link), PSTR("<li><a href='/data?day=%d'>Перегляд даних за %d добу</a></li>"), day, day);
+        snprintf_P(link, sizeof(link), PSTR("<li><a href='/data?day=%d'>Перегляд даних за %d добу</a></li>"), day, day + 1);
         server.sendContent(link);
         yield();
     }
@@ -465,10 +465,10 @@ void handleShowData() {
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
 
-    sendPageHeader("Инкубатор - День " + day);
+    sendPageHeader("Інтубатор - Доба " + String(day.toInt() + 1));
 
     server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
-    server.sendContent(day); 
+    server.sendContent(String(day.toInt() + 1)); 
     server.sendContent(F(" добу</h1>"));
 
     // --- Вставка графика (JS fetch сам заберет JSON файл через /get_graph) ---
