@@ -152,7 +152,7 @@ extern union Byte portFlag;
 #define HEATER  portOut.bitfield.a1  // НАГРЕВАТЕЛЬ
 #define HUMIDI	portOut.bitfield.a2  // УВЛАЖНИТЕЛЬ
 #define EXTRA1	portOut.bitfield.a3  // Заслонка/вентилятор охлаждения
-#define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель
+#define EXTRA2	portOut.bitfield.a4  // Вспомогательный нагреватель или УВЛАЖНИТЕЛЬ
 #define EXTRA3 	portOut.bitfield.a5  // Авария
 
 #define ERROR1    errorsFlag.bitfield.a0  // ОШИБКА ДАТЧИКА 0  --- потерян; 66,0-завис [E01]
@@ -201,7 +201,7 @@ extern uint8_t data[8];
 #define STATE_0     0   // заслінка полож. = 0 - закрита; 100 - відкрита
 #define FLPCLOSE    0   // заслінка закр.
 #define PULSE_0     100 // імпульс мінім. = 100 (1,0 сек.); 1 = 0,01 sec. 10 = 0,1 sec.; 1000 = 10,0sec.
-#define MODE_0      0   // затрим. зволож. -> 1
+#define MODE_0      0   // режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс
 #define EXTMODE_0   0   // аварійн. режим = 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
 #define KP_0_1      100 // пропорц. (Kp/5) = 20      [1/5=0.2]..[1000/5=200]
 #define KI_0_1      400 // ітеграл. (Ki/10000) = 0.04 [20/500*10000]
@@ -218,7 +218,7 @@ extern uint8_t data[8];
 #define STATE_1     0   // задана програма = 0
 #define FLPOPEN     100 // заслінка закр.
 #define PULSE_1     15  // імпульс період = 15 (sec.) MAX = 60 sec.
-#define MODE_1      0   // режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс
+#define MODE_1      0   // затрим. зволож. -> 1; 2-УВЛАЖНИТЕЛЬ; 0-НЕТ
 #define EXTMODE_1   1   // 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
 #define SPECIAL1    0   // номер прибора маска 0x0F
 
@@ -282,7 +282,6 @@ extern int16_t
         editBuff;           // временное хранилище редактируемой установки
 
 extern uint16_t 
-          pvVadcRH,         // значение АЦП
           pvRH,             // текущая относительная влажность
           heaterValue,      // расчетное значение ШИМ сигнала нагревателя
           humidiValue,      // расчетное значение ШИМ сигнала увлажнителя

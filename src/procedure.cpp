@@ -15,8 +15,8 @@ void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
 int16_t UpdatePID(uint8_t cn){
   int16_t error, max = TRIACON * 2, min = -max;         // 255 * 2 = 510 -> 200 %
   // float output;
-  if(settings.sp_structs[0].mode == 4 && cn == 1){  // 4-импульсный режим для канала №2
-    max = settings.sp_structs[1].pulse * TRIACON / 2;  // 255 * 10 = 2550 -> 10 секунд
+  if(settings.sp_structs[0].mode == 4 && cn == 1){      // 4-импульсный режим для канала №2
+    max = settings.sp_structs[1].pulse * TRIACON / 2;   // 255 * 10 = 2550 -> 10 секунд
     min = -max;
   }
   // Вычисление ошибки
@@ -68,7 +68,7 @@ void rotate_trays(void){
 int16_t checkPV(uint8_t cn){
   int16_t err;
   if(cn==1 && HIH5030){
-     if(pvVadcRH < 80) {errorsFlag.value |= (cn+1); err = 0;}
+     if(pvRH < 10) {errorsFlag.value |= (cn+1); err = 0;}
      else err = settings.sp_structs[1].spRH - pvRH;
      ds[1].pvErr = err;         // err > 0 -> холодно
   } else {
@@ -123,7 +123,7 @@ void checkModeDevice(){
     return;
   }
   //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
-  switch (settings.sp_structs[1].mode) {
+  switch (settings.sp_structs[0].mode) {
     uint8_t val;
     case 0:
       heaterValue = UpdatePID(0);            // ПИД нагреватель
@@ -148,6 +148,12 @@ void checkModeDevice(){
       switch (val){
           case ON:  humidiValue = TRIACON;  break;
           case OFF: humidiValue = TRIACOFF; break;
+      }
+      if((settings.sp_structs[1].mode&2) == 2) {  // используется как УВЛАЖНИТЕЛЬ
+        switch (val){
+          case ON:  EXTRA2 = PCF_ON;  break;
+          case OFF: EXTRA2 = PCF_OFF; break;
+        }
       }
       // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
       break;
@@ -185,14 +191,12 @@ uint8_t checkSetpoint(void){
   //--------- Загрузка конфигурации --------------------------------------------
   if(LittleFS.exists("/setpoint.json")){
       if(!loadSetpoint()){
-        MYDEBUG_PRINTLN("Конфігурація не завантажена!");
-        err = 1 ;
         saveSetpoint();  // значения по умолчанию
+        err = 1; MYDEBUG_PRINTLN("Конфігурація не завантажена!");
       }
   } else {
       saveSetpoint();  // значения по умолчанию
-      MYDEBUG_PRINTLN("Конфігурація за замовчуванням!");
-      err = 2 ;
+      err = 2; MYDEBUG_PRINTLN("Конфігурація за замовчуванням!");
   }
   MYDEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
@@ -221,15 +225,14 @@ uint8_t checkConfig(void){
         strcpy(botToken, json["botToken"]);
         strcpy(chatID, json["chatID"]);
       } else {
-        MYDEBUG_PRINTLN("failed to load json config");
-        err = 3;
+        err = 3; MYDEBUG_PRINTLN("failed to load json config");
       }
       configFile.close();
     } else {
-      err = 2;
+      err = 2; MYDEBUG_PRINTLN("failed to open config file");
     }
   } else {
-    err = 1;
+    err = 1; MYDEBUG_PRINTLN("/config.json not found");
   }
   return err;
 }
@@ -431,18 +434,18 @@ uint8_t alarm(void){
 }
 
 // Вспомогательная функция для печати байта в двоичном формате
-void printBinary(byte inByte) {
-  for (int b = 5; b >= 0; b--) {
-    switch (b) {
-    case 5: MYDEBUG_PRINT("E3="); break;
-    case 4: MYDEBUG_PRINT("E2="); break;
-    case 3: MYDEBUG_PRINT("E1="); break;
-    case 0: MYDEBUG_PRINT("TU="); break;
-    }
-    MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
-    MYDEBUG_PRINTLN();
-  }
-}
+// void printBinary(byte inByte) {
+//   for (int b = 5; b >= 0; b--) {
+//     switch (b) {
+//     case 5: MYDEBUG_PRINT("E3="); break;
+//     case 4: MYDEBUG_PRINT("E2="); break;
+//     case 3: MYDEBUG_PRINT("E1="); break;
+//     case 0: MYDEBUG_PRINT("TU="); break;
+//     }
+//     MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
+//     MYDEBUG_PRINTLN();
+//   }
+// }
 
 void reset(void){
   settings.sp_structs[0].spT = SPT_0;
@@ -513,15 +516,15 @@ void newSecond(){
     //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
       checkModeDevice();
       
-      if(settings.sp_structs[0].mode == 1 && ds[0].deviation == 0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
+      if((settings.sp_structs[1].mode&1) == 1 && ds[0].deviation == 0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
       //-----
       // DEBUG_SPRINTF(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
       //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
       // MYDEBUG_PRINTLN(displStr);
       //-----
       
-    //---------------------------- КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ -------------------------------------------------
-      if(ERROR1 == 0){
+    //---------------------------- КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ ИЛИ УВЛАЖНИТЕЛЯ -------------------------------------------------
+      if(ERROR1 == 0 && (settings.sp_structs[1].mode&2) == 0){  // используется как вспомогательный нагреватель, если нет ошибки по 1 каналу
         if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
         else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
       } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
@@ -622,8 +625,8 @@ void newMinute(){
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
   if((countMinutes % 5) == 0){
     now = rtc.now();       // текущее время из DS3231 в формате Unix, сконвертированное для нашего часового пояса
-    DEBUG_PRINTF("============ RTC month:%02u day:%02u  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
-    DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ month:%02u day:%02u  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
+    // DEBUG_PRINTF("============ RTC month:%02u day:%02u  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
+    // DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ month:%02u day:%02u  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
     int address = DAILY_DATA_START + period_of_day * DAILY_DATA_REC_SIZE; // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM
@@ -634,6 +637,6 @@ void newMinute(){
     eepromWriteInt16(address, ds[0].pvT);
     eepromWriteInt16(address + 2, ds[1].pvT);
     eepromWriteInt16(address + 4, (int16_t)pvRH); // Сохраняем влажность (Вариант Б)
-    DEBUG_PRINTF("PerOfDay=%03u; Addr=0x%04x; t0=%6.1f; t1=%6.1f; rh=%u;",period_of_day,address,(float)ds[0].pvT/10, (float)ds[1].pvT/10, pvRH);
+    // DEBUG_PRINTF("PerOfDay=%03u; Addr=0x%04x; t0=%6.1f; t1=%6.1f; rh=%u;",period_of_day,address,(float)ds[0].pvT/10, (float)ds[1].pvT/10, pvRH);
   }
 }

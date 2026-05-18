@@ -72,7 +72,7 @@ void respondsValues() {
     }
     data["extmode"] = str;
     
-    switch (settings.sp_structs[1].mode){
+    switch (settings.sp_structs[0].mode){
       case 0: str = "немає"; break;
       case 1: str = "канал №1"; break;
       case 2: str = "канал №2"; break;
@@ -81,7 +81,7 @@ void respondsValues() {
       default: str = ""; break;
     }
     data["relaymode"] = str;
-    data["checkDry"] = (settings.sp_structs[0].mode) ? "встановлене" : "немає";
+    data["checkDry"] = (settings.sp_structs[1].mode) ? "встановлене" : "немає";
     
     char rotation[32];
     snprintf_P(rotation, sizeof(rotation), PSTR("%d %s"), pvTimer, TURNSECOND ? "сек." : "хвл.");
@@ -129,8 +129,8 @@ void respondsEeprom(){
         doc["spRH1"] = settings.sp_structs[1].spRH;
         doc["ventMode"] = settings.sp_structs[1].extendMode;
         doc["extendMode"] = settings.sp_structs[0].extendMode;
-        doc["relayMode"] = settings.sp_structs[1].mode;
-        doc["checkDry"] = settings.sp_structs[0].mode;
+        doc["relayMode"] = settings.sp_structs[0].mode;
+        doc["checkDry"] = settings.sp_structs[1].mode;
         doc["rotate0"] = settings.sp_structs[0].timer;
         doc["rotate1"] = settings.sp_structs[1].timer;
         doc["program"] = settings.sp_structs[1].state;
@@ -181,8 +181,8 @@ void acceptEeprom() {
       else if (paramName == "spRH1") settings.sp_structs[1].spRH = paramValue.toInt();
       else if (paramName == "ventMode") settings.sp_structs[1].extendMode = paramValue.toInt();
       else if (paramName == "extendMode") settings.sp_structs[0].extendMode = paramValue.toInt();
-      else if (paramName == "relayMode") settings.sp_structs[1].mode = paramValue.toInt();
-      else if (paramName == "checkDry") settings.sp_structs[0].mode = paramValue.toInt();
+      else if (paramName == "relayMode") settings.sp_structs[0].mode = paramValue.toInt();
+      else if (paramName == "checkDry") settings.sp_structs[1].mode = paramValue.toInt();
       else if (paramName == "rotate0") settings.sp_structs[0].timer = paramValue.toInt();
       else if (paramName == "rotate1") settings.sp_structs[1].timer = paramValue.toInt();
       else if (paramName == "program") settings.sp_structs[1].state = paramValue.toInt();

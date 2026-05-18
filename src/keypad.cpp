@@ -48,8 +48,8 @@ void checkkey(uint8_t key){
                       case 14: if(editBuff > 400) editBuff = 400;  break;
                       case 15: if(editBuff >   4) editBuff =   4;  break;
                       case 16: if(editBuff > 100) editBuff = 100;  break;
-                      case 17: if(editBuff >   1) editBuff =   1;  break;
-                      case 18: if(editBuff >   4) editBuff =   4;  break;
+                      case 17: if(editBuff >   4) editBuff =   4;  break;
+                      case 18: if(editBuff >   3) editBuff =   3;  break;
                       case 19: if(editBuff >   1) editBuff =   1;  break;
                       case 20: if(editBuff >   3) editBuff =   3;  break;
                       case 21: if(editBuff > 100) editBuff = 100;  break;
@@ -70,8 +70,8 @@ void checkkey(uint8_t key){
                     if (numSetup > 31 || numSetup < 16) numSetup = 16;// Меню специалиста
                     switch (numSetup){
                         case 16: editBuff = settings.sp_structs[0].state; break;          // П01 текущее положение заслонки
-                        case 17: editBuff = settings.sp_structs[0].mode; break;           // П02 = 0 задержка регулировки по влажному
-                        case 18: editBuff = settings.sp_structs[1].mode; break;           // П03 = MINRELAYMODE релейный режим работы
+                        case 17: editBuff = settings.sp_structs[0].mode; break;           // П02 = MINRELAYMODE релейный режим работы
+                        case 18: editBuff = settings.sp_structs[1].mode; break;           // П03 = 0 задержка регулировки по влажному; 2-УВЛАЖНИТЕЛЬ
                         case 19: editBuff = settings.sp_structs[0].extendMode; break;     // П04 = 0 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
                         case 20: editBuff = settings.sp_structs[1].extendMode; break;     // П05 = 1 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
                         case 21: editBuff = settings.sp_structs[0].pulse / 10; break;     // П06 = 0.1 - 10,0 сек.
@@ -228,10 +228,10 @@ void saveset(void){
     
     //--------------------------- Меню специалиста ---------------------------------------------------------
       case 16: settings.sp_structs[0].state = editBuff; break;  // П01 ограничено 0 - 100% текущее положение заслонки
-      case 17: settings.sp_structs[0].mode = editBuff;  break;  // П02 НЕ ограничено задержка регулировки по влажному
-      case 18: settings.sp_structs[1].mode = editBuff;  // П03 ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
+      case 17: settings.sp_structs[0].mode = editBuff;  // П03 ограничено 0 - 4 (релейный 0-НЕТ; 1->по кан.0 2->по кан.1 3->по кан.0&1; 4-импульсное)
               //  if(editBuff == 4) topUser=PULSMENU; else topUser=TOPUSER; 
         break;
+      case 18: settings.sp_structs[1].mode = editBuff;  break;  // П02 0 - 3 задержка регулировки по влажному; 2-УВЛАЖНИТЕЛЬ
       case 19: settings.sp_structs[0].extendMode = editBuff; break; // П04 режим работы  0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ;
       case 20: settings.sp_structs[1].extendMode = editBuff; break; // П05 1-ОХЛАЖДЕНИЕ; 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
       case 21: settings.sp_structs[0].pulse = editBuff * 10; break; // П06 ограничено 1 - 100 (0.1 - 10.0) секунд;
