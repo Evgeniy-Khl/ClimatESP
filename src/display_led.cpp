@@ -122,7 +122,6 @@ void ledDispl(unsigned char mode){
     case 1: 
       displ_top(ds[1].pvT,COMMA); 
       displ_bot(ds[2].pvT,COMMA); 
-      displ_bot(settings.sp_structs[0].state, NOCOMMA); 
       break;
        //-------------- pvTimer;   pvFlap;    		"F2"---------
     case 2: 
@@ -131,13 +130,13 @@ void ledDispl(unsigned char mode){
       break;
        //-------------- state;     date;    			"F3"---------
     case 3: 
-      displ_top(settings.sp_structs[1].state, NOCOMMA);
+      displ_top(settings.sp_structs[1].state, NOCOMMA); // [1]-программа текущая
       displ_bot(countDays, NOCOMMA); 
       break;
        //-------------- spT0;    	spT1 / spRH;		"F4"---------
     case 4: 
       displ_top(settings.sp_structs[0].spT, COMMA); 
-      if(HIH5030) displ_bot(settings.sp_structs[1].spRH, COMMA); 
+      if(HIH5030 || detectedSensor == SENSOR_DHT22) displ_bot(settings.sp_structs[1].spRH, NOCOMMA); 
       else displ_bot(settings.sp_structs[1].spT, COMMA);
       break;
        //-------------- IP0;		IP1;				      "F5" --------
@@ -189,10 +188,10 @@ void displErrors(void){
     int8_t duration = 0;
     for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
     if(dataLed[0]) {data[2] = NUMBER_FONT[dataLed[0]]; duration++;}     //"--1 --- --" ошибка RTC не найдена!
-    if(dataLed[1]) {data[3] = NUMBER_FONT[dataLed[1]]; duration +=2;}   //"--- 1-- --" ошибка RTC lost power!
-    if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration +=4;}   //"--- -1- --" ошибка checkSetpoint
-    if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration +=6;}   //"--- --1 --" ошибка checkConfig
-    if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration +=8;}           //"--- --- F-" ошибка MOUNTING FS
+    if(dataLed[1]) {data[3] = NUMBER_FONT[dataLed[1]]; duration++;}     //"--- 1-- --" ошибка RTC lost power!
+    if(dataLed[2]) {data[4] = NUMBER_FONT[dataLed[2]]; duration++;}     //"--- -1- --" ошибка checkSetpoint
+    if(dataLed[3]) {data[5] = NUMBER_FONT[dataLed[3]]; duration++;}     //"--- --1 --" ошибка checkConfig
+    if(dataLed[4]) {data[6] = NUMBER_FONT[15]; duration =50;}           //"--- --- F-" ошибка MOUNTING FS
     if(dataLed[5]) {data[7] = NUMBER_FONT[12]; duration =127;}          //"--- --- -C" ошибка writePCF8574
     module.setDisplay(data, 8);
     do {
@@ -202,33 +201,7 @@ void displErrors(void){
       delay(2000);
       duration--;
     } while (duration > 0);
-    //------------------------------ индикация IP (первая пара) --------------------------------
-    // if(WIFIENABLE){
-    //   IPAddress myIP = WiFi.localIP();
-      
-    //   displ_top(myIP[0],ENDCOMMA);
-    //   displ_bot(myIP[1],ENDCOMMA);
-    //   displ_67(1, NOCOMMA);
-    //   module.setDisplay(data, 8);
-    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    //   delay(100);
-    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    //   delay(3000);
-    //   //------------------------------ индикация IP (вторая пара) --------------------------------
-    //   displ_top(myIP[2],ENDCOMMA);
-    //   displ_bot(myIP[3],ENDCOMMA);
-    //   displ_67(2, NOCOMMA);
-    //   module.setDisplay(data, 8);
-    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    //   delay(100);
-    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    //   delay(100);
-    //   digitalWrite(BEEP_PIN, LOW); // Включаем бипер
-    //   delay(100);
-    //   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    //   delay(3000);
-    // }
-    //-------------------------------- индикация марки прибора ---------------------------------
+    //-------------------------------- индикация подключенных датчиков ---------------------------------
     for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}                    //"ooo ooo oo"
 
     data[1] = DD;

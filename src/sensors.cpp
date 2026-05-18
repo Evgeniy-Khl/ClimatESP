@@ -24,7 +24,7 @@ void sensorType(){
           printAddress(sensorAddresses[i]);
           MYDEBUG_PRINTLN();
         } else {
-          DEBUG_PRINTF("Не удалось получить адрес для датчика %d\n", i);
+          DEBUG_PRINTF("He удалось получить адрес для датчика %d\n", i);
         }
       }
       // Инициализируем расчет относительной влажности для HIH-5030
@@ -51,7 +51,7 @@ void sensorCheck(){
       float t = dht.readTemperature();
 
       if (isnan(h) || isnan(t)) {
-        MYDEBUG_PRINTLN("Ошибка чтения с DHT22!");
+        MYDEBUG_PRINTLN("Ошибка чтения c DHT22!");
         if(++ds[0].errDevice > 5) {ds[0].pvT = 126; ds[1].pvT = 126; ds[0].errDevice = 5;}
       } else {
         ds[0].errDevice = 0;

@@ -61,7 +61,7 @@ uint16_t begHeapSize, previousHeapSize;
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_1000;
 //---------------------------------
-Ds ds[MAX_DEVICE] = {{1990,0,0,0,0,0},{1990,0,0,0,0},{1990,0,0,0,0}};
+Ds ds[MAX_DEVICE] = {{1990,0,0,0,0,0},{1990,0,0,0,0,0},{1990,0,0,0,0,0}};
 
 //---------------------------------
 

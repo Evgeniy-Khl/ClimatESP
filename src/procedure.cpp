@@ -619,7 +619,7 @@ void newMinute(){
   // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
   if(disableBeep) disableBeep--;
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
-  // if(settings.sp_structs[0].timer) rotate_trays();
+  if(settings.sp_structs[0].timer) rotate_trays();
   //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
   
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
