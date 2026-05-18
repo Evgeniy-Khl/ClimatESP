@@ -81,7 +81,15 @@ void respondsValues() {
       default: str = ""; break;
     }
     data["relaymode"] = str;
-    data["checkDry"] = (settings.sp_structs[1].mode) ? "встановлене" : "немає";
+
+    switch (settings.sp_structs[1].mode){
+      case 0: str = "немає"; break;
+      case 1: str = "присутня"; break;
+      case 2: str = "немає (реле)"; break;
+      case 3: str = "присутня (реле)"; break;
+      default: str = ""; break;
+    }
+    data["checkDry"] = str;
     
     char rotation[32];
     snprintf_P(rotation, sizeof(rotation), PSTR("%d %s"), pvTimer, TURNSECOND ? "сек." : "хвл.");
