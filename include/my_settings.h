@@ -57,7 +57,7 @@ long counterWait,           // опорный интервал опроса кн
 //---------------------------------
 uint8_t earlyMode = 0, mode = READEEPROM, tmrResetMode = 0, quarter = GET_PROG1, errors, seconds = 0;
 int tableData[32][4] = {0}, tmrTelegramOff = 30;
-uint16_t begHeapSize, previousHeapSize;
+uint16_t previousHeapSize;
 long lastSendTime = 0, allTime = 0; 
 Interval interval = INTERVAL_1000;
 //---------------------------------

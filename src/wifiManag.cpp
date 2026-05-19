@@ -76,8 +76,8 @@ void initWiFiManag(void){
             bot.updateToken(botToken);
             MYDEBUG_PRINTLN("bot.updateToken:" + bot.getToken());
             // if(botSetup()) MYDEBUG_PRINTLN("The command list was updated successfully.");
-            uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
-            DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+            uint16_t heapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+            DEBUG_PRINTF("Check botToken. Free heap size: %d\n", heapSize);
             String statusMess = WORD_TITLE + String(settings.sp_structs[1].special) + NEW_STR;
             statusMess += WORD_IP + WiFi.localIP().toString() + NEW_STR;
             statusMess += GRAVE_ACCENT;
@@ -149,7 +149,7 @@ void initWiFiManag(void){
         server.begin();   // Start server
         MYDEBUG_PRINTLN("HTTP server started");
         
-        uint16_t begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
-        DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+        uint16_t heapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+        DEBUG_PRINTF("After start HTTP server. Free heap size: %d\n", heapSize);
     }
 }

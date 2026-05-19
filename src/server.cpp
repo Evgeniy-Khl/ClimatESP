@@ -115,8 +115,10 @@ void respondsValues() {
       snprintf_P(prgStr, sizeof(prgStr), PSTR("№%d"), settings.sp_structs[1].state);
       data["program"] = prgStr;
     }
-    data["currDay"] = "1 доба";
-    
+    char currDay[16];
+    snprintf_P(currDay, sizeof(currDay), PSTR("%d доба"), countDays);
+    data["currDay"] = currDay;
+
     data["led0"] = dataLed[0] ? "OFF" : "ON" ;
     data["led1"] = dataLed[1] ? "OFF" : "ON" ;
     data["led2"] = dataLed[2] ? "OFF" : "ON" ;

@@ -40,7 +40,7 @@ void setup(){
      dataLed[5] = 1;                                // ошибка writePCF8574
   }
   //----------------------------------- MOUNTING FS ----------------------------------------
-  MYDEBUG_PRINTLN("mounting FS...");
+  MYDEBUG_PRINTLN("\n mounting FS...");
   bool lFS = LittleFS.begin();
   if(lFS) {
     MYDEBUG_PRINTLN("mounted file system");
@@ -106,8 +106,8 @@ void setup(){
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
   delay(3000);
-  begHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
-  DEBUG_PRINTF("Free heap size: %d\n", begHeapSize);
+  previousHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+  DEBUG_PRINTF("Free heap size: %d\n", previousHeapSize);
 }
 
 void loop(){
@@ -197,11 +197,7 @@ void loop(){
     seconds += interval/1000;
     allTime += interval/1000;
     tmrTelegramOff -= interval/1000;  // if you use HTML telegram does not work (5 min.)
-    // int16_t lostHeapSize = ESP.getFreeHeap()-begHeapSize;
-    // if(lostHeapSize != previousHeapSize){
-    //   previousHeapSize = lostHeapSize;
-    //   DEBUG_PRINTF("Lost heap size: %d bytes\n", lostHeapSize);
-    // }
+    
     /* switch (mode){
       case READEEPROM: getData(GET_EEPROM); break;
       case READPROG:   getData(quarter); break;

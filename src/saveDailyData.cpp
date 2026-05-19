@@ -57,7 +57,7 @@ void saveDailyDataToFile(int day) {
   graphFile.print("]"); // Закрываем массив
   graphFile.close();
   
-  DEBUG_PRINTF("Данные сохранены в %s. Точек: %d\n", graphFilename.c_str(), validReadingsCount);
+  DEBUG_PRINTF("Данные сохранены в %s. Точек: %d", graphFilename.c_str(), validReadingsCount);
 
   if (validReadingsCount > 0) {
     JsonDocument statsDoc;
@@ -76,8 +76,10 @@ void saveDailyDataToFile(int day) {
     if (statsFile) {
       serializeJson(statsDoc, statsFile);
       statsFile.close();
-      DEBUG_PRINTF("Статистика сохранена в %s\n", statsFilename.c_str());
+      DEBUG_PRINTF("  Статистика сохранена в %s", statsFilename.c_str());
     }
+    uint16_t heapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+    DEBUG_PRINTF("  Free heap size: %d\n", heapSize);
   }
 }
 
