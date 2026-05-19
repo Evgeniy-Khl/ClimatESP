@@ -14,15 +14,15 @@ void displ_top(signed int val, unsigned char comma){
           data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
           data[2] = NUMBER_FONT[val%10];
         } else {
-          data[0] = GR;  // -> -
-          data[1] = GR;  // -> -
-          data[2] = GR;  // -> -
+          data[0] = GR;  // -> o
+          data[1] = GR;  // -> o
+          data[2] = GR;  // -> o
         };
       } else {
         if(val/100) data[0] = NUMBER_FONT[val/100];
         else data[0] = 0;
         if(comma || val > 9) data[1] = NUMBER_FONT[(val/10)%10]|comma; // запятая
-        else if(val < 10) data[1] = 0;
+        else data[1] = 0;
         data[2] = NUMBER_FONT[val%10]|endComa;
       };
     } else {
@@ -59,7 +59,8 @@ void displ_bot(signed int val, unsigned char comma){
         } 
         else if(val/100) data[3] = NUMBER_FONT[val/100];
         else data[3] = 0;
-        data[4] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        if(comma || val > 9) data[4] = NUMBER_FONT[(val/10)%10]|comma; // запятая
+        else data[4] = 0;
         data[5] = NUMBER_FONT[val%10]|endComa;
       };
     } else {

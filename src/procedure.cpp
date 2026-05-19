@@ -53,14 +53,14 @@ void rotate_trays(void){
     if(--pvTimer == 0){
       pvTimer = settings.sp_structs[0].timer; 
       TURN = PCF_OFF;
-      MYDEBUG_PRINTLN("TURN = PCF_OFF");
+      // MYDEBUG_PRINTLN("TURN = PCF_OFF");
     }
   } else {
     if(--pvTimer == 0){
       if(settings.sp_structs[1].timer) pvTimer = settings.sp_structs[1].timer;
       else pvTimer = settings.sp_structs[0].timer;
       TURN = PCF_ON;
-      MYDEBUG_PRINTLN("TURN = PCF_ON");
+      // MYDEBUG_PRINTLN("TURN = PCF_ON");
     }
   }
 }
