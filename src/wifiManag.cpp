@@ -57,6 +57,11 @@ void initWiFiManag(void){
         WIFIENABLE = 1;
         MYDEBUG_PRINT("Wi-Fi успешно подключен! Local ip:");
         MYDEBUG_PRINTLN(WiFi.localIP());	// Print ESP32 Local IP Address
+
+        // Настройка NTP для Киева
+        configTime(TZ_INFO, "pool.ntp.org", "time.nist.gov", "time.google.com");
+        MYDEBUG_PRINTLN("NTP настроен для часового пояса Киева.");
+
         data[3] = GR;
         data[4] = GR;
         data[5] = GR;  // ooo

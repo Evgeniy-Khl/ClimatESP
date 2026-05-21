@@ -4,6 +4,7 @@
 #define LED_DISPLAY
 
 #include <Arduino.h>
+#include <time.h>           // Библиотека для работы с системным временем
 #include <MyTelegramBot.h>  // Universal Telegram Bot Library written by Brian Lough: 
 #include <WiFiManager.h>    //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>
@@ -26,6 +27,9 @@
 #include "sensors.h"
 #include "display_led.h"
 #include "saveDailyData.h"
+
+// Часовой пояс для Киева (EET-2EEST,M3.5.0/3,M10.5.0/4)
+#define TZ_INFO "EET-2EEST,M3.5.0/3,M10.5.0/4"
 
 // Определите язык
 #define LANGUAGE_EN  // Для английского
@@ -296,6 +300,7 @@ extern uint8_t dataLed[6];
 byte writePCF8574(byte data);
 byte readPCF8574();
 void initWiFiManag(void);
+void syncNTP(void);
 
 #endif /* __MAIN_H */
 

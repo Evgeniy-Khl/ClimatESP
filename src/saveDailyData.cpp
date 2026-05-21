@@ -163,7 +163,7 @@ void deleteFilesForDay(int day) {
 void checkAndManageSpace() {
   // Установим порог необходимого свободного места в 30 КБ.
   // Этого с запасом хватит для большого файла графика (~24 КБ) и маленького файла статистики.
-  const long REQUIRED_SPACE = 30000; 
+  const long REQUIRED_SPACE = 11411; 
 
   FSInfo fs_info;
   LittleFS.info(fs_info);

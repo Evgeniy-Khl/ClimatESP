@@ -499,6 +499,17 @@ void reset(void){
 
 void newSecond(){
   errorsFlag.value = 0; 
+
+  // Первоначальная синхронизация RTC после подключения к WiFi
+  static bool firstSyncDone = false;
+  if (!firstSyncDone && WIFIENABLE) {
+    time_t now_ntp = time(nullptr);
+    if (now_ntp > 1704067200L) { // Если время получено
+      syncNTP();
+      firstSyncDone = true;
+    }
+  }
+
   #ifndef DEBUG  
     sensorCheck();                                                  // Опрос датчиков должен быть всегда
   #else
@@ -582,6 +593,19 @@ void newSecond(){
     MYDEBUG_PRINTLN(); */
 }
 
+void syncNTP(void) {
+  if (WIFIENABLE) {
+    time_t now_ntp = time(nullptr);
+    if (now_ntp > 1704067200L) { // Проверка, что время получено (больше 1 января 2024 года)
+      struct tm *timeinfo = localtime(&now_ntp);
+      rtc.adjust(DateTime(timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, 
+                          timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec));
+      MYDEBUG_PRINT("RTC синхронизирован по NTP: ");
+      DEBUG_PRINTF("%02d:%02d:%02d\n", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    }
+  }
+}
+
 void newMinute(){
   //---------------------------- ЗАЩИТА ОТ РАЗНОСА -------------------------
   if(pctHeater == 100){
@@ -607,13 +631,14 @@ void newMinute(){
   lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
   //------------------------------------------------------------------------
   countSeconds = 0;
-    if(++countMinutes > 59){
-      countMinutes = 0;
-      if(++countHours > 23){
-        countHours = 0;
-        if(++countDays > 30) countDays = 1;
-      } 
-    }
+  if(++countMinutes > 59){
+    countMinutes = 0;
+    syncNTP(); // Синхронизация времени каждый час
+    if(++countHours > 23){
+      countHours = 0;
+      if(++countDays > 30) countDays = 0;
+    } 
+  }
   // }
   // DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
   // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
