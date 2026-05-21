@@ -66,7 +66,7 @@
 #define DAILY_DATA_REC_SIZE   6      // Размер записи (t1, t2, rh по 2 байта)
 #define DAILY_DATA_MAX_REC    288    // Записей в сутки
 #define PROGRAMS_START        0x700  // Начало программ инкубации
-#define STARTINCUBADRES       0xFFF  // Адрес флага начала инкубации
+#define INCUBATION_DATA_ADRES 0xFF9  // Состояние и время начала (7 байт: state, Y, M, D, h, m, s)
 
 #define SENSOR_ERROR_VAL    1990    // 199,0 °C - датчик отключен или ошибка
 #define SENSOR_FROZEN_VAL   660     // 66,0 °C - датчик "завис" (индикация 66,0)

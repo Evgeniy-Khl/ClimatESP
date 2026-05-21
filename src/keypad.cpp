@@ -204,7 +204,12 @@ void saveset(void){
       case 12: settings.sp_structs[1].alarm = editBuff;  break;   // У12 тревога по каналу 2 (0,5 - 40,0 °C/%)
       case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // У13 включение вспомогательного канала (0,5 - 40,0 °C)
       case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // У14 выключение вспомогательного канала (0,5 - 40,0 °C)
-      case 15: settings.sp_structs[1].state = editBuff; break;    // У15 номер программы (0 - 4)
+      case 15: 
+          if (settings.sp_structs[1].state != editBuff) {
+            settings.sp_structs[1].state = editBuff;
+            startIncubation();
+          }
+          break;    // У15 номер программы (0 - 4)
     // case 12:
     //   {
     //    if(editBuff>4) editBuff=4; else if(editBuff<0) editBuff=0;// № программы->ограничено 0 - 4

@@ -195,7 +195,13 @@ void acceptEeprom() {
       else if (paramName == "checkDry") settings.sp_structs[1].mode = paramValue.toInt();
       else if (paramName == "rotate0") settings.sp_structs[0].timer = paramValue.toInt();
       else if (paramName == "rotate1") settings.sp_structs[1].timer = paramValue.toInt();
-      else if (paramName == "program") settings.sp_structs[1].state = paramValue.toInt();
+      else if (paramName == "program") {
+        int16_t newProg = paramValue.toInt();
+        if (settings.sp_structs[1].state != newProg) {
+          settings.sp_structs[1].state = newProg;
+          startIncubation();
+        }
+      }
       else if (paramName == "alarm0") settings.sp_structs[0].alarm = paramValue.toInt();
       else if (paramName == "alarm1") settings.sp_structs[1].alarm = paramValue.toInt();
       else if (paramName == "coolOn0") settings.sp_structs[0].coolOn = paramValue.toInt();

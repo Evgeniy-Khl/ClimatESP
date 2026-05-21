@@ -79,11 +79,11 @@ void setup(){
         dataLed[1] = 1;                       // RTC lost power
         // Установка времени: 1 год, 1 месяц, 1 день, 00:00:00
         rtc.adjust(DateTime(2026, 1, 1, 0, 0, 0));
-        eepromWriteByte(STARTINCUBADRES, 0);  // если и был старт инкубации то теперь сброшен
         settings.sp_structs[1].state = 0;     // [1]-программа текущая обнулена
+        startIncubation();                    // если и был старт инкубации то теперь сброшен
         // saveSetpoint();  //????????????????????
     } else {
-      if(eepromReadByte(STARTINCUBADRES)) INCUBATION = 1; // установим флаг
+      restoreIncubationStatus();              // восстановим флаг и время
     }
   } else dataLed[0] = 1;      // DS3231 не инициализирован
   //------------------------------------------------------------------------------

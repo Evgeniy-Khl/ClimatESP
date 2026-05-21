@@ -8,6 +8,7 @@ int findOldestDay();
 void deleteFilesForDay(int day);
 void checkAndManageSpace();
 void startIncubation();
+void restoreIncubationStatus();
 void listFilesAndSizes();
 
 #endif /* _SAVEDAILYDATA_H */
