@@ -218,6 +218,7 @@ void startIncubation() {
       countSeconds = 0;
       MYDEBUG_PRINTLN("Инкубация запущена!");
     }
+    applyDailyProgram(); // Сразу загружаем параметры первого дня
   } else {
     INCUBATION = 0;
     MYDEBUG_PRINTLN("Инкубация остановлена.");
@@ -243,6 +244,8 @@ void restoreIncubationStatus() {
         
         MYDEBUG_PRINT("Инкубация восстановлена. Прошло времени: ");
         DEBUG_PRINTF("%ld дн. %02d:%02d:%02d | Текущий внутренний день: %d\n", diff.days(), countHours, countMinutes, countSeconds, countDays);
+        
+        applyDailyProgram(); // Загружаем параметры текущего восстановленного дня
       } else {
         MYDEBUG_PRINTLN("Ошибка: время RTC меньше времени старта в EEPROM. Восстановление невозможно.");
       }

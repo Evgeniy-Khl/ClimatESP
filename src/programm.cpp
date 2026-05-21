@@ -13,6 +13,49 @@ uint16_t eepromMemoryAddressForDay(uint8_t prg, uint8_t day){
 	return addressPage;
 }
 
+void applyDailyProgram() {
+    uint8_t prg = settings.sp_structs[1].state;
+    if (prg == 0) return; // Если программа не запущена, ничего не делаем
+
+    uint8_t day = countDays + 1; // Внутренний счетчик начинается с 0, в EEPROM дни с 1 до 31
+    if (day > 31) {
+        MYDEBUG_PRINTLN("applyDailyProgram: Инкубация завершена или день вне диапазона (>31).");
+        return;
+    }
+
+    uint16_t address = eepromMemoryAddressForDay(prg, day);
+    uint16_t bytesRead = eepromReadBuffer(address, unBuf.buffer, sizeof(unBuf));
+
+    if (bytesRead == sizeof(unBuf)) {
+        // Присваиваем считанные значения рабочим переменным
+        settings.sp_structs[0].spT = unBuf.spDay.spT0;
+        settings.sp_structs[1].spT = unBuf.spDay.spT1;
+        settings.sp_structs[1].spRH = unBuf.spDay.spRH;
+        settings.sp_structs[0].timer = unBuf.spDay.timer0;
+        settings.sp_structs[1].timer = unBuf.spDay.timer1;
+        settings.sp_structs[0].aeration = unBuf.spDay.aeration0;
+        settings.sp_structs[1].aeration = unBuf.spDay.aeration1;
+        settings.sp_structs[0].state = unBuf.spDay.flap;
+        
+        saveSetpoint(); // Сохранение в "/setpoint.json"
+        
+        // Переинициализация рабочих таймеров, чтобы изменения вступили в силу немедленно
+        pvTimer = settings.sp_structs[0].timer; 
+        pvAeration = settings.sp_structs[0].aeration;
+
+        MYDEBUG_PRINTLN("-----------------------------------------");
+        DEBUG_PRINTF("applyDailyProgram: ЗАГРУЖЕНА Программа %d, День %d (Адрес: 0x%04X)\n", prg, day, address);
+        DEBUG_PRINTF("  Уставки T: %d, T: %d, Волог: %d\n", unBuf.spDay.spT0, unBuf.spDay.spT1, unBuf.spDay.spRH);
+        DEBUG_PRINTF("  Таймеры(лотков): %d/%d, Провітрювання: %d/%d, Заслінка: %d\n", 
+                     unBuf.spDay.timer0, unBuf.spDay.timer1, 
+                     unBuf.spDay.aeration0, unBuf.spDay.aeration1, 
+                     unBuf.spDay.flap);
+        MYDEBUG_PRINTLN("-----------------------------------------");
+    } else {
+        MYDEBUG_PRINTLN("applyDailyProgram: ОШИБКА чтения из EEPROM!");
+    }
+}
+
 // ----- Функция для подготовки стандартной талицы ----------
 void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16_t t1, 
   int16_t rh, int16_t timer, int16_t aer0, int16_t aer1, int16_t fl){

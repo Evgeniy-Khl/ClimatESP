@@ -637,6 +637,7 @@ void newMinute(){
     if(++countHours > 23){
       countHours = 0;
       if(++countDays > 30) countDays = 0;
+      applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
     } 
   }
   // }

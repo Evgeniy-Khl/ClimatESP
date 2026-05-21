@@ -21,6 +21,7 @@ union TableBuff {
 extern TableBuff unBuf;
 
 uint16_t eepromMemoryAddressForDay(uint8_t prg, uint8_t day);
+void applyDailyProgram();
 void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16_t t1, 
   int16_t rh, int16_t timer, int16_t aer0, int16_t aer1, int16_t fl);
 void prepareProg1();
