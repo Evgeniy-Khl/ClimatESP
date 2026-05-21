@@ -212,7 +212,7 @@ void startIncubation() {
     if (!INCUBATION) {
       clearIncubationData();
       INCUBATION = 1;
-      countDays = 1;
+      countDays = 0;
       countHours = 0;
       countMinutes = 0;
       countSeconds = 0;
@@ -236,13 +236,13 @@ void restoreIncubationStatus() {
       if (current >= start) {
         INCUBATION = 1;
         TimeSpan diff = current - start;
-        countDays = diff.days() + 1; // День инкубации (1-й день, 2-й и т.д.)
+        countDays = diff.days(); // День инкубации (0-й внутренний день = 1-й для пользователя)
         countHours = diff.hours();
         countMinutes = diff.minutes();
         countSeconds = diff.seconds();
         
         MYDEBUG_PRINT("Инкубация восстановлена. Прошло времени: ");
-        DEBUG_PRINTF("%ld дн. %02d:%02d:%02d | Текущий день: %d\n", diff.days(), countHours, countMinutes, countSeconds, countDays);
+        DEBUG_PRINTF("%ld дн. %02d:%02d:%02d | Текущий внутренний день: %d\n", diff.days(), countHours, countMinutes, countSeconds, countDays);
       } else {
         MYDEBUG_PRINTLN("Ошибка: время RTC меньше времени старта в EEPROM. Восстановление невозможно.");
       }

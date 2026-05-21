@@ -157,6 +157,8 @@
       <span style="font-size:1.2em; color:#000000" id="checkDry">НЕТ</span>
 	  <span class="sensor-labels">Програма</span>
       <span style="font-size:1.5em; color:#000000" id="program">---</span>
+      <span class="sensor-labels">Старт інкубації</span>
+      <span style="font-size:1.2em; color:#000000" id="startTime">---</span>
       <span class="sensor-labels">Інкубація</span>
       <span style="font-size:2.0em; color:#000000" id="currDay">--- сут.</span>
     </div>
@@ -235,6 +237,7 @@ function fetchData() {
             document.getElementById("power").innerHTML = jsonResponse.power;
             document.getElementById("flap").innerHTML = jsonResponse.flap;
 			document.getElementById("program").innerHTML = jsonResponse.program;
+            document.getElementById("startTime").innerHTML = jsonResponse.startTime;
             document.getElementById("currDay").innerHTML = jsonResponse.currDay;
 
             // Обновление цвета LED

@@ -116,8 +116,19 @@ void respondsValues() {
       data["program"] = prgStr;
     }
     char currDay[16];
-    snprintf_P(currDay, sizeof(currDay), PSTR("%d доба"), countDays);
+    snprintf_P(currDay, sizeof(currDay), PSTR("%d доба"), countDays + 1);
     data["currDay"] = currDay;
+
+    // Время старта инкубации
+    uint8_t start_data[7];
+    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+      char startStr[20];
+      snprintf_P(startStr, sizeof(startStr), PSTR("%02d.%02d.%02d %02d:%02d"), 
+                 start_data[3], start_data[2], start_data[1], start_data[4], start_data[5]);
+      data["startTime"] = startStr;
+    } else {
+      data["startTime"] = "---";
+    }
 
     data["led0"] = dataLed[0] ? "OFF" : "ON" ;
     data["led1"] = dataLed[1] ? "OFF" : "ON" ;
