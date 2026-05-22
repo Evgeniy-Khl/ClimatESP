@@ -176,7 +176,7 @@
                         document.getElementById('spT0').value = (data.spT0 / 10).toFixed(1);
                         document.getElementById('spT1').value = (data.spT1 / 10).toFixed(1);
                         document.getElementById('spRH0').value = data.spRH0;
-                        document.getElementById('spRH1').value = (data.spRH1;
+                        document.getElementById('spRH1').value = data.spRH1;
                         document.getElementById('flpNow').value = data.flpNow;
                         document.getElementById('program').value = data.program;
                         document.getElementById('ventMode').value = data.ventMode;
@@ -248,9 +248,10 @@
 			console.log('Отправляемые данные:', formDataObject);
 
             // Отправка данных формы
+            const searchParams = new URLSearchParams(formData);
             fetch('/seteeprom', {
                 method: 'POST',
-                body: formData
+                body: searchParams
             })
             .then(response => {
                 if (response.ok) {
@@ -270,7 +271,7 @@
     });
 	
 	function updateDisplay() {
-    const selectElement = document.getElementById('executprog');
+    const selectElement = document.getElementById('program');
     const selectedValue = parseInt(selectElement.value);
     const programDisplay = document.getElementById('programDisplay');
 	
@@ -293,8 +294,8 @@
     <label for="spT1">Вологий датчик (від 0.1 до 99.9°C):</label>
     <input type="number" name="spT1" id="spT1" required min="1" max="999" step="0.1">
 
-    <label for="spRH0">Вологість (від 0.1 до 99.9%):</label>
-    <input type="number" name="spRH1" id="spRH1" min="1" max="999" required>
+    <label for="spRH1">Вологість (від 1 до 99%):</label>
+    <input type="number" name="spRH1" id="spRH1" min="1" max="99" required>
 	
 	<label for="flpNow">Положення заслінки (від 0 до 100%):</label>
     <input type="number" name="flpNow" id="flpNow" min="0" max="100" required>
@@ -411,7 +412,7 @@
     <label for="ikoff1">Інтегральний №2 (від 0 до 999 одиниць)</label>
     <input type="number" name="ikoff1" id="ikoff1" min="0" max="999" required>
 	
-	<label for="spRH1">Корекція вологості (від -40% до 40%)</label>
+	<label for="spRH0">Корекція вологості (від -40% до 40%)</label>
     <input type="number" name="spRH0" id="spRH0" min="-40" max="40" required>
 	
 	<label for="identif">Номер приладу (від 0 до 999)</label>

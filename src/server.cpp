@@ -1,4 +1,3 @@
-// server.cpp
 #include <main.h>
 #include "server.h"
 
@@ -193,9 +192,6 @@ void acceptEeprom() {
       String paramName = server.argName(i);
       String paramValue = server.arg(i);
       
-      // Логирование параметров (раскомментируйте, если нужно)
-      // DEBUG_PRINTF("Parameter: %s, Value: %s\n", paramName.c_str(), paramValue.c_str());
-      
       if (paramName == "spT0") settings.sp_structs[0].spT = paramValue.toInt();
       else if (paramName == "spT1") settings.sp_structs[1].spT = paramValue.toInt();
       else if (paramName == "spRH0") settings.sp_structs[0].spRH = paramValue.toInt();
@@ -235,12 +231,11 @@ void acceptEeprom() {
       else if (paramName == "identif") settings.sp_structs[1].special = paramValue.toInt();
   }
 
-  server.send(200); // Отправляем только статус 200
-
+  server.send(200);
   saveSetpoint();
 }
 
-  uint8_t respondsProgram(){
+uint8_t respondsProgram(){
     uint8_t err = 0;
     JsonDocument doc;
     mode = SAVEPROG; interval = INTERVAL_1000; quarter = SET_PROG4+1;
@@ -268,10 +263,9 @@ void acceptEeprom() {
       DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
     }
     return err;
-  }
+}
 
-  //https://arduinojson.org/v7/assistant/#/step1
-  void programDeser(String input){
+void programDeser(String input){
     uint8_t prg = settings.sp_structs[1].state;
     JsonDocument doc;
 
@@ -288,60 +282,31 @@ void acceptEeprom() {
 
     for (int i = 1; i < 31; i++) {
       JsonArray data_i = data[i];
-      unBuf.spDay.spT0 = data_i[0]; //
-      unBuf.spDay.spT1 = data_i[1]; //
-      unBuf.spDay.spRH = data_i[2]; //
-      unBuf.spDay.flap = data_i[3]; //
-      unBuf.spDay.timer0 = data_i[4]; //
-      unBuf.spDay.timer1 = data_i[5]; //
-      unBuf.spDay.aeration0 = data_i[6]; //
-      unBuf.spDay.aeration1 = data_i[7]; //
+      unBuf.spDay.spT0 = data_i[0];
+      unBuf.spDay.spT1 = data_i[1];
+      unBuf.spDay.spRH = data_i[2];
+      unBuf.spDay.flap = data_i[3];
+      unBuf.spDay.timer0 = data_i[4];
+      unBuf.spDay.timer1 = data_i[5];
+      unBuf.spDay.aeration0 = data_i[6];
+      unBuf.spDay.aeration1 = data_i[7];
       
-      MYDEBUG_PRINT("spT0="); MYDEBUG_PRINT(unBuf.spDay.spT0); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("spT1="); MYDEBUG_PRINT(unBuf.spDay.spT1); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("spRH="); MYDEBUG_PRINT(unBuf.spDay.spRH); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("flap="); MYDEBUG_PRINT(unBuf.spDay.flap); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("timer0="); MYDEBUG_PRINT(unBuf.spDay.timer0); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("timer1="); MYDEBUG_PRINT(unBuf.spDay.timer1); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("aeration0="); MYDEBUG_PRINT(unBuf.spDay.aeration0); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINT("aeration1="); MYDEBUG_PRINT(unBuf.spDay.aeration1); MYDEBUG_PRINT("; ");
-      MYDEBUG_PRINTLN();
       uint16_t memoryAddress = eepromMemoryAddressForDay(prg, i);
-      byte res = eepromWriteBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
-
-      MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(i); 
-      MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
-      MYDEBUG_PRINT("; RES:"); MYDEBUG_PRINTLN(res);
+      eepromWriteBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
     }
-  }
+}
 
-  void acceptProgram() {
-    String jsonData;
-
-    // Проверка наличия параметра "data" в запросе
+void acceptProgram() {
     if (server.hasArg("data")) {
-        jsonData = server.arg("data");
-        MYDEBUG_PRINTLN("jsonData: " + jsonData); // Логирование полученных данных
-        
-        // Отправляем статус 200
-        server.send(200); 
-        
-        // Обработка полученных данных
-        programDeser(jsonData);
+        programDeser(server.arg("data"));
+        server.send(200);
         mode = SAVEPROG; interval = INTERVAL_1000;
         quarter = SET_PROG1;
-        
-        DEBUG_PRINTF("Accept Program: %d, %ld\n", seconds, millis() - lastSendTime);
     } else {
-        // Отправка сообщения об ошибке, если параметр отсутствует
         server.send(400, "text/plain", "Ошибка: нет данных");
     }
-  }
+}
 
-  /**
- * @brief Отправляет общую "шапку" HTML для всех страниц, включая CSS-стили.
- * @param title Заголовок страницы, который будет отображаться во вкладке браузера.
- */
 void sendPageHeader(String title) {
     server.sendContent(F("<!DOCTYPE html><html><head><meta charset='utf-8'>"));
     server.sendContent(F("<meta name='viewport' content='width=device-width, initial-scale=1.0'>"));
@@ -386,14 +351,16 @@ void handleGetCurrentGraph() {
     JsonDocument doc;
     JsonArray array = doc.to<JsonArray>();
 
+    DEBUG_PRINTF("handleGetCurrentGraph: countHours=%d, countMinutes=%d, currentPeriod=%d\n", countHours, countMinutes, currentPeriod);
+
     for (int period = 0; period <= currentPeriod; period++) {
         int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
-        int16_t raw_t1, raw_t2, raw_rh;
+        int16_t raw_t1 = 0, raw_t2 = 0, raw_rh = 0;
         eepromReadInt16(currentAddress, raw_t1);
         eepromReadInt16(currentAddress + 2, raw_t2);
         eepromReadInt16(currentAddress + 4, raw_rh);
 
-        if (raw_t1 == 0 && raw_t2 == 0) continue; 
+        if (raw_t1 == 0 && raw_t2 == 0 && raw_rh == 0) continue; 
 
         JsonObject point = array.add<JsonObject>();
         point["p"] = period;
@@ -402,25 +369,22 @@ void handleGetCurrentGraph() {
         point["rh"] = (float)raw_rh;
     }
     
+    DEBUG_PRINTF("Graph points sent: %d\n", array.size());
+    
     server.setContentLength(measureJson(doc));
     server.send(200, "application/json", "");
     serializeJson(doc, server.client());
 }
 
-/**
- * @brief Генерирует страницу со списком дней в обратном порядке (новые вверху).
- */
 void handleArchiveList() {
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
-
     sendPageHeader("Інкубатор - Архів");
 
     server.sendContent(F("<div><h1>Виберіть добу для перегляду</h1>"));
     server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОЇ доби</a>"));
     server.sendContent(F("<ul>"));
     
-    // Шаг 1: Собираем все номера дней в вектор
     std::vector<int> days;
     Dir dir = LittleFS.openDir("/");
     while (dir.next()) {
@@ -428,17 +392,11 @@ void handleArchiveList() {
         if (fileName.startsWith("day_") && fileName.endsWith("_graph.json")) {
             int start = 4;
             int end = fileName.indexOf('_', start);
-            if (end > start) {
-                // Преобразуем номер дня в число и добавляем в вектор
-                days.push_back(fileName.substring(start, end).toInt());
-            }
+            if (end > start) days.push_back(fileName.substring(start, end).toInt());
         }
     }
-
-    // Шаг 2: Сортируем вектор по возрастанию (например, 1, 2, 10, 11)
     std::sort(days.begin(), days.end());
 
-    // Шаг 3: Идем по отсортированному вектору в ОБРАТНОМ порядке и генерируем ссылки
     for (int i = days.size() - 1; i >= 0; i--) {
         int day = days[i];
         char link[128];
@@ -449,29 +407,19 @@ void handleArchiveList() {
 
     server.sendContent(F("</ul><div style='text-align:center;'><a href='/' class='back'>Назад на головну</a></div>"));
     server.sendContent(F("</div></body></html>"));
-    server.sendContent(F(""));
 }
-
 
 void formatTimeBuffer(char* buf, size_t size, int period, int count) {
   int totalMinutes = period * 5;
-
-  int hours = totalMinutes / 60;
-  int minutes = totalMinutes % 60;
-  snprintf_P(buf, size, PSTR("%02d:%02d"), hours, minutes);
+  snprintf_P(buf, size, PSTR("%02d:%02d"), totalMinutes / 60, totalMinutes % 60);
 }
-/**
- * @brief Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
- * Максимально экономный по памяти вариант.
- */
+
 void handleShowData() {
     if (!server.hasArg("day") || server.arg("day") == "") {
-        server.send(400, "text/plain", F("Bad Request: 'day' parameter is missing or empty"));
+        server.send(400, "text/plain", F("Bad Request: 'day' parameter is missing"));
         return;
     }
     String day = server.arg("day");
-
-    // 1. Читаем только файл статистики (он маленький)
     String statsFilename = "/day_" + day + "_stats.json";
     File statsFile = LittleFS.open(statsFilename, "r");
     JsonDocument statsDoc;
@@ -480,17 +428,13 @@ void handleShowData() {
         statsFile.close();
     }
 
-    // 2. Начинаем отправку HTML страницы
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
-
     sendPageHeader("Інтубатор - Доба " + String(day.toInt() + 1));
 
     server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(String(day.toInt() + 1)); 
     server.sendContent(F(" добу</h1>"));
-
-    // --- Вставка графика (JS fetch сам заберет JSON файл через /get_graph) ---
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = " + day + ";");
@@ -500,9 +444,7 @@ void handleShowData() {
       .then(data => {
         const labels = data.map(p => {
             let total = p.p * 5;
-            let h = Math.floor(total / 60);
-            let m = total % 60;
-            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+            return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
         });
         const t1 = data.map(p => p.t1);
         const t2 = data.map(p => p.t2);
@@ -512,146 +454,65 @@ void handleShowData() {
           data: {
             labels: labels,
             datasets: [
-              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
+              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
+              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', tension: 0.3, pointRadius: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
-          options: { 
-            responsive: true, maintainAspectRatio: false,
-            scales: { 
-                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
-                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
-            },
-            interaction: { intersect: false, mode: 'index' }
-          }
+          options: { responsive: true, maintainAspectRatio: false, scales: { y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false } } } }
         });
       });
     )raw"));
     server.sendContent(F("</script>"));
+    server.sendContent(F("<table><tr><th>Час</th><th>T1 (°C)</th><th>T2 (°C)</th><th>Вологість (%)</th></tr>"));
 
-    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
-    server.sendContent(F("<table>"));
-    server.sendContent(F("<tr><th>Відлік часу від початку інкубації</th><th>Температура t1 (°C)</th><th>Температура t2 (°C)</th><th>Вологість (%)</th></tr>"));
-
-    // 3. Вывод строки статистики
     if (!statsDoc.isNull()) {
-        String summaryRow = "<tr><th>через кожні 5 хвилин</th><th>Середнє: ";
-        summaryRow += String(statsDoc["avg_t1"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t1"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t1"].as<float>(), 1);
-        summaryRow += "</th><th>Середнє: " + String(statsDoc["avg_t2"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_t2"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_t2"].as<float>(), 1);
-        summaryRow += "</th><th>Середнє: " + String(statsDoc["avg_rh"].as<float>(), 1) + "<br>Min: " + String(statsDoc["min_rh"].as<float>(), 1) + "<br>Max: " + String(statsDoc["max_rh"].as<float>(), 1);
-        summaryRow += "</th></tr>";
-        server.sendContent(summaryRow);
+        char summary[256];
+        snprintf(summary, sizeof(summary), "<tr><th>Статистика</th><td>Avg: %.1f<br>Min: %.1f<br>Max: %.1f</td><td>Avg: %.1f<br>Min: %.1f<br>Max: %.1f</td><td>Avg: %.1f<br>Min: %.1f<br>Max: %.1f</td></tr>",
+                 statsDoc["avg_t1"].as<float>(), statsDoc["min_t1"].as<float>(), statsDoc["max_t1"].as<float>(),
+                 statsDoc["avg_t2"].as<float>(), statsDoc["min_t2"].as<float>(), statsDoc["max_t2"].as<float>(),
+                 statsDoc["avg_rh"].as<float>(), statsDoc["min_rh"].as<float>(), statsDoc["max_rh"].as<float>());
+        server.sendContent(summary);
     }
     
-    // 4. Построчный вывод таблицы из файла графиков
-    String graphFilename = "/day_" + day + "_graph.json";
-    File graphFile = LittleFS.open(graphFilename, "r");
+    File graphFile = LittleFS.open("/day_" + day + "_graph.json", "r");
     if (graphFile) {
-        // Мы не используем deserializeJson на весь файл!
-        // Вместо этого мы используем ArduinoJson для парсинга отдельных объектов в массиве.
-        // Для простоты в данном контексте: раз файл уже в JSON формате, мы можем 
-        // прочитать его как поток и выводить строки.
         JsonDocument tempDoc;
-        DeserializationError err = deserializeJson(tempDoc, graphFile);
-        if (!err) {
+        if (!deserializeJson(tempDoc, graphFile)) {
            JsonArray array = tempDoc.as<JsonArray>();
            for (int i = array.size() - 1; i >= 0; i--) {
                 JsonObject point = array[i];
                 char row[128];
-                char fmtTime[32];
-                formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), 287);
-                snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
-                           fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
+                snprintf(row, sizeof(row), "<tr><td>%02d:%02d</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", 
+                         (point["p"].as<int>() * 5) / 60, (point["p"].as<int>() * 5) % 60, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
                 server.sendContent(row);
-                if (i % 10 == 0) yield(); // Даем передышку Wi-Fi стеку
+                if (i % 20 == 0) yield();
            }
         }
         graphFile.close();
     }
-
-    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до списку діб</a></div>"));
-    server.sendContent(F("</div></body></html>"));
-    server.sendContent("");
+    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='back'>Назад</a></div></div></body></html>"));
 }
 
-/**
- * @brief Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
- */
 void handleCurrentData() {
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
-
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
-
     sendPageHeader("Інкубатор - Поточна доба");
-
-    server.sendContent(F("<div><h1 style='text-align:center;'>Дані за поточну добу</h1>"));
-
-    char timeStr[32];
-    snprintf_P(timeStr, sizeof(timeStr), PSTR("<p style='text-align:center;'>Інформація оновлена в %02u:%02u</p>"), countHours, countMinutes);
-    server.sendContent(timeStr);
-
-    // --- Вставка графика для текущей суток ---
+    server.sendContent(F("<div><h1>Дані за поточну добу</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
-    server.sendContent(F("<script>"));
-    server.sendContent(F(R"raw(
-    fetch('/get_current_graph')
-      .then(r => r.json())
-      .then(data => {
-        const labels = data.map(p => {
-            let total = p.p * 5;
-            let h = Math.floor(total / 60);
-            let m = total % 60;
-            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
-        });
-        const t1 = data.map(p => p.t1);
-        const t2 = data.map(p => p.t2);
-        const rh = data.map(p => p.rh);
-        new Chart(document.getElementById('tempChart'), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
-            ]
-          },
-          options: { 
-            responsive: true, maintainAspectRatio: false,
-            scales: { 
-                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
-                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
-            },
-            interaction: { intersect: false, mode: 'index' }
-          }
-        });
-      });
-    )raw"));
-    server.sendContent(F("</script>"));
-
-    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
-    server.sendContent(F("<table><tr><th>Відлік часу з моменту увімкнення приладу</th><th>T1 (°C)</th><th>T2 (°C)</th><th>RH (%)</th></tr>"));
-
+    server.sendContent(F("<script>fetch('/get_current_graph').then(r=>r.json()).then(data=>{const labels=data.map(p=>{let t=p.p*5;return Math.floor(t/60).toString().padStart(2,'0')+':'+(t%60).toString().padStart(2,'0')});new Chart(document.getElementById('tempChart'),{type:'line',data:{labels:labels,datasets:[{label:'T1',data:data.map(p=>p.t1),borderColor:'#ff4d4d'},{label:'T2',data:data.map(p=>p.t2),borderColor:'#28a745'},{label:'RH',data:data.map(p=>p.rh),borderColor:'#3399ff',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y1:{type:'linear',position:'right',min:0,max:100}}}})});</script>"));
+    server.sendContent(F("<table><tr><th>Час</th><th>T1</th><th>T2</th><th>RH</th></tr>"));
     for (int period = currentPeriod; period >= 0; period--) {
-        int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
-        int16_t raw_t1, raw_t2, raw_rh;
-        eepromReadInt16(currentAddress, raw_t1);
-        eepromReadInt16(currentAddress + 2, raw_t2);
-        eepromReadInt16(currentAddress + 4, raw_rh);
-
-        if (raw_t1 == 0 && raw_t2 == 0) continue; 
-
+        int16_t t1, t2, rh;
+        eepromReadInt16(DAILY_DATA_START + period * DAILY_DATA_REC_SIZE, t1);
+        eepromReadInt16(DAILY_DATA_START + period * DAILY_DATA_REC_SIZE + 2, t2);
+        eepromReadInt16(DAILY_DATA_START + period * DAILY_DATA_REC_SIZE + 4, rh);
+        if (t1 == 0 && t2 == 0) continue;
         char row[128];
-        char fmtTime[32];
-        formatTimeBuffer(fmtTime, sizeof(fmtTime), period, currentPeriod);
-        snprintf_P(row, sizeof(row), PSTR("<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>"), 
-                   fmtTime, (float)raw_t1 / 10.0, (float)raw_t2 / 10.0, (float)raw_rh);
-
+        snprintf(row, sizeof(row), "<tr><td>%02d:%02d</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", (period*5)/60, (period*5)%60, t1/10.0, t2/10.0, (float)rh);
         server.sendContent(row);
         yield();
     }
-    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='btn'>Назад до архіву</a></div>"));
-    server.sendContent(F("</div></body></html>"));
+    server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='back'>Назад</a></div></div></body></html>"));
 }
