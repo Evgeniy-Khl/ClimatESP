@@ -360,7 +360,7 @@ void handleGetCurrentGraph() {
     doc["sm"] = startM;
     JsonArray array = doc["points"].to<JsonArray>();
 
-    DEBUG_PRINTF("handleGetCurrentGraph: start=%02d:%02d, currentPeriod=%d\n", startH, startM, currentPeriod);
+    // DEBUG_PRINTF("handleGetCurrentGraph: start=%02d:%02d, currentPeriod=%d\n", startH, startM, currentPeriod);
 
     for (int period = 0; period <= currentPeriod; period++) {
         int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
@@ -378,7 +378,7 @@ void handleGetCurrentGraph() {
         point["rh"] = (float)raw_rh;
     }
     
-    DEBUG_PRINTF("Graph points sent: %d\n", array.size());
+    // DEBUG_PRINTF("Graph points sent: %d\n", array.size());
     
     server.setContentLength(measureJson(doc));
     server.send(200, "application/json", "");

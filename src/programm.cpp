@@ -65,7 +65,7 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
     unBuf.spDay.spRH = rh;
     unBuf.spDay.timer0 = timer;
     unBuf.spDay.timer1 = 0;
-    unBuf.spDay.aeration0 = aer0;
+    unBuf.spDay.aeration0 = aer0==0 ? 1 : aer0; // конвертация минут в секунды для хранения
     unBuf.spDay.aeration1 = aer1;
     unBuf.spDay.flap = fl;
     
