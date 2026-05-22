@@ -347,11 +347,20 @@ void handleGetGraph() {
 }
 
 void handleGetCurrentGraph() {
+    uint8_t start_data[7];
+    int startH = 0, startM = 0;
+    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+        startH = start_data[4];
+        startM = start_data[5];
+    }
+
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
     JsonDocument doc;
-    JsonArray array = doc.to<JsonArray>();
+    doc["sh"] = startH;
+    doc["sm"] = startM;
+    JsonArray array = doc["points"].to<JsonArray>();
 
-    DEBUG_PRINTF("handleGetCurrentGraph: countHours=%d, countMinutes=%d, currentPeriod=%d\n", countHours, countMinutes, currentPeriod);
+    DEBUG_PRINTF("handleGetCurrentGraph: start=%02d:%02d, currentPeriod=%d\n", startH, startM, currentPeriod);
 
     for (int period = 0; period <= currentPeriod; period++) {
         int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
@@ -409,8 +418,8 @@ void handleArchiveList() {
     server.sendContent(F("</div></body></html>"));
 }
 
-void formatTimeBuffer(char* buf, size_t size, int period, int count) {
-  int totalMinutes = period * 5;
+void formatTimeBuffer(char* buf, size_t size, int period, int sh, int sm) {
+  int totalMinutes = (sh * 60 + sm + period * 5) % 1440;
   snprintf_P(buf, size, PSTR("%02d:%02d"), totalMinutes / 60, totalMinutes % 60);
 }
 
@@ -420,6 +429,14 @@ void handleShowData() {
         return;
     }
     String day = server.arg("day");
+
+    uint8_t start_data[7];
+    int startH = 0, startM = 0;
+    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+        startH = start_data[4];
+        startM = start_data[5];
+    }
+
     String statsFilename = "/day_" + day + "_stats.json";
     File statsFile = LittleFS.open(statsFilename, "r");
     JsonDocument statsDoc;
@@ -438,12 +455,14 @@ void handleShowData() {
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = " + day + ";");
+    server.sendContent("const sh = " + String(startH) + ";");
+    server.sendContent("const sm = " + String(startM) + ";");
     server.sendContent(F(R"raw(
     fetch('/get_graph?day=' + dayNum)
       .then(r => r.json())
       .then(data => {
         const labels = data.map(p => {
-            let total = p.p * 5;
+            let total = (sh * 60 + sm + p.p * 5) % 1440;
             return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
         });
         const t1 = data.map(p => p.t1);
@@ -483,8 +502,10 @@ void handleShowData() {
            for (int i = array.size() - 1; i >= 0; i--) {
                 JsonObject point = array[i];
                 char row[128];
-                snprintf(row, sizeof(row), "<tr><td>%02d:%02d</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", 
-                         (point["p"].as<int>() * 5) / 60, (point["p"].as<int>() * 5) % 60, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
+                char fmtTime[32];
+                formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), startH, startM);
+                snprintf(row, sizeof(row), "<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", 
+                         fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
                 server.sendContent(row);
                 if (i % 20 == 0) yield();
            }
@@ -495,13 +516,48 @@ void handleShowData() {
 }
 
 void handleCurrentData() {
+    uint8_t start_data[7];
+    int startH = 0, startM = 0;
+    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+        startH = start_data[4];
+        startM = start_data[5];
+    }
+
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Поточна доба");
     server.sendContent(F("<div><h1>Дані за поточну добу</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
-    server.sendContent(F("<script>fetch('/get_current_graph').then(r=>r.json()).then(data=>{const labels=data.map(p=>{let t=p.p*5;return Math.floor(t/60).toString().padStart(2,'0')+':'+(t%60).toString().padStart(2,'0')});new Chart(document.getElementById('tempChart'),{type:'line',data:{labels:labels,datasets:[{label:'T1',data:data.map(p=>p.t1),borderColor:'#ff4d4d'},{label:'T2',data:data.map(p=>p.t2),borderColor:'#28a745'},{label:'RH',data:data.map(p=>p.rh),borderColor:'#3399ff',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y1:{type:'linear',position:'right',min:0,max:100}}}})});</script>"));
+    
+    server.sendContent(F("<script>"));
+    server.sendContent("const sh = " + String(startH) + ";");
+    server.sendContent("const sm = " + String(startM) + ";");
+    server.sendContent(F(R"raw(
+    fetch('/get_current_graph')
+      .then(r=>r.json())
+      .then(json=>{
+        const data = json.points;
+        const labels = data.map(p => {
+            let total = (sh * 60 + sm + p.p * 5) % 1440;
+            return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
+        });
+        new Chart(document.getElementById('tempChart'), {
+          type:'line',
+          data:{
+            labels:labels,
+            datasets:[
+              {label:'T1', data:data.map(p=>p.t1), borderColor:'#ff4d4d', tension:0.3},
+              {label:'T2', data:data.map(p=>p.t2), borderColor:'#28a745', tension:0.3},
+              {label:'RH', data:data.map(p=>p.rh), borderColor:'#3399ff', tension:0.3, yAxisID:'y1'}
+            ]
+          },
+          options:{responsive:true,maintainAspectRatio:false,scales:{y1:{type:'linear',position:'right',min:0,max:100}}}
+        });
+      });
+    )raw"));
+    server.sendContent(F("</script>"));
+
     server.sendContent(F("<table><tr><th>Час</th><th>T1</th><th>T2</th><th>RH</th></tr>"));
     for (int period = currentPeriod; period >= 0; period--) {
         int16_t t1, t2, rh;
@@ -509,8 +565,11 @@ void handleCurrentData() {
         eepromReadInt16(DAILY_DATA_START + period * DAILY_DATA_REC_SIZE + 2, t2);
         eepromReadInt16(DAILY_DATA_START + period * DAILY_DATA_REC_SIZE + 4, rh);
         if (t1 == 0 && t2 == 0) continue;
+        
+        char fmtTime[32];
+        formatTimeBuffer(fmtTime, sizeof(fmtTime), period, startH, startM);
         char row[128];
-        snprintf(row, sizeof(row), "<tr><td>%02d:%02d</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", (period*5)/60, (period*5)%60, t1/10.0, t2/10.0, (float)rh);
+        snprintf(row, sizeof(row), "<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", fmtTime, t1/10.0, t2/10.0, (float)rh);
         server.sendContent(row);
         yield();
     }

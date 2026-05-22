@@ -276,9 +276,12 @@ let mainChart;
 function fetchGraphData() {
     fetch('/get_current_graph')
       .then(r => r.json())
-      .then(data => {
+      .then(json => {
+        const data = json.points;
+        const sh = json.sh || 0;
+        const sm = json.sm || 0;
         const labels = data.map(p => {
-            let total = p.p * 5;
+            let total = (sh * 60 + sm + p.p * 5) % 1440;
             let h = Math.floor(total / 60);
             let m = total % 60;
             return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
