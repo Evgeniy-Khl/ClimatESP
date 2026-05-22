@@ -606,6 +606,33 @@ void syncNTP(void) {
   }
 }
 
+void updateIncubationTime() {
+  DateTime now = rtc.now();
+  uint8_t start_data[7];
+  
+  if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+    DateTime start(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
+    if (now >= start) {
+      TimeSpan diff = now - start;
+      uint16_t currentDays = diff.days();
+      
+      if (currentDays >= 31) {
+        countDays = 30; // Останавливаемся на последнем (31-м) дне программы (индекс 30)
+      } else {
+        countDays = (uint8_t)currentDays;
+      }
+      countHours = diff.hours();
+      countMinutes = diff.minutes();
+      countSeconds = diff.seconds();
+    }
+  } else {
+    countDays = 0;
+    countHours = now.hour();
+    countMinutes = now.minute();
+    countSeconds = now.second();
+  }
+}
+
 void newMinute(){
   //---------------------------- ЗАЩИТА ОТ РАЗНОСА -------------------------
   if(pctHeater == 100){
@@ -630,19 +657,17 @@ void newMinute(){
   }
   lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
   //------------------------------------------------------------------------
-  countSeconds = 0;
-  if(++countMinutes > 59){
-    countMinutes = 0;
-    syncNTP(); // Синхронизация времени каждый час
-    if(++countHours > 23){
-      countHours = 0;
-      if(++countDays > 30) countDays = 0;
-      applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
-    } 
+  uint8_t prevDay = countDays;
+  updateIncubationTime();
+
+  if (settings.sp_structs[1].state > 0 && countDays != prevDay) {
+    applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
   }
-  // }
-  // DEBUG_PRINTF("=== НОВАЯ МИНУТА: %02u:%02u:00\n",countHours,countMinutes);
-  // DEBUG_PRINTF("Free heap size: %d\n", ESP.getFreeHeap());  // Проверка доступной памяти
+
+  if (countMinutes == 0) {
+    syncNTP(); // Синхронизация времени каждый час
+  }
+
   if(disableBeep) disableBeep--;
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
   if(settings.sp_structs[0].timer) rotate_trays();
@@ -656,7 +681,7 @@ void newMinute(){
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
     int address = DAILY_DATA_START + period_of_day * DAILY_DATA_REC_SIZE; // Вычисляем адрес на основе этого периода
     // Записываем в EEPROM
-    if (countDays != lastDayProcessed && countDays <= 30) {
+    if (countDays != lastDayProcessed && countDays <= 31) {
       saveDailyDataToFile(lastDayProcessed);
       lastDayProcessed = countDays;
     } 

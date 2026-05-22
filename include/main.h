@@ -171,12 +171,11 @@ extern union Byte portFlag;
 #define RTCENABLE   portFlag.bitfield.a0  // если установлены RTC
 #define WIFIENABLE  portFlag.bitfield.a1  // если подключен к WIFI
 #define TURNSECOND  portFlag.bitfield.a2  // устанавливается в 1 если отсчет в секундах
-#define INCUBATION  portFlag.bitfield.a3  // идет инкубация
-#define RESERV1     portFlag.bitfield.a4  // 
+#define RESERV3     portFlag.bitfield.a3  // свободный бит
+#define RESERV1     portFlag.bitfield.a4  //
 #define BOTENABLE   portFlag.bitfield.a5  // если strlen(botToken) > 0
 #define HIH5030     portFlag.bitfield.a6  // exist HIH5030 flag
 #define AERATION    portFlag.bitfield.a7  // проветривание
-
 #define ON          1
 #define PCF_ON      0
 #define OFF         0

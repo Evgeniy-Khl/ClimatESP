@@ -209,18 +209,21 @@ void startIncubation() {
   DEBUG_PRINTF("%02d.%02d.20%02d %02d:%02d:%02d | State: %d\n", data[3], data[2], data[1], data[4], data[5], data[6], data[0]);
 
   if (currentState > 0) {
-    if (!INCUBATION) {
-      clearIncubationData();
-      INCUBATION = 1;
-      countDays = 0;
-      countHours = 0;
-      countMinutes = 0;
-      countSeconds = 0;
-      MYDEBUG_PRINTLN("Инкубация запущена!");
+    clearIncubationData();
+    countDays = 0;
+    countHours = 0;
+    countMinutes = 0;
+    countSeconds = 0;
+    
+    if (currentState == 5) {
+      MYDEBUG_PRINTLN("Ручная инкубация запущена!");
+      settings.sp_structs[1].state = 0; // Для системы это "без программы", но дни считаем
+      saveSetpoint();
+    } else {
+      MYDEBUG_PRINTLN("Программная инкубация запущена!");
+      applyDailyProgram(); // Сразу загружаем параметры первого дня
     }
-    applyDailyProgram(); // Сразу загружаем параметры первого дня
   } else {
-    INCUBATION = 0;
     MYDEBUG_PRINTLN("Инкубация остановлена.");
   }
 }
@@ -229,33 +232,22 @@ void restoreIncubationStatus() {
   uint8_t data[7];
   if (eepromReadBuffer(INCUBATION_DATA_ADRES, data, 7) == 7) {
     int16_t savedState = data[0];
-    // Восстанавливаем только если программа в настройках совпадает с сохраненной в EEPROM и она активна (>0)
-    if (savedState > 0 && savedState == settings.sp_structs[1].state) {
-      DateTime start(data[1] + 2000, data[2], data[3], data[4], data[5], data[6]);
-      DateTime current = rtc.now();
+    // Восстанавливаем, если была запущена программа (>0) или ручной режим (savedState был > 0 при записи)
+    if (savedState > 0) {
+      updateIncubationTime();
       
-      if (current >= start) {
-        INCUBATION = 1;
-        TimeSpan diff = current - start;
-        countDays = diff.days(); // День инкубации (0-й внутренний день = 1-й для пользователя)
-        countHours = diff.hours();
-        countMinutes = diff.minutes();
-        countSeconds = diff.seconds();
-        
-        MYDEBUG_PRINT("Инкубация восстановлена. Прошло времени: ");
-        DEBUG_PRINTF("%ld дн. %02d:%02d:%02d | Текущий внутренний день: %d\n", diff.days(), countHours, countMinutes, countSeconds, countDays);
-        
+      MYDEBUG_PRINT("Инкубация восстановлена. Текущий день: ");
+      DEBUG_PRINTF("%d дн. %02d:%02d:%02d\n", countDays, countHours, countMinutes, countSeconds);
+      
+      // Если это была программа (не ручной режим 5) и она совпадает с текущей в настройках
+      if (savedState < 5 && savedState == settings.sp_structs[1].state) {
         applyDailyProgram(); // Загружаем параметры текущего восстановленного дня
-      } else {
-        MYDEBUG_PRINTLN("Ошибка: время RTC меньше времени старта в EEPROM. Восстановление невозможно.");
       }
     } else {
-      MYDEBUG_PRINTLN("Сохраненная программа не активна или не совпадает с текущей. Режим инкубации выключен.");
-      INCUBATION = 0;
+      MYDEBUG_PRINTLN("Инкубация не была запущена.");
     }
   } else {
     MYDEBUG_PRINTLN("Данные инкубации в EEPROM не найдены.");
-    INCUBATION = 0;
   }
 }
 
