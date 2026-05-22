@@ -176,7 +176,7 @@
                         document.getElementById('spT0').value = (data.spT0 / 10).toFixed(1);
                         document.getElementById('spT1').value = (data.spT1 / 10).toFixed(1);
                         document.getElementById('spRH0').value = data.spRH0;
-                        document.getElementById('spRH1').value = (data.spRH1 / 10).toFixed(1);
+                        document.getElementById('spRH1').value = (data.spRH1;
                         document.getElementById('flpNow').value = data.flpNow;
                         document.getElementById('program').value = data.program;
                         document.getElementById('ventMode').value = data.ventMode;
@@ -221,7 +221,7 @@
             const formData = new FormData(event.target);
 
             // Преобразование значений для spRH1, spT0, spT1 ....
-            const fieldsToTransform = ['spRH1', 'spT0','spT1','alarm0','alarm1','coolOn0','coolOff0','coolOn1','coolOff1','extOn','extOff','minRun'];
+            const fieldsToTransform = ['spT0','spT1','alarm0','alarm1','coolOn0','coolOff0','coolOn1','coolOff1','extOn','extOff','minRun'];
 
             fieldsToTransform.forEach(field => {
 				const inputValue = parseFloat(formData.get(field));

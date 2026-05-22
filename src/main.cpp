@@ -86,7 +86,7 @@ void setup(){
     }
   } else dataLed[0] = 1;      // DS3231 не инициализирован
   //------------------------------------------------------------------------------
-  testProgs();              // тест
+  // testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
   sensorType();
   //------------------------------------------------------------------------------------------
@@ -175,11 +175,11 @@ void loop(){
     humidiPwm.write(humidiValue);
     writePCF8574(portOut.value);
     OutStatusLed();               // для HTML страницы
-    #ifndef DEBUG
+    // #ifndef DEBUG
       if(++countSeconds > 59) newMinute();
-    #else
-      if(++countSeconds > 0) newMinute(); // В режиме отладки - каждая секунда это минута
-    #endif
+    // #else
+    //   if(++countSeconds > 0) newMinute(); // В режиме отладки - каждая секунда это минута
+    // #endif
   }
   //************************************************ TELEGRAM *************************************************/
   if (nowMillis - lastSendTime > interval) {

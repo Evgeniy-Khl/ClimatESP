@@ -198,8 +198,8 @@ uint8_t checkSetpoint(void){
       saveSetpoint();  // значения по умолчанию
       err = 2; MYDEBUG_PRINTLN("Конфігурація за замовчуванням!");
   }
-  MYDEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
   #ifdef DEBUG
+    MYDEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
     // printConfig();
   #endif
   return err;
@@ -498,6 +498,7 @@ void reset(void){
 }
 
 void newSecond(){
+  now = rtc.now();
   errorsFlag.value = 0; 
 
   // Первоначальная синхронизация RTC после подключения к WiFi
@@ -607,7 +608,6 @@ void syncNTP(void) {
 }
 
 void updateIncubationTime() {
-  DateTime now = rtc.now();
   uint8_t start_data[7];
   
   if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
@@ -664,8 +664,11 @@ void newMinute(){
     applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
   }
 
-  if (countMinutes == 0) {
-    syncNTP(); // Синхронизация времени каждый час
+  // Синхронизация с NTP раз в сутки в полночь (00:00)
+  static uint8_t lastSyncDay = 255;
+  if (now.hour() == 0 && now.minute() == 0 && lastSyncDay != now.day()) {
+    syncNTP();
+    lastSyncDay = now.day();
   }
 
   if(disableBeep) disableBeep--;
@@ -675,7 +678,6 @@ void newMinute(){
   
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
   if((countMinutes % 5) == 0){
-    now = rtc.now();       // текущее время из DS3231 в формате Unix, сконвертированное для нашего часового пояса
     // DEBUG_PRINTF("============ RTC month:%02u day:%02u  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
     // DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ month:%02u day:%02u  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
     int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
