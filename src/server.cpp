@@ -453,6 +453,7 @@ void handleShowData() {
     server.sendContent(String(day.toInt() + 1)); 
     server.sendContent(F(" добу</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = " + day + ";");
     server.sendContent("const sh = " + String(startH) + ";");
@@ -536,6 +537,7 @@ void handleCurrentData() {
     sendPageHeader("Інкубатор - Поточна доба");
     server.sendContent(F("<div><h1>Дані за поточну добу</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     
     server.sendContent(F("<script>"));
     server.sendContent("const sh = " + String(startH) + ";");
