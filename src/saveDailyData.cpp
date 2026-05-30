@@ -234,14 +234,16 @@ void restoreIncubationStatus() {
     int16_t savedState = data[0];
     // Восстанавливаем, если была запущена программа (>0) или ручной режим (savedState был > 0 при записи)
     if (savedState > 0) {
-      updateIncubationTime();
-      
-      MYDEBUG_PRINT("Инкубация восстановлена. Текущий день: ");
-      DEBUG_PRINTF("%d дн. %02d:%02d:%02d\n", countDays, countHours, countMinutes, countSeconds);
-      
-      // Если это была программа (не ручной режим 5) и она совпадает с текущей в настройках
-      if (savedState < 5 && savedState == settings.sp_structs[1].state) {
-        applyDailyProgram(); // Загружаем параметры текущего восстановленного дня
+      if (updateIncubationTime()) {
+        MYDEBUG_PRINT("Инкубация восстановлена. Текущий день: ");
+        DEBUG_PRINTF("%d дн. %02d:%02d:%02d\n", countDays, countHours, countMinutes, countSeconds);
+        
+        // Если это была программа (не ручной режим 5) и она совпадает с текущей в настройках
+        if (savedState < 5 && savedState == settings.sp_structs[1].state) {
+          applyDailyProgram(); // Загружаем параметры текущего восстановленного дня
+        }
+      } else {
+        MYDEBUG_PRINTLN("Инкубация обнаружена, но не удалось рассчитать время (ошибка чтения EEPROM).");
       }
     } else {
       MYDEBUG_PRINTLN("Инкубация не была запущена.");

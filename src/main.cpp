@@ -176,7 +176,10 @@ void loop(){
     writePCF8574(portOut.value);
     OutStatusLed();               // для HTML страницы
     // #ifndef DEBUG
-      if(++countSeconds > 59) newMinute();
+      if(++countSeconds > 59) {
+      newMinute();
+      countSeconds = 0;
+    }
     // #else
     //   if(++countSeconds > 0) newMinute(); // В режиме отладки - каждая секунда это минута
     // #endif

@@ -607,30 +607,55 @@ void syncNTP(void) {
   }
 }
 
-void updateIncubationTime() {
+bool updateIncubationTime() {
   uint8_t start_data[7];
   
-  if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
-    DateTime start(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
-    if (now >= start) {
-      TimeSpan diff = now - start;
-      uint16_t currentDays = diff.days();
-      
-      if (currentDays >= 31) {
-        countDays = 30; // Останавливаемся на последнем (31-м) дне программы (индекс 30)
-      } else {
-        countDays = (uint8_t)currentDays;
+  // Попробуем прочитать несколько раз при ошибке I2C
+  uint8_t retries = 3;
+  uint16_t readLen = 0;
+  while(retries-- > 0) {
+    readLen = eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7);
+    if (readLen == 7) break;
+    delay(5);
+  }
+
+  if (readLen == 7) {
+    if (start_data[0] > 0) {
+      // Базовая проверка на валидность даты
+      if (start_data[2] > 0 && start_data[2] <= 12 && start_data[3] > 0 && start_data[3] <= 31) {
+        DateTime start(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
+        if (now >= start) {
+          TimeSpan diff = now - start;
+          uint16_t currentDays = diff.days();
+          
+          if (currentDays >= 31) {
+            countDays = 30; // Останавливаемся на последнем (31-м) дне программы (индекс 30)
+          } else {
+            countDays = (uint8_t)currentDays;
+          }
+          countHours = diff.hours();
+          countMinutes = diff.minutes();
+          countSeconds = diff.seconds();
+          return true;
+        } else {
+          // Если RTC время сбилось и оно раньше времени старта
+          // В этом случае мы тоже не должны сбрасывать countDays, если инкубация была активна
+          // Но это сложный случай. Для начала просто вернем true, чтобы не сбрасывать в else.
+          return true; 
+        }
       }
-      countHours = diff.hours();
-      countMinutes = diff.minutes();
-      countSeconds = diff.seconds();
+    } else {
+      // Инкубация официально остановлена (data[0] == 0)
+      countDays = 0;
+      countHours = now.hour();
+      countMinutes = now.minute();
+      countSeconds = now.second();
+      return true;
     }
   } else {
-    countDays = 0;
-    countHours = now.hour();
-    countMinutes = now.minute();
-    countSeconds = now.second();
+    MYDEBUG_PRINTLN("ERROR: Failed to read incubation data from EEPROM!");
   }
+  return false;
 }
 
 void newMinute(){
@@ -658,10 +683,10 @@ void newMinute(){
   lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
   //------------------------------------------------------------------------
   uint8_t prevDay = countDays;
-  updateIncubationTime();
-
-  if (settings.sp_structs[1].state > 0 && countDays != prevDay) {
-    applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
+  if (updateIncubationTime()) {
+    if (settings.sp_structs[1].state > 0 && countDays != prevDay) {
+      applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
+    }
   }
 
   // Синхронизация с NTP раз в сутки в полночь (00:00)
