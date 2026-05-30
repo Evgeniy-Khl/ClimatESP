@@ -478,7 +478,14 @@ void handleShowData() {
               { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
             ]
           },
-          options: { responsive: true, maintainAspectRatio: false, scales: { y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false } } } }
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { 
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
+              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } } 
+            } 
+          } 
         });
       });
     )raw"));
@@ -552,7 +559,14 @@ void handleCurrentData() {
               {label:'RH', data:data.map(p=>p.rh), borderColor:'#3399ff', tension:0.3, yAxisID:'y1'}
             ]
           },
-          options:{responsive:true,maintainAspectRatio:false,scales:{y1:{type:'linear',position:'right',min:0,max:100}}}
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { 
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
+              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } } 
+            } 
+          } 
         });
       });
     )raw"));
