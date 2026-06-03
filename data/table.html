@@ -119,7 +119,7 @@ async function fetchData() {
 
                 row.forEach((cell, cellIndex) => {
                     const td = document.createElement('td');
-                    if (cellIndex === 0 || cellIndex === 1 || cellIndex === 2) {
+                    if (cellIndex === 0 || cellIndex === 1) {
                         td.innerHTML = (cell / 10).toFixed(1); // Дробное значение
                     } else {
                         td.innerHTML = cell;
@@ -201,7 +201,7 @@ async function saveData() {
 			const formattedValue = cell.innerHTML.replace(',', '.');
 
 			// Преобразуем значение в число
-			const value = (index === 1 || index === 2 || index === 3) ? Math.round(parseFloat(formattedValue) * 10) : parseInt(formattedValue);
+			const value = (index === 1 || index === 2) ? Math.round(parseFloat(formattedValue) * 10) : parseInt(formattedValue);
 			return isNaN(value) ? null : value;
 		}).filter(cell => cell !== null);
 	}).filter(row => row.length > 0);
