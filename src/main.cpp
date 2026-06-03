@@ -111,6 +111,7 @@ void setup(){
 
 void loop(){
   ESP.wdtFeed();
+  handleWiFi();          // Фоновое управление WiFi и переподключение
   server.handleClient(); // Обработка входящих запросов
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ 10 mSec. ---------------------------------
   long nowMillis = millis();

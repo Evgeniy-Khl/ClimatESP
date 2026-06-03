@@ -299,6 +299,7 @@ extern uint8_t dataLed[6];
 byte writePCF8574(byte data);
 byte readPCF8574();
 void initWiFiManag(void);
+void handleWiFi(void);
 void syncNTP(void);
 
 #endif /* __MAIN_H */
