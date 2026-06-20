@@ -419,178 +419,181 @@
   </div>
 
   <script>
-    function fetchData() {
-      fetch('/getvalues')
-        .then(response => response.json())
-        .then(jsonResponse => {
-          console.log("Отримані дані:", jsonResponse);
+    async function fetchData() {
+      try {
+        const response = await fetch('/getvalues');
+        if (!response.ok) throw new Error('Помилка мережі при завантаженні даних');
+        const jsonResponse = await response.json();
+        console.log("Отримані дані:", jsonResponse);
+        
+        document.getElementById("model").innerHTML = jsonResponse.model;
+        document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
+        document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
+        
+        const error1 = jsonResponse.error1;
+        const error2 = jsonResponse.error2;
+        const error4 = jsonResponse.error4;
+        const error8 = jsonResponse.error8;
+        
+        // Т1 Card Status
+        const t1Card = document.getElementById("rcorners0");
+        t1Card.className = "sensor-card";
+        if (error1 == 1) {
+          t1Card.classList.add("error-crit");
+        } else if (error4 == 1) {
+          t1Card.classList.add("error-warn");
+        }
+        
+        // T2 Card Status & Display
+        const t2Card = document.getElementById("rcorners1");
+        if (jsonResponse.temperature1 === undefined) {
+          t2Card.style.display = 'none';
+        } else {
+          t2Card.style.display = 'flex';
+          document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
+          document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
           
-          document.getElementById("model").innerHTML = jsonResponse.model;
-          document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
-          document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
-          
-          const error1 = jsonResponse.error1;
-          const error2 = jsonResponse.error2;
-          const error4 = jsonResponse.error4;
-          const error8 = jsonResponse.error8;
-          
-          // Т1 Card Status
-          const t1Card = document.getElementById("rcorners0");
-          t1Card.className = "sensor-card";
-          if (error1 == 1) {
-            t1Card.classList.add("error-crit");
-          } else if (error4 == 1) {
-            t1Card.classList.add("error-warn");
+          t2Card.className = "sensor-card";
+          if (error2 == 1) {
+            t2Card.classList.add("error-crit");
+          } else if (error8 == 1) {
+            t2Card.classList.add("error-warn");
           }
-          
-          // T2 Card Status & Display
-          const t2Card = document.getElementById("rcorners1");
-          if (jsonResponse.temperature1 === undefined) {
-            t2Card.style.display = 'none';
-          } else {
-            t2Card.style.display = 'flex';
-            document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
-            document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
-            
-            t2Card.className = "sensor-card";
-            if (error2 == 1) {
-              t2Card.classList.add("error-crit");
-            } else if (error8 == 1) {
-              t2Card.classList.add("error-warn");
-            }
-          }
-          
-          document.getElementById("humidity").innerHTML = jsonResponse.humidity;
-          document.getElementById("sethum").innerHTML = jsonResponse.sethum;
-          
-          document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
-          document.getElementById("extmode").innerHTML = jsonResponse.extmode;
-          document.getElementById("relaymode").innerHTML = jsonResponse.relaymode;
-          document.getElementById("checkDry").innerHTML = jsonResponse.checkDry;
-          document.getElementById("rotation").innerHTML = jsonResponse.rotation;
-          document.getElementById("power").innerHTML = jsonResponse.power;
-          document.getElementById("flap").innerHTML = jsonResponse.flap;
-          document.getElementById("program").innerHTML = jsonResponse.program;
-          document.getElementById("startTime").innerHTML = jsonResponse.startTime;
-          document.getElementById("currDay").innerHTML = jsonResponse.currDay;
+        }
+        
+        document.getElementById("humidity").innerHTML = jsonResponse.humidity;
+        document.getElementById("sethum").innerHTML = jsonResponse.sethum;
+        
+        document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
+        document.getElementById("extmode").innerHTML = jsonResponse.extmode;
+        document.getElementById("relaymode").innerHTML = jsonResponse.relaymode;
+        document.getElementById("checkDry").innerHTML = jsonResponse.checkDry;
+        document.getElementById("rotation").innerHTML = jsonResponse.rotation;
+        document.getElementById("power").innerHTML = jsonResponse.power;
+        document.getElementById("flap").innerHTML = jsonResponse.flap;
+        document.getElementById("program").innerHTML = jsonResponse.program;
+        document.getElementById("startTime").innerHTML = jsonResponse.startTime;
+        document.getElementById("currDay").innerHTML = jsonResponse.currDay;
 
-          // LED Status Helper
-          const updateLed = (id, state, activeColor) => {
-            const el = document.getElementById(id);
-            if (state === "ON") {
-              el.style.display = "flex";
-              el.style.backgroundColor = activeColor;
-              el.style.borderColor = activeColor;
-              el.style.boxShadow = `0 0 15px ${activeColor}, inset 0 0 10px rgba(255,255,255,0.2)`;
-            } else {
-              el.style.display = "none";
-              el.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
-              el.style.borderColor = "var(--card-border)";
-              el.style.boxShadow = "none";
-            }
-          };
-
-          updateLed('led0', jsonResponse.led0, '#10b981');
-          updateLed('led1', jsonResponse.led1, '#f59e0b');
-          updateLed('led2', jsonResponse.led2, '#06b6d4');
-          updateLed('led3', jsonResponse.led3, '#3b82f6');
-          updateLed('led4', jsonResponse.led4, '#ec4899');
-          updateLed('led5', jsonResponse.led5, '#ef4444');
-          
-          // Program Button state
-          const programButton = document.getElementById("programButton");
-          if (jsonResponse.program == "немає") {
-            programButton.disabled = true;
-            programButton.innerText = "Програми немає";
+        // LED Status Helper
+        const updateLed = (id, state, activeColor) => {
+          const el = document.getElementById(id);
+          if (state === "ON") {
+            el.style.display = "flex";
+            el.style.backgroundColor = activeColor;
+            el.style.borderColor = activeColor;
+            el.style.boxShadow = `0 0 15px ${activeColor}, inset 0 0 10px rgba(255,255,255,0.2)`;
           } else {
-            programButton.disabled = false;
-            programButton.innerText = "Програма";
+            el.style.display = "none";
+            el.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
+            el.style.borderColor = "var(--card-border)";
+            el.style.boxShadow = "none";
           }
-        })
-        .catch(err => console.error("Помилка отримання даних:", err));
+        };
+
+        updateLed('led0', jsonResponse.led0, '#10b981');
+        updateLed('led1', jsonResponse.led1, '#f59e0b');
+        updateLed('led2', jsonResponse.led2, '#06b6d4');
+        updateLed('led3', jsonResponse.led3, '#3b82f6');
+        updateLed('led4', jsonResponse.led4, '#ec4899');
+        updateLed('led5', jsonResponse.led5, '#ef4444');
+        
+        // Program Button state
+        const programButton = document.getElementById("programButton");
+        if (jsonResponse.program == "немає") {
+          programButton.disabled = true;
+          programButton.innerText = "Програми немає";
+        } else {
+          programButton.disabled = false;
+          programButton.innerText = "Програма";
+        }
+      } catch (err) {
+        console.error("Помилка отримання даних:", err);
+      }
     }
 
     let mainChart;
 
-    function fetchGraphData() {
-      fetch('/get_current_graph')
-        .then(r => r.json())
-        .then(json => {
-          const data = json.points;
-          const sh = json.sh || 0;
-          const sm = json.sm || 0;
-          const labels = data.map(p => {
-            let total = (sh * 60 + sm + p.p * 5) % 1440;
-            let h = Math.floor(total / 60);
-            let m = total % 60;
-            return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
-          });
-          const t1 = data.map(p => p.t1);
-          const t2 = data.map(p => p.t2);
-          const rh = data.map(p => p.rh);
+    async function fetchGraphData() {
+      try {
+        const r = await fetch('/get_current_graph');
+        if (!r.ok) throw new Error('Помилка завантаження графіка');
+        const json = await r.json();
+        const data = json.points;
+        const sh = json.sh || 0;
+        const sm = json.sm || 0;
+        const labels = data.map(p => {
+          let total = (sh * 60 + sm + p.p * 5) % 1440;
+          let h = Math.floor(total / 60);
+          let m = total % 60;
+          return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+        });
+        const t1 = data.map(p => p.t1);
+        const t2 = data.map(p => p.t2);
+        const rh = data.map(p => p.rh);
 
-          if (mainChart) {
-            mainChart.data.labels = labels;
-            mainChart.data.datasets[0].data = t1;
-            mainChart.data.datasets[1].data = t2;
-            mainChart.data.datasets[2].data = rh;
-            mainChart.update('none');
-          } else {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            
-            // Set Chart.js defaults for dark theme
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
-            
-            mainChart = new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: labels,
-                datasets: [
-                  { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 1, borderWidth: 2 },
-                  { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 1, borderWidth: 2 },
-                  { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 1, borderWidth: 2, yAxisID: 'y1' }
-                ]
-              },
-              options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: { 
-                  y: { 
-                    type: 'linear', 
-                    display: true, 
-                    position: 'left', 
-                    title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' },
-                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
-                    ticks: { color: '#94a3b8' }
-                  },
-                  y1: { 
-                    type: 'linear', 
-                    display: true, 
-                    position: 'right', 
-                    min: 0, 
-                    max: 100, 
-                    grid: { drawOnChartArea: false }, 
-                    title: { display: true, text: 'Волог. (%)', color: '#94a3b8' },
-                    ticks: { color: '#94a3b8' }
-                  },
-                  x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
-                    ticks: { color: '#94a3b8' }
-                  }
+        if (mainChart) {
+          mainChart.data.labels = labels;
+          mainChart.data.datasets[0].data = t1;
+          mainChart.data.datasets[1].data = t2;
+          mainChart.data.datasets[2].data = rh;
+          mainChart.update('none');
+        } else {
+          const ctx = document.getElementById('mainChart').getContext('2d');
+          
+          Chart.defaults.color = '#94a3b8';
+          Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+          
+          mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+                { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+                { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 1, borderWidth: 2, yAxisID: 'y1' }
+              ]
+            },
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false,
+              scales: { 
+                y: { 
+                  type: 'linear', 
+                  display: true, 
+                  position: 'left', 
+                  title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' },
+                  grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                  ticks: { color: '#94a3b8' }
                 },
-                interaction: { intersect: false, mode: 'index' },
-                plugins: { 
-                  legend: { 
-                    display: true, 
-                    labels: { boxWidth: 12, color: '#f8fafc' } 
-                  } 
+                y1: { 
+                  type: 'linear', 
+                  display: true, 
+                  position: 'right', 
+                  min: 0, 
+                  max: 100, 
+                  grid: { drawOnChartArea: false }, 
+                  title: { display: true, text: 'Волог. (%)', color: '#94a3b8' },
+                  ticks: { color: '#94a3b8' }
+                },
+                x: {
+                  grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                  ticks: { color: '#94a3b8' }
                 }
+              },
+              interaction: { intersect: false, mode: 'index' },
+              plugins: { 
+                legend: { 
+                  display: true, 
+                  labels: { boxWidth: 12, color: '#f8fafc' } 
+                } 
               }
-            });
-          }
-        })
-        .catch(err => console.error("Помилка завантаження графіка:", err));
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Помилка завантаження графіка:", err);
+      }
     }
 
     window.onload = function() {
