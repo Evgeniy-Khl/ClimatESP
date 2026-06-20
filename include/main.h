@@ -27,6 +27,8 @@
 #include "sensors.h"
 #include "display_led.h"
 #include "saveDailyData.h"
+#include "logger.h"
+#include "IncubationManager.h"
 
 // Часовой пояс для Киева (EET-2EEST,M3.5.0/3,M10.5.0/4)
 #define TZ_INFO "EET-2EEST,M3.5.0/3,M10.5.0/4"

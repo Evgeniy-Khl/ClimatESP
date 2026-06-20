@@ -47,5 +47,7 @@ void handleShowData();              // Генерирует страницу с 
 void handleGetGraph();              // Отдает сырой JSON файл для графика.
 void handleGetCurrentGraph();       // Генерирует JSON для текущего графика из EEPROM.
 void handleCurrentData();           // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
+void handleViewLogs();              // Страница просмотра логов системы
+void handleClearLogs();             // Сброс файлов логов
 
 #endif /*SERVER_H*/

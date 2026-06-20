@@ -525,73 +525,9 @@ void newSecond(){
       else if(valTable > 100) pvRH = 100;
       else pvRH = valTable;
   #endif
-    //--------------------------------- НАГРЕВАТЕЛЬ и УВЛАЖНИТЕЛЬ ----------------------------------------------------
-      checkModeDevice();
-      
-      if((settings.sp_structs[1].mode&1) == 1 && ds[0].deviation == 0) humidiValue = TRIACOFF; // задержка регулирования по 2 каналу до прогрева инкубатора
-      //-----
-      // DEBUG_SPRINTF(displStr,"Err=%i; pP0=%6.1f; out=%7.2f Heater=%u; iP0=%6.4f; Hum=%u; OUT=0x%02x; Pulse=%u; Timer=%u; Period=%u; Aera=%u; Vent=%u; Flap=%u",
-      //   ds[0].pvErr,pid[0].pPart,pid[0].output,heaterValue,pid[0].iPart,humidiValue,portOut.value,pvPulse,pvTimer,pvPeriod,pvAeration,pvVenting,pvFlap);
-      // MYDEBUG_PRINTLN(displStr);
-      //-----
-      
-    //---------------------------- КАНАЛ ВСПОМОГАТЕЛЬНОГО НАГРЕВАТЕЛЯ ИЛИ УВЛАЖНИТЕЛЯ -------------------------------------------------
-      if(ERROR1 == 0 && (settings.sp_structs[1].mode&2) == 0){  // используется как вспомогательный нагреватель, если нет ошибки по 1 каналу
-        if(ds[0].pvErr >= settings.sp_structs[0].auxiliary) EXTRA2 = PCF_ON;        // включить вспомогательны нагреватель
-        else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) EXTRA2 = PCF_OFF; // отключить вспомогательны нагреватель
-      } else EXTRA2 = PCF_OFF;                                                      // отключить вспомогательны нагреватель
-      // MYDEBUG_PRINT("ВСПОМОГАТЕЛЬНЫЙ НАГРЕВАТЕЛь:"); MYDEBUG_PRINTLN(EXTRA2 ? "OFF" : "ON");
-    //--------------------------------------- ПРОВЕТРИВАНИЕ -----------------------------------------------------------
-      if(AERATION){     // Идет ПРОВЕТРИВАНИЕ !
-        EXTRA1 = PCF_ON; pvFlap = 100; beeperOn(10);
-        if(--pvVenting == 0){pvAeration = settings.sp_structs[0].aeration; AERATION =0; EXTRA1 = PCF_OFF;}
-        // MYDEBUG_PRINT("ПРОВЕТРИВАНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
-      } else {
-    //------------------------------------ ОХЛАЖДЕНИЕ  ОСУШЕНИЕ --------------------------------------------------------
-        uint8_t val = RelayNeg(0,settings.sp_structs[0].coolOn,settings.sp_structs[0].coolOff);
-        if(val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) 
-                val = RelayNeg(1,settings.sp_structs[1].coolOn,settings.sp_structs[1].coolOff); // если холодно то не открываем заслонку.
-        if(val == ON){EXTRA1 = PCF_ON; pvFlap = 100;} else if(val == OFF){EXTRA1 = PCF_OFF; pvFlap = settings.sp_structs[0].state;}
-        // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1 ? "OFF" : "ON");
-      }
-    //-------------------------------------- ПОЛОЖЕНИЕ ЗАСЛОНКИ --------------------------------------------------------
-      // setflap();                            // задание положения заслонки 
-      // MYDEBUG_PRINT("ОХЛАЖДЕНИЕ  ОСУШЕНИЕ:"); MYDEBUG_PRINTLN(EXTRA1);
-    //-------------------------------- ПОВОРОТ ЛОТКОВ асимметричный режим ----------------------------------------------
-      if(settings.sp_structs[1].timer && TURN){// только при sp[1].timer>0 -> асимметричный режим
-        TURNSECOND = ON;
-        if(--pvTimer==0){
-          MYDEBUG_PRINTLN("асимметричный режим: TURN = OFF;");
-          pvTimer = settings.sp_structs[0].timer; 
-          TURN = PCF_OFF; TURNSECOND = OFF;
-        }
-      } else {
-        TURNSECOND = OFF;
-      }
-    //-------------------------------------------- АВАРИЯ -------------------------------------------------------------
-    if(numSetup == 0){
-      uint8_t res = alarm();
-      switch (settings.sp_structs[0].extendMode){
-      case 0: EXTRA3 = !res; break;                  // [0]-0-СИРЕНА;
-      case 1:
-          uint8_t val = RelayNeg(0,settings.sp_structs[0].alarm,settings.sp_structs[0].spT); // 1-АВАРИЙНОЕ ВЫКЛЮЧЕНИЕ.
-          if(val == ON) EXTRA3 = PCF_ON;                // включить
-          else if(val == OFF) EXTRA3 = PCF_OFF;         // отключить
-        break;
-      }
-    }
-    pctHeater = constrain(heaterValue, 0, 255);
-    pctHeater = map(pctHeater,0,255,0,100);
-    
-    pctHimidifier = constrain(humidiValue, 0, 255);
-    pctHimidifier = map(pctHimidifier,0,255,0,100);
-    /*
-    DEBUG_SPRINTF(displStr,"T0=%5.1f; T1=%5.1f; Err=%i; pP0=%6.1f; iP0=%6.4f; Heater=%u; PW=%u%%; Err=%i; pP1=%6.1f; iP1=%6.4f; Himid=%u; HU=%u%%; Tim=%u;  ERR=0x%02x; time: %u;",
-      (float)ds[0].pvT/10,(float)ds[1].pvT/10,ds[0].pvErr,pid[0].pPart,pid[0].iPart,heaterValue,pctHeater,ds[1].pvErr,pid[1].pPart,pid[1].iPart,humidiValue,pctHimidifier,pvTimer,errorsFlag.value,countSeconds);
-    MYDEBUG_PRINTLN(displStr);
-    // printBinary(portOut.value);
-    MYDEBUG_PRINTLN("==============================================================================");
-    MYDEBUG_PRINTLN(); */
+
+  // Запуск логики автоматики менеджером
+  IncubationManager::tick();
 }
 
 void syncNTP(void) {

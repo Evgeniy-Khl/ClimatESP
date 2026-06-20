@@ -24,6 +24,7 @@ TM1638 module(13, 14, 12);    // Создаем объект module для TM163
 void ledSet(void);
 
 void setup(){
+  logEvent("Система запускається...");
   #ifdef DEBUG
     Serial.begin(115200);               // Инициализация последовательного порта для отладки
   #endif
@@ -44,6 +45,7 @@ void setup(){
   bool lFS = LittleFS.begin();
   if(lFS) {
     MYDEBUG_PRINTLN("mounted file system");
+    logEvent("Файлова система LittleFS змонтована успішно.");
     listFilesAndSizes();
     //--------------------------------- clean LittleFS, for testing -----------------------
     // **Здесь вы можете разместить LittleFS.format();  но ОЧЕНЬ ВАЖНО ПОНИМАТЬ КОГДА ЭТО ДЕЛАТЬ!**
@@ -63,6 +65,7 @@ void setup(){
     dataLed[3] = checkConfig();
   } else {
     MYDEBUG_PRINTLN("failed to mount FS");
+    logEvent("ПОМИЛКА: Не вдалося змонтувати файлову систему LittleFS!");
     dataLed[4] = 1;
   }
   //---------------------------- инициализация WiFiManager -----------------------------------
@@ -74,7 +77,9 @@ void setup(){
   //---------- Инициализация DS3231 ----------------------------------------
   if(rtc.begin()){
     RTCENABLE = 1;
+    logEvent("Годинник RTC DS3231 ініціалізовано успішно.");
     if(rtc.lostPower()) {                     // у RTC села батарейка
+        logEvent("Увага: RTC втратив живлення! Час обнулено.");
         MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
         dataLed[1] = 1;                       // RTC lost power
         // Установка времени: 1 год, 1 месяц, 1 день, 00:00:00
@@ -84,7 +89,10 @@ void setup(){
     } else {
       restoreIncubationStatus();              // восстановим флаг и время
     }
-  } else dataLed[0] = 1;      // DS3231 не инициализирован
+  } else {
+    logEvent("ПОМИЛКА: Годинник RTC DS3231 не знайдено!");
+    dataLed[0] = 1;      // DS3231 не инициализирован
+  }
   //------------------------------------------------------------------------------
   testProgs();              // тест
   //----------------------- определяем какой датчик подключен --------------------------------
@@ -105,6 +113,7 @@ void setup(){
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
   delay(3000);
+  IncubationManager::init();
   previousHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
   DEBUG_PRINTF("Free heap size: %d\n", previousHeapSize);
 }
@@ -294,9 +303,33 @@ void recoverI2C() {
 }
 
 static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
+static byte last_port_val = 0xFF;
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
+  // Отслеживаем изменения битов реле (активный уровень - 0)
+  if (data != last_port_val) {
+    byte changed = data ^ last_port_val;
+    for (int i = 0; i < 6; i++) {
+      if (changed & (1 << i)) {
+        bool isOn = !(data & (1 << i));
+        const char* relayName = "";
+        switch(i) {
+          case 0: relayName = "Поворот лотків"; break;
+          case 1: relayName = "Нагрівач"; break;
+          case 2: relayName = "Зволожувач"; break;
+          case 3: relayName = "Вентилятор/Заслінка"; break;
+          case 4: relayName = "Додатковий канал"; break;
+          case 5: relayName = "Сирена/Аварія"; break;
+        }
+        if (relayName[0] != '\0') {
+          logEvent("Реле [%s] -> %s", relayName, isOn ? "УВІМКНЕНО" : "ВИМКНЕНО");
+        }
+      }
+    }
+    last_port_val = data;
+  }
+
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
@@ -309,7 +342,7 @@ byte writePCF8574(byte data) {
     MYDEBUG_PRINTLN(i2c_error_count);
 
     if (i2c_error_count >= 20) { // Если 20 попыток (с учетом повторов) не помогли
-      MYDEBUG_PRINTLN("CRITICAL I2C ERROR: Restarting ESP...");
+      logEvent("КРИТИЧНА ПОМИЛКА I2C: Перезавантаження ESP...");
       delay(1000);
       ESP.restart();
     }

@@ -606,3 +606,50 @@ void handleCurrentData() {
     }
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='back'>Назад</a></div></div></body></html>"));
 }
+
+void handleViewLogs() {
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html", "");
+    sendPageHeader("Інкубатор - Логи системи");
+    
+    server.sendContent(F("<div><h1>Логи системи</h1>"));
+    server.sendContent(F("<pre style='background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; overflow-y:scroll; max-height:400px; font-family:monospace; font-size:0.85rem; color:#a3e635; border:1px solid rgba(255,255,255,0.05); text-align:left; white-space:pre-wrap;'>"));
+    
+    // Сначала выводим старый лог, если есть
+    if (LittleFS.exists("/system.log.old")) {
+        File oldFile = LittleFS.open("/system.log.old", "r");
+        if (oldFile) {
+            while (oldFile.available()) {
+                server.sendContent(oldFile.readStringUntil('\n') + "\n");
+            }
+            oldFile.close();
+        }
+    }
+    
+    // Затем текущий лог
+    if (LittleFS.exists("/system.log")) {
+        File logFile = LittleFS.open("/system.log", "r");
+        if (logFile) {
+            while (logFile.available()) {
+                server.sendContent(logFile.readStringUntil('\n') + "\n");
+            }
+            logFile.close();
+        }
+    } else {
+        server.sendContent(F("Логів ще немає.\n"));
+    }
+    
+    server.sendContent(F("</pre>"));
+    server.sendContent(F("<div style='text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center;'>"));
+    server.sendContent(F("<a href='/clear_logs' class='btn' style='background:linear-gradient(135deg,#ef4444 0%,#b91c1c 100%); box-shadow:0 4px 12px rgba(239,68,68,0.2);'>Очистити лог</a>"));
+    server.sendContent(F("<a href='/' class='back'>Назад на головну</a>"));
+    server.sendContent(F("</div></div></body></html>"));
+}
+
+void handleClearLogs() {
+    LittleFS.remove("/system.log");
+    LittleFS.remove("/system.log.old");
+    logEvent("Файли логів очищено користувачем.");
+    server.sendHeader("Location", "/view_logs");
+    server.send(303);
+}
