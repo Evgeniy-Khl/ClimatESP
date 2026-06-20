@@ -51,6 +51,20 @@ void applyDailyProgram() {
                      unBuf.spDay.aeration0, unBuf.spDay.aeration1, 
                      unBuf.spDay.flap);
         MYDEBUG_PRINTLN("-----------------------------------------");
+
+        // Запись загрузки программы в системный лог
+        char logBuffer[256];
+        snprintf_P(logBuffer, sizeof(logBuffer),
+            PSTR("ЗАГРУЖЕНА Программа №%d, День %d\nУставки T1: %d,%d, T2: %d,%d, Вологість: %d%%\nТаймеры(лотков): %d/%d, Провітрювання: %d/%d, Заслінка: %d%%"),
+            prg, day,
+            unBuf.spDay.spT0 / 10, unBuf.spDay.spT0 % 10,
+            unBuf.spDay.spT1 / 10, unBuf.spDay.spT1 % 10,
+            unBuf.spDay.spRH,
+            unBuf.spDay.timer0, unBuf.spDay.timer1,
+            unBuf.spDay.aeration0, unBuf.spDay.aeration1,
+            unBuf.spDay.flap
+        );
+        logEvent(String(logBuffer));
     } else {
         MYDEBUG_PRINTLN("applyDailyProgram: ОШИБКА чтения из EEPROM!");
     }
