@@ -313,19 +313,22 @@ void sendPageHeader(String title) {
     server.sendContent("<title>" + title + "</title>");
     server.sendContent(F("<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>"));
     server.sendContent(F("<style>"));
-    server.sendContent(F("body{font-family:Arial,sans-serif;background-color:#f4f4f4}"));
-    server.sendContent(F("div{max-width:800px;margin:20px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}"));
-    server.sendContent(F("h1{text-align:center;color:#333}"));
-    server.sendContent(F(".chart-container{position:relative;margin:auto;height:40vh;width:100%}"));
-    server.sendContent(F("table{border-collapse:collapse;width:95%;margin:20px auto}"));
-    server.sendContent(F("th,td{border:1px solid #ddd;text-align:center;padding:12px; font-size:1.1rem;}"));
-    server.sendContent(F("th{background-color:#f2f2f2}tr:nth-child(even){background-color:#f9f9f9}"));
-    server.sendContent(F("ul{list-style-type:none;padding:0}li{margin:15px 0}"));
-    server.sendContent(F("a{display:block;padding:20px;background:#007bff;color:white;text-align:center;text-decoration:none;border-radius:8px;font-size:1.2rem;font-weight:bold;transition:background-color .3s}"));
-    server.sendContent(F("a:hover{background-color:#0056b3}"));
-    server.sendContent(F("a.back, a.btn{background-color:#6c757d; display:inline-block; padding:12px 24px; margin:20px 0;} a.back:hover, a.btn:hover{background-color:#5a6268}"));
-    server.sendContent(F("a.live{background-color:#28a745}a.live:hover{background-color:#218838}"));
-    server.sendContent(F(".summary{background-color:#eef; font-weight: bold;}"));
+    server.sendContent(F("@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');"));
+    server.sendContent(F("body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#f8fafc;min-height:100vh;margin:0;padding:20px 10px;display:flex;flex-direction:column;align-items:center}"));
+    server.sendContent(F("div{max-width:800px;width:100%;margin:0 auto;padding:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 8px 32px 0 rgba(0,0,0,0.2)}"));
+    server.sendContent(F("h1{text-align:center;color:#fff;margin-bottom:20px;font-weight:700}"));
+    server.sendContent(F(".chart-container{position:relative;margin:20px auto;height:40vh;width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:10px}"));
+    server.sendContent(F("table{border-collapse:collapse;width:100%;margin:20px auto;font-size:0.95rem;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)}"));
+    server.sendContent(F("th,td{border:1px solid rgba(255,255,255,0.05);text-align:center;padding:12px}"));
+    server.sendContent(F("th{background-color:rgba(15,23,42,0.5);color:#94a3b8;font-weight:600;text-transform:uppercase;font-size:0.75rem;letter-spacing:0.03em}"));
+    server.sendContent(F("tr{transition:background-color .2s}tr:nth-child(even){background-color:rgba(255,255,255,0.01)}tr:hover{background-color:rgba(255,255,255,0.03)}"));
+    server.sendContent(F("ul{list-style-type:none;padding:0;display:flex;flex-direction:column;gap:10px}li{margin:0}"));
+    server.sendContent(F("a{display:block;padding:14px 20px;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:white;text-align:center;text-decoration:none;border-radius:12px;font-size:1.05rem;font-weight:600;box-shadow:0 4px 12px rgba(37,99,235,0.2);transition:all 0.2s ease}"));
+    server.sendContent(F("a:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(37,99,235,0.35);background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)}"));
+    server.sendContent(F("a.back, a.btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:inline-block;padding:12px 24px;margin:20px 0;box-shadow:none}"));
+    server.sendContent(F("a.back:hover, a.btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-2px)}"));
+    server.sendContent(F("a.live{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 4px 12px rgba(16,185,129,0.2)}a.live:hover{background:linear-gradient(135deg,#34d399 0%,#10b981 100%);box-shadow:0 6px 16px rgba(16,185,129,0.35)}"));
+    server.sendContent(F(".summary{background-color:rgba(59,130,246,0.1);font-weight:bold;color:#60a5fa}"));
     server.sendContent(F("</style></head><body>"));
 }
 
@@ -469,23 +472,29 @@ void handleShowData() {
         const t1 = data.map(p => p.t1);
         const t2 = data.map(p => p.t2);
         const rh = data.map(p => p.rh);
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
         new Chart(document.getElementById('tempChart'), {
           type: 'line',
           data: {
             labels: labels,
             datasets: [
-              { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', tension: 0.3, pointRadius: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#28a745', tension: 0.3, pointRadius: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', tension: 0.3, pointRadius: 2, yAxisID: 'y1' }
+              { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+              { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+              { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 1, borderWidth: 2, yAxisID: 'y1' }
             ]
           },
           options: { 
             responsive: true, 
             maintainAspectRatio: false, 
             scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
-              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } } 
-            } 
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } },
+              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
+              x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: {
+              legend: { labels: { color: '#f8fafc' } }
+            }
           } 
         });
       });
@@ -551,23 +560,29 @@ void handleCurrentData() {
             let total = (sh * 60 + sm + p.p * 5) % 1440;
             return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
         });
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
         new Chart(document.getElementById('tempChart'), {
           type:'line',
           data:{
             labels:labels,
             datasets:[
-              {label:'T1', data:data.map(p=>p.t1), borderColor:'#ff4d4d', tension:0.3},
-              {label:'T2', data:data.map(p=>p.t2), borderColor:'#28a745', tension:0.3},
-              {label:'RH', data:data.map(p=>p.rh), borderColor:'#3399ff', tension:0.3, yAxisID:'y1'}
+              {label:'T1 (°C)', data:data.map(p=>p.t1), borderColor:'#ef4444', backgroundColor:'#ef4444', tension:0.3, pointRadius:1, borderWidth:2},
+              {label:'T2 (°C)', data:data.map(p=>p.t2), borderColor:'#10b981', backgroundColor:'#10b981', tension:0.3, pointRadius:1, borderWidth:2},
+              {label:'Вологість (%)', data:data.map(p=>p.rh), borderColor:'#3b82f6', backgroundColor:'#3b82f6', tension:0.3, pointRadius:1, borderWidth:2, yAxisID:'y1'}
             ]
           },
           options: { 
             responsive: true, 
             maintainAspectRatio: false, 
             scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
-              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } } 
-            } 
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } },
+              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
+              x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: {
+              legend: { labels: { color: '#f8fafc' } }
+            }
           } 
         });
       });

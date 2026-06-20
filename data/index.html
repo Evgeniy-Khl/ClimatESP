@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!-- 
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com  
--->
 <html>
 <head>
   <meta charset="UTF-8">
@@ -10,325 +6,599 @@
   <link rel="icon" href="data:,">
   <title>Клімат-5.25</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Стилі для елементів сторінки -->
   <style>
-	html {
-	  font-family: Arial;
-	  display: inline-block;
-	  margin: 0px auto;
-	  text-align: center;
-	}
-    #grad1 {
-      height: 0px auto;
-      background-color: #9d9e9b;
-      background-image: linear-gradient(to bottom, #2389fc, #f4fc58);
-      padding-bottom: 20px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-bg: rgba(255, 255, 255, 0.06);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --color-primary: #3b82f6;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
     }
-    h1 {
-  	  color: white;
-  	  text-align: center;
-	}
-	p {
-	  font-size: 1.5rem;
-	}
-	#rcorners0, #rcorners1, #rcorners2 {
-	  border-radius: 15px;
-	  padding: 5px;
-	  width: 300px;
-	  height: 0px auto;
-	  margin: 0px auto;
-	}
-	#rcorners0 { background: #89f594; }
-	#rcorners1 { background: #89f594; }
-	#rcorners2 { background: #bbdff2; }
-	
-	.container {
-	  display: grid;
-	  grid-template-columns: 1fr auto;
-	  align-items: center;
-	  border-radius: 10px;
-	  padding: 5px;
-	  width: 300px;
-	  height: 0px auto;
-	  margin: 0px auto;
-	  background: LightGray;
-	}
-   
-	button {
-	  display: inline-block;
-	  background-color: #008CBA;
-	  border: none;
-	  border-radius: 4px;
-	  color: white;
-	  padding: 10px 10px;
-	  text-decoration: none;
-	  font-size: 24px;
-	  margin: 4px;
-	  cursor: pointer;
-      width: 250px;
-	}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .glory {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #ffd700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .glory img {
+      border-radius: 2px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    h1#model {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 4px;
+    }
+
+    .sensor-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sensor-card.error-crit {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+    }
+
+    .sensor-card.error-warn {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+
+    .sensor-labels {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sensor-values-wrapper {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .sensor-value {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .sensor-setpoint {
+      font-size: 1.3rem;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .sensor-unit {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    /* LEDs Grid */
+    .led-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .led-card {
+      display: none; /* Controlled by JS */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 65px;
+      height: 65px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      gap: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .led-card svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .led-card span {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    /* Parameters Grid */
+    .params-grid {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .param-item.full-width {
+      grid-column: span 2;
+    }
+
+    .param-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .param-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Chart Container */
+    .chart-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px;
+      height: 240px;
+      width: 100%;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* Action Buttons */
+    .buttons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .buttons-container a {
+      text-decoration: none;
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+      font-family: inherit;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: white;
+      padding: 14px;
+      text-decoration: none;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
     button:disabled {
-      background-color: #cccccc;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      box-shadow: none;
       cursor: not-allowed;
     }
 
-	.sensor-labels {
-	  font-size: 1.5rem;
-	}
-	
-	#ledsTable {
-        width: 300px;
-        height: 0px auto;
-	    margin: 0px auto;
-        border: 0px solid black;
-        border-radius: 10px;       
+    /* Specific button overrides */
+    #programButton {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
     }
-    #ledsTable td {
-        border: 1px solid black;
-		border-radius: 20px;
-        padding: 8px;
-        text-align: center;
-		background-color: #6e6e6e;
+    #programButton:hover:not(:disabled) {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
     }
-    .chart-container {
-      position: relative;
-      margin: 15px auto;
-      height: 30vh;
-      width: 95%;
-      max-width: 600px;
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      box-sizing: border-box;
+    #programButton:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
     }
   </style>
 </head>
 <body>
-  <div id="grad1">
-  <h1>Слава Україні! 
-  <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" alt="Прапор України" width="40"></h1>
-    <h1 id="model">Клімат-5.25</h1>
-    <p id="rcorners0">
-      <span class="sensor-labels">Температура №1</span><br/>
-      <span style="font-size:2.0em; color:#000000" id="temperature0">--.-</span>
-      <sup style="font-size:1.3em; color:#000000" id="settemp0">[--.-]</sup>
-      <sup style="font-size:1.3em; color:#000000">&deg;C</sup>
-    </p>
-	<p></p>
-    <p id="rcorners1">
-      <span class="sensor-labels">Температура №2</span><br/>
-      <span style="font-size:2.0em; color:#000000" id="temperature1">--.-</span>
-      <sup style="font-size:1.3em; color:#000000" id="settemp1">[--.-]</sup>
-      <sup style="font-size:1.3em; color:#000000">&deg;C</sup>
-    </p>
-	<p></p>
-    <p id="rcorners2">
-      <span class="sensor-labels">Вологість</span><br/>
-      <span style="font-size:2.0em; color:#000000" id="humidity">--</span>
-      <sup style="font-size:1.3em; color:#000000" id="sethum">[--]</sup>
-      <!--<sup class="units">&#37;</sup>-->
-    </p>
-	<p></p>
-    <table id="ledsTable">
-      <tr>
-        <td id="led0">&#128260; <!-- Горизонтальные стрелки по кругу --></td>
-        <td id="led1">&#127774; <!-- Солнце с лицом --></td>
-        <td id="led2">&#128167; <!-- Капля воды --></td>
-        <td id="led3">&#127744; <!-- Вихрь (Cyclone) --></td>
-        <td id="led4">&#128170;	<!-- Согнутые бицепсы --></td>
-        <td id="led5">&#128680; <!-- Вращающийся маячок --></td>
-      </tr>
-    </table>
-	<p></p>
-    <div class="container">
-      <span class="sensor-labels">Поворот</span>
-      <span style="font-size:2.0em; color:#000000" id="rotation">--- мин.</span>
-      <span class="sensor-labels">Нагрів;</span>
-      <span style="font-size:2.0em; color:#000000" id="power">--- %</span>
-      <span class="sensor-labels">Заслінка</span>
-      <span style="font-size:2.0em; color:#000000" id="flap">--- %</span>
-	  <span class="sensor-labels">Вентилятор</span>
-      <span style="font-size:1.2em; color:#000000" id="ventmode">охлаждение</span>
-	  <span class="sensor-labels">Додактовий</span>
-      <span style="font-size:1.2em; color:#000000" id="extmode">сирена</span>
-	  <span class="sensor-labels">Режим реле</span>
-      <span style="font-size:1.2em; color:#000000" id="relaymode">канал №1</span>
-	  <span class="sensor-labels">Очікування</span>
-      <span style="font-size:1.2em; color:#000000" id="checkDry">НЕТ</span>
-	  <span class="sensor-labels">Програма</span>
-      <span style="font-size:1.5em; color:#000000" id="program">---</span>
-      <span class="sensor-labels">Старт інкубації</span>
-      <span style="font-size:1.0em; color:#000000" id="startTime">01.01.26 00:00</span>
-      <span class="sensor-labels">Інкубація</span>
-      <span style="font-size:2.0em; color:#000000" id="currDay">--- сут.</span>
+  <div class="app-container">
+    <header>
+      <div class="glory">
+        <span>Слава Україні!</span>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" alt="Прапор України" width="24">
+      </div>
+      <h1 id="model">Клімат-5.25</h1>
+    </header>
+
+    <!-- Temperature 1 Card -->
+    <div class="sensor-card" id="rcorners0">
+      <span class="sensor-labels">Температура №1</span>
+      <div class="sensor-values-wrapper">
+        <span class="sensor-value" id="temperature0">--.-</span>
+        <span class="sensor-setpoint" id="settemp0">[--.-]</span>
+        <span class="sensor-unit">&deg;C</span>
+      </div>
     </div>
 
-    <!-- Графік на головній сторінці -->
+    <!-- Temperature 2 Card -->
+    <div class="sensor-card" id="rcorners1">
+      <span class="sensor-labels">Температура №2</span>
+      <div class="sensor-values-wrapper">
+        <span class="sensor-value" id="temperature1">--.-</span>
+        <span class="sensor-setpoint" id="settemp1">[--.-]</span>
+        <span class="sensor-unit">&deg;C</span>
+      </div>
+    </div>
+
+    <!-- Humidity Card -->
+    <div class="sensor-card" id="rcorners2">
+      <span class="sensor-labels">Вологість</span>
+      <div class="sensor-values-wrapper">
+        <span class="sensor-value" id="humidity">--</span>
+        <span class="sensor-setpoint" id="sethum">[--]</span>
+        <span class="sensor-unit">%</span>
+      </div>
+    </div>
+
+    <!-- Status Indicators (LEDs Grid) -->
+    <div class="led-grid">
+      <!-- led0: Rotation -->
+      <div id="led0" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm-6 8c0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6z"/></svg>
+        <span>Поворот</span>
+      </div>
+      <!-- led1: Heat 1 -->
+      <div id="led1" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.38.39-1.02 0-1.41zM5.99 16.95l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0z"/></svg>
+        <span>Нагрів 1</span>
+      </div>
+      <!-- led2: Humidity -->
+      <div id="led2" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        <span>Волога</span>
+      </div>
+      <!-- led3: Ventilation -->
+      <div id="led3" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 11c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1s-1 .45-1 1v6c0 .55.45 1 1 1zm0 2c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1s1-.45 1-1v-6c0-.55-.45-1-1-1zm-2-1c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1s.45 1 1 1h6c.55 0 1-.45 1-1zm6 0c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1s.45 1 1 1h6c.55 0 1-.45 1-1z"/></svg>
+        <span>Вент.</span>
+      </div>
+      <!-- led4: Heat 2 (Booster) -->
+      <div id="led4" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        <span>Нагрів 2</span>
+      </div>
+      <!-- led5: Alarm -->
+      <div id="led5" class="led-card">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span>Аварія</span>
+      </div>
+    </div>
+
+    <!-- Parameters Grid -->
+    <div class="params-grid">
+      <div class="param-item">
+        <span class="param-label">Поворот</span>
+        <span class="param-value" id="rotation">--- мин.</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Нагрів</span>
+        <span class="param-value" id="power">--- %</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Заслінка</span>
+        <span class="param-value" id="flap">--- %</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Вентилятор</span>
+        <span class="param-value" id="ventmode">охлаждение</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Додатковий</span>
+        <span class="param-value" id="extmode">сирена</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Режим реле</span>
+        <span class="param-value" id="relaymode">канал №1</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Очікування</span>
+        <span class="param-value" id="checkDry">НЕТ</span>
+      </div>
+      <div class="param-item">
+        <span class="param-label">Програма</span>
+        <span class="param-value" id="program">---</span>
+      </div>
+      <div class="param-item full-width">
+        <span class="param-label">Старт інкубації</span>
+        <span class="param-value" id="startTime">01.01.26 00:00</span>
+      </div>
+      <div class="param-item full-width">
+        <span class="param-label">Інкубація</span>
+        <span class="param-value" id="currDay">--- сут.</span>
+      </div>
+    </div>
+
+    <!-- Chart Container -->
     <div class="chart-container">
       <canvas id="mainChart"></canvas>
     </div>
 
-    <p><a href="/setup"><button>Налаштування</button></a></p>
-	<!--p><a href="/table"><button>Програма</button></a></p-->
-	<p><a id="programLink" href="/table"><button id="programButton" disabled>Програма</button></a></p>
-	<p><a href="/archive"><button>Архів</button></a></p>
+    <!-- Action Buttons -->
+    <div class="buttons-container">
+      <a href="/setup"><button>Налаштування</button></a>
+      <a id="programLink" href="/table"><button id="programButton" disabled>Програма</button></a>
+      <a href="/archive"><button>Архів</button></a>
+    </div>
   </div>
-</body>
-<script>
-function fetchData() {
-    // Запрос данных о температуре и влажности
-    var xhttp = new XMLHttpRequest();
-    
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            var jsonResponse = JSON.parse(this.responseText);
-            console.log("Отримані дані:", jsonResponse);
+
+  <script>
+    function fetchData() {
+      fetch('/getvalues')
+        .then(response => response.json())
+        .then(jsonResponse => {
+          console.log("Отримані дані:", jsonResponse);
+          
+          document.getElementById("model").innerHTML = jsonResponse.model;
+          document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
+          document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
+          
+          const error1 = jsonResponse.error1;
+          const error2 = jsonResponse.error2;
+          const error4 = jsonResponse.error4;
+          const error8 = jsonResponse.error8;
+          
+          // Т1 Card Status
+          const t1Card = document.getElementById("rcorners0");
+          t1Card.className = "sensor-card";
+          if (error1 == 1) {
+            t1Card.classList.add("error-crit");
+          } else if (error4 == 1) {
+            t1Card.classList.add("error-warn");
+          }
+          
+          // T2 Card Status & Display
+          const t2Card = document.getElementById("rcorners1");
+          if (jsonResponse.temperature1 === undefined) {
+            t2Card.style.display = 'none';
+          } else {
+            t2Card.style.display = 'flex';
+            document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
+            document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
             
-			document.getElementById("model").innerHTML = jsonResponse.model;
-            document.getElementById("temperature0").innerHTML = jsonResponse.temperature0;
-            document.getElementById("settemp0").innerHTML = jsonResponse.settemp0;
-			
-			// Преобразование строковых значений в числа
-            const error1 = jsonResponse.error1;
-            const error2 = jsonResponse.error2;
-            const error4 = jsonResponse.error4;
-            const error8 = jsonResponse.error8;
-            const overheat = jsonResponse.overheat;
-			
-			// Изменение цвета блока #rcorners0
-            if (error1 == 1) {
-                document.getElementById("rcorners0").style.background = "#fc5d70";
-            } else {
-                document.getElementById("rcorners0").style.background = "#89f594";
+            t2Card.className = "sensor-card";
+            if (error2 == 1) {
+              t2Card.classList.add("error-crit");
+            } else if (error8 == 1) {
+              t2Card.classList.add("error-warn");
             }
-			if (error4 == 1) {
-                document.getElementById("rcorners0").style.background = "#fcfa5d";
+          }
+          
+          document.getElementById("humidity").innerHTML = jsonResponse.humidity;
+          document.getElementById("sethum").innerHTML = jsonResponse.sethum;
+          
+          document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
+          document.getElementById("extmode").innerHTML = jsonResponse.extmode;
+          document.getElementById("relaymode").innerHTML = jsonResponse.relaymode;
+          document.getElementById("checkDry").innerHTML = jsonResponse.checkDry;
+          document.getElementById("rotation").innerHTML = jsonResponse.rotation;
+          document.getElementById("power").innerHTML = jsonResponse.power;
+          document.getElementById("flap").innerHTML = jsonResponse.flap;
+          document.getElementById("program").innerHTML = jsonResponse.program;
+          document.getElementById("startTime").innerHTML = jsonResponse.startTime;
+          document.getElementById("currDay").innerHTML = jsonResponse.currDay;
+
+          // LED Status Helper
+          const updateLed = (id, state, activeColor) => {
+            const el = document.getElementById(id);
+            if (state === "ON") {
+              el.style.display = "flex";
+              el.style.backgroundColor = activeColor;
+              el.style.borderColor = activeColor;
+              el.style.boxShadow = `0 0 15px ${activeColor}, inset 0 0 10px rgba(255,255,255,0.2)`;
             } else {
-                document.getElementById("rcorners0").style.background = "#89f594";
+              el.style.display = "none";
+              el.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
+              el.style.borderColor = "var(--card-border)";
+              el.style.boxShadow = "none";
             }
-			
-			// Проверка наличия temperature1
-            if (jsonResponse.temperature1 === undefined) {
-                document.getElementById("rcorners1").style.display = 'none';
-            } else {
-                document.getElementById("temperature1").innerHTML = jsonResponse.temperature1;
-                document.getElementById("settemp1").innerHTML = jsonResponse.settemp1;
-				// Изменение цвета блока #rcorners1
-				if (error2 == 1) {
-					document.getElementById("rcorners1").style.background = "#fc5d70";
-				} else {
-					document.getElementById("rcorners1").style.background = "#89f594";
-				}
-				if (error8 == 1) {
-					document.getElementById("rcorners1").style.background = "#fcfa5d";
-				} else {
-					document.getElementById("rcorners1").style.background = "#89f594";
-				}
-            }
-			
-            document.getElementById("humidity").innerHTML = jsonResponse.humidity;
-            document.getElementById("sethum").innerHTML = jsonResponse.sethum;
-			
-			document.getElementById("ventmode").innerHTML = jsonResponse.ventmode;
-			document.getElementById("extmode").innerHTML = jsonResponse.extmode;
-			document.getElementById("relaymode").innerHTML = jsonResponse.relaymode;
-			document.getElementById("checkDry").innerHTML = jsonResponse.checkDry;
-            document.getElementById("rotation").innerHTML = jsonResponse.rotation;
-            document.getElementById("power").innerHTML = jsonResponse.power;
-            document.getElementById("flap").innerHTML = jsonResponse.flap;
-			document.getElementById("program").innerHTML = jsonResponse.program;
-            document.getElementById("startTime").innerHTML = jsonResponse.startTime;
-            document.getElementById("currDay").innerHTML = jsonResponse.currDay;
+          };
 
-            // Обновление цвета LED
-            document.getElementById('led0').style.backgroundColor = jsonResponse.led0 === "ON" ? "#00ff00" : "#595959";
-			document.getElementById('led0').style.display = jsonResponse.led0 === "ON" ? "table-cell" : "none";
-            document.getElementById('led1').style.backgroundColor = jsonResponse.led1 === "ON" ? "#fc9d03" : "#595959";
-			document.getElementById('led1').style.display = jsonResponse.led1 === "ON" ? "table-cell" : "none";
-            document.getElementById('led2').style.backgroundColor = jsonResponse.led2 === "ON" ? "#00aaff" : "#595959";
-			document.getElementById('led2').style.display = jsonResponse.led2 === "ON" ? "table-cell" : "none";
-            document.getElementById('led3').style.backgroundColor = jsonResponse.led3 === "ON" ? "#00ff00" : "#595959";
-			document.getElementById('led3').style.display = jsonResponse.led3 === "ON" ? "table-cell" : "none";
-            document.getElementById('led4').style.backgroundColor = jsonResponse.led4 === "ON" ? "#b33d02" : "#595959";
-			document.getElementById('led4').style.display = jsonResponse.led4 === "ON" ? "table-cell" : "none";
-            document.getElementById('led5').style.backgroundColor = jsonResponse.led5 === "ON" ? "#ff0000" : "#595959";
-			document.getElementById('led5').style.display = jsonResponse.led5 === "ON" ? "table-cell" : "none";
-			
-		    // Управление кнопкой "Програма"
-            const programButton = document.getElementById("programButton");
-            if (jsonResponse.program == "немає") {
-                programButton.disabled = true; // Деактивировать кнопку
-                programButton.innerText = "Програми немає"; // Изменить текст (по желанию)
-            } else {
-                programButton.disabled = false; // Активировать кнопку
-                programButton.innerText = "Програма"; // Вернуть текст
-            }
-        }
-    };
+          updateLed('led0', jsonResponse.led0, '#10b981');
+          updateLed('led1', jsonResponse.led1, '#f59e0b');
+          updateLed('led2', jsonResponse.led2, '#06b6d4');
+          updateLed('led3', jsonResponse.led3, '#3b82f6');
+          updateLed('led4', jsonResponse.led4, '#ec4899');
+          updateLed('led5', jsonResponse.led5, '#ef4444');
+          
+          // Program Button state
+          const programButton = document.getElementById("programButton");
+          if (jsonResponse.program == "немає") {
+            programButton.disabled = true;
+            programButton.innerText = "Програми немає";
+          } else {
+            programButton.disabled = false;
+            programButton.innerText = "Програма";
+          }
+        })
+        .catch(err => console.error("Помилка отримання даних:", err));
+    }
 
-    console.log("Надсилаємо запит на отримання даних");
-    xhttp.open("GET", "/getvalues", true);
-    xhttp.send();
-}
+    let mainChart;
 
-let mainChart;
-
-function fetchGraphData() {
-    fetch('/get_current_graph')
-      .then(r => r.json())
-      .then(json => {
-        const data = json.points;
-        const sh = json.sh || 0;
-        const sm = json.sm || 0;
-        const labels = data.map(p => {
+    function fetchGraphData() {
+      fetch('/get_current_graph')
+        .then(r => r.json())
+        .then(json => {
+          const data = json.points;
+          const sh = json.sh || 0;
+          const sm = json.sm || 0;
+          const labels = data.map(p => {
             let total = (sh * 60 + sm + p.p * 5) % 1440;
             let h = Math.floor(total / 60);
             let m = total % 60;
             return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
-        });
-        const t1 = data.map(p => p.t1);
-        const t2 = data.map(p => p.t2);
-        const rh = data.map(p => p.rh);
+          });
+          const t1 = data.map(p => p.t1);
+          const t2 = data.map(p => p.t2);
+          const rh = data.map(p => p.rh);
 
-        if (mainChart) {
+          if (mainChart) {
             mainChart.data.labels = labels;
             mainChart.data.datasets[0].data = t1;
             mainChart.data.datasets[1].data = t2;
             mainChart.data.datasets[2].data = rh;
-            mainChart.update('none'); // Обновляем без анимации для плавности
-        } else {
+            mainChart.update('none');
+          } else {
             const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            // Set Chart.js defaults for dark theme
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+            
             mainChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'T1 (°C)', data: t1, borderColor: '#ff4d4d', backgroundColor: '#ff4d4d', tension: 0.3, pointRadius: 1 },
-                        { label: 'T2 (°C)', data: t2, borderColor: '#28a745', backgroundColor: '#28a745', tension: 0.3, pointRadius: 1 },
-                        { label: 'Вологість (%)', data: rh, borderColor: '#3399ff', backgroundColor: '#3399ff', tension: 0.3, pointRadius: 1, yAxisID: 'y1' }
-                    ]
+              type: 'line',
+              data: {
+                labels: labels,
+                datasets: [
+                  { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+                  { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 1, borderWidth: 2 },
+                  { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 1, borderWidth: 2, yAxisID: 'y1' }
+                ]
+              },
+              options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { 
+                  y: { 
+                    type: 'linear', 
+                    display: true, 
+                    position: 'left', 
+                    title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' },
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8' }
+                  },
+                  y1: { 
+                    type: 'linear', 
+                    display: true, 
+                    position: 'right', 
+                    min: 0, 
+                    max: 100, 
+                    grid: { drawOnChartArea: false }, 
+                    title: { display: true, text: 'Волог. (%)', color: '#94a3b8' },
+                    ticks: { color: '#94a3b8' }
+                  },
+                  x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8' }
+                  }
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { 
-                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)' } },
-                        y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)' } }
-                    },
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: { legend: { display: true, labels: { boxWidth: 10 } } }
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { 
+                  legend: { 
+                    display: true, 
+                    labels: { boxWidth: 12, color: '#f8fafc' } 
+                  } 
                 }
+              }
             });
-        }
-      })
-      .catch(err => console.error("Ошибка загрузки графика:", err));
-}
+          }
+        })
+        .catch(err => console.error("Помилка завантаження графіка:", err));
+    }
 
-// Первичное заполнение данных при загрузке страницы
-window.onload = function() {
-    fetchData(); // Первоначальный запрос цифр
-    fetchGraphData(); // Первоначальная отрисовка графика
-    setInterval(fetchData, 2000); // Обновление цифр каждые 2 сек
-    setInterval(fetchGraphData, 60000); // Обновление графика каждую минуту
-};
-</script>
+    window.onload = function() {
+      fetchData();
+      fetchGraphData();
+      setInterval(fetchData, 2000);
+      setInterval(fetchGraphData, 60000);
+    };
+  </script>
+</body>
 </html>
