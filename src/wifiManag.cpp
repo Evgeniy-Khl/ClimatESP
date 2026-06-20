@@ -57,17 +57,20 @@ void setupWebServerRoutes() {
 
 void setupServices() {
     if (WiFi.status() == WL_CONNECTED) {
-        if (!WIFIENABLE) {
-            WIFIENABLE = 1;
+        static IPAddress lastIP;
+        if (!WIFIENABLE || WiFi.localIP() != lastIP) {
+            lastIP = WiFi.localIP();
             MYDEBUG_PRINT("Wi-Fi подключен! IP:");
-            MYDEBUG_PRINTLN(WiFi.localIP());
+            MYDEBUG_PRINTLN(lastIP);
+            logEvent("Wi-Fi підключено! IP: " + lastIP.toString());
 
             // Настройка NTP для Киева
             configTime(TZ_INFO, "pool.ntp.org", "time.nist.gov", "time.google.com");
-            MYDEBUG_PRINTLN("NTP настроен.");
+            logEvent("NTP час налаштовано.");
 
             client.setBufferSizes(1024, 512); 
             client.setInsecure();
+            WIFIENABLE = 1;
         }
 
         if (!serverStarted) {
@@ -156,6 +159,7 @@ void handleWiFi(void) {
     if (WiFi.status() != WL_CONNECTED) {
         if (WIFIENABLE) {
             MYDEBUG_PRINTLN("Wi-Fi связь потеряна!");
+            logEvent("Wi-Fi зв'язок втрачено!");
             WIFIENABLE = 0;
             BOTENABLE = 0;
             botStarted = false;
