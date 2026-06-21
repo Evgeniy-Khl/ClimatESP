@@ -44,6 +44,7 @@ void setup(){
   MYDEBUG_PRINTLN("\n mounting FS...");
   bool lFS = LittleFS.begin();
   if(lFS) {
+    fsMounted = true;
     MYDEBUG_PRINTLN("mounted file system");
     logEvent("Файлова система LittleFS змонтована успішно.");
     listFilesAndSizes();

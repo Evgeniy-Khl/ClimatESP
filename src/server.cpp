@@ -32,7 +32,7 @@ void respondsValues() {
     
     // Инициализируем значениями по умолчанию во избежание undefined на веб-интерфейсе
     data["humidity"] = "--";
-    data["sethum"] = "[--]";
+    data["sethum"] = " ";
     
     if(detectedSensor == SENSOR_DS18B20){
         if (numberOfDevices > 1) {
@@ -49,16 +49,16 @@ void respondsValues() {
             } else {
                 snprintf(hum, sizeof(hum), "%d", pvRH);
                 data["humidity"] = hum; 
-                data["sethum"] = "%";
+                data["sethum"] = " ";
             }
             if(HIH5030) {
-                formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
+                formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, true);
                 data["sethum"] = hums;
             }
         }
     } else if(detectedSensor == SENSOR_DHT22){
         formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
-        formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
+        formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, true); // Скобки вокруг уставки
         data["humidity"] = t1; // Для DHT22 второй "температурный" канал это влажность
         data["sethum"] = hums;
     }
@@ -652,10 +652,14 @@ void handleClearLogs() {
     } else if (server.hasArg("date") && server.arg("date") != "") {
         dateStr = server.arg("date");
     } else {
-        DateTime curr = rtc.now();
-        char buf[8];
-        snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
-        dateStr = String(buf);
+        if (RTCENABLE) {
+            DateTime curr = rtc.now();
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
+            dateStr = String(buf);
+        } else {
+            dateStr = "01_01";
+        }
     }
     String logFilename = "/day_" + dateStr + "_log.txt";
     LittleFS.remove(logFilename);
@@ -671,10 +675,14 @@ void handleLogs() {
     if (server.hasArg("day") && server.arg("day") != "") {
         dateStr = server.arg("day");
     } else {
-        DateTime curr = rtc.now();
-        char buf[8];
-        snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
-        dateStr = String(buf);
+        if (RTCENABLE) {
+            DateTime curr = rtc.now();
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
+            dateStr = String(buf);
+        } else {
+            dateStr = "01_01";
+        }
     }
     String logFilename = "/day_" + dateStr + "_log.txt";
     if (LittleFS.exists(logFilename)) {

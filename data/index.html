@@ -91,16 +91,48 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    @keyframes pulse-crit {
+      0% {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(239, 68, 68, 0.8);
+        border-color: rgba(239, 68, 68, 1);
+        background: rgba(239, 68, 68, 0.25);
+      }
+      100% {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+    }
+
+    @keyframes pulse-warn {
+      0% {
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        border-color: rgba(245, 158, 11, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
+        border-color: rgba(245, 158, 11, 0.9);
+        background: rgba(245, 158, 11, 0.22);
+      }
+      100% {
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        border-color: rgba(245, 158, 11, 0.4);
+      }
+    }
+
     .sensor-card.error-crit {
-      background: rgba(239, 68, 68, 0.12);
-      border-color: rgba(239, 68, 68, 0.4);
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.6);
+      animation: pulse-crit 1.5s infinite ease-in-out;
     }
 
     .sensor-card.error-warn {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: rgba(245, 158, 11, 0.4);
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.6);
+      animation: pulse-warn 2s infinite ease-in-out;
     }
 
     .sensor-labels {
