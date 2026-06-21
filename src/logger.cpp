@@ -13,10 +13,10 @@ void logEvent(const char* format, ...) {
 
 void logEvent(const String& message) {
     String logLine = "";
+    DateTime curr = rtc.now();
     
     // Получаем текущее время
     if (RTCENABLE) {
-        DateTime curr = rtc.now();
         char timeStr[24];
         snprintf(timeStr, sizeof(timeStr), "%02d.%02d.%04d %02d:%02d:%02d", 
                  curr.day(), curr.month(), curr.year(), curr.hour(), curr.minute(), curr.second());
@@ -32,24 +32,27 @@ void logEvent(const String& message) {
     Serial.print("LOG: " + logLine);
     #endif
     
-    // Ротация логов при превышении 50 КБ
-    if (LittleFS.exists("/system.log")) {
-        File f = LittleFS.open("/system.log", "r");
+    // Имя файла по шаблону: /day_DD_MM_log.txt
+    char logFilename[32];
+    snprintf(logFilename, sizeof(logFilename), "/day_%02d_%02d_log.txt", curr.day(), curr.month());
+    
+    // Ротация посуточного лога при превышении 50 КБ
+    if (LittleFS.exists(logFilename)) {
+        File f = LittleFS.open(logFilename, "r");
         if (f) {
             size_t sz = f.size();
             f.close();
             if (sz > 50000) {
                 #ifdef DEBUG
-                Serial.println("System log exceeds 50KB, rotating...");
+                Serial.printf("Log file %s exceeds 50KB, cleaning up...\n", logFilename);
                 #endif
-                LittleFS.rename("/system.log", "/system.log.old");
-                LittleFS.remove("/system.log");
+                LittleFS.remove(logFilename);
             }
         }
     }
     
     // Запись в файл
-    File logFile = LittleFS.open("/system.log", "a");
+    File logFile = LittleFS.open(logFilename, "a");
     if (logFile) {
         logFile.print(logLine);
         logFile.close();

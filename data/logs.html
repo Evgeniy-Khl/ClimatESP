@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>Інкубатор - Логи системи</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-bg: rgba(255, 255, 255, 0.06);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --color-primary: #3b82f6;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #a3e635, #65a30d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 4px;
+    }
+
+    .log-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    pre {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      overflow-y: auto;
+      max-height: 400px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #a3e635;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: left;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    button, .btn-link {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(75, 85, 99, 0.2);
+    }
+
+    .btn-back:hover {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      box-shadow: 0 6px 16px rgba(75, 85, 99, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1 id="page-title">Журнал подій</h1>
+    </header>
+
+    <div class="log-container">
+      <pre id="log-output">Завантаження логів...</pre>
+
+      <div class="actions">
+        <button id="clear-btn" class="btn-danger">Очистити журнал</button>
+        <a href="/" class="btn-link btn-back">Назад на головну</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const day = urlParams.get('day');
+      
+      const pageTitle = document.getElementById('page-title');
+      const logOutput = document.getElementById('log-output');
+      const clearBtn = document.getElementById('clear-btn');
+
+      // Формируем URL для запроса логов
+      let requestUrl = '/logs';
+      if (day) {
+        requestUrl += '?day=' + day;
+        
+        // Преобразуем формат даты из DD_MM в DD.MM для заголовка
+        const formattedDate = day.replace('_', '.');
+        pageTitle.innerText = 'Журнал подій за ' + formattedDate;
+        
+        // Скрываем кнопку очистки для архивных логов
+        clearBtn.style.display = 'none';
+      } else {
+        pageTitle.innerText = 'Журнал подій (поточний)';
+      }
+
+      // Функция загрузки логов
+      function loadLogs() {
+        fetch(requestUrl)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Файл логів не знайдено');
+            }
+            return response.text();
+          })
+          .then(text => {
+            logOutput.innerText = text.trim() || 'Логів ще немає.';
+          })
+          .catch(err => {
+            logOutput.innerText = 'Помилка завантаження логів: ' + err.message;
+          });
+      }
+
+      // Обработчик кнопки очистки логов
+      clearBtn.addEventListener('click', () => {
+        if (confirm('Ви впевнені, что хочете очистити цей журнал подій?')) {
+          let clearUrl = '/clear_logs';
+          if (day) {
+            clearUrl += '?date=' + day;
+          }
+          fetch(clearUrl, { method: 'GET' })
+            .then(() => {
+              logOutput.innerText = 'Журнал очищено.';
+            })
+            .catch(err => {
+              alert('Помилка очищення: ' + err.message);
+            });
+        }
+      });
+
+      // Первая загрузка
+      loadLogs();
+    });
+  </script>
+</body>
+</html>

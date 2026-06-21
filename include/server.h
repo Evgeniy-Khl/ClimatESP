@@ -49,5 +49,6 @@ void handleGetCurrentGraph();       // Генерирует JSON для теку
 void handleCurrentData();           // Генерирует таблицу с данными за ТЕКУЩИЙ день, читая их напрямую из AT24C32.
 void handleViewLogs();              // Страница просмотра логов системы
 void handleClearLogs();             // Сброс файлов логов
+void handleLogs();                  // Отдает сырой лог файл в зависимости от параметра day
 
 #endif /*SERVER_H*/

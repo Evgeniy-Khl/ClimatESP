@@ -43,6 +43,7 @@ void setupWebServerRoutes() {
     server.on("/archive", HTTP_GET, handleArchiveList); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).
     server.on("/view_logs", HTTP_GET, handleViewLogs);
     server.on("/clear_logs", HTTP_GET, handleClearLogs);
+    server.on("/logs", HTTP_GET, handleLogs);           // Отдает сырой лог файл
     server.on("/data", HTTP_GET, handleShowData);       // Генерирует страницу с таблицей, отправляя ВЕСЬ HTML по частям.
     server.on("/get_graph", HTTP_GET, handleGetGraph);   // Отдает сырой JSON файл для графика.
     server.on("/get_current_graph", HTTP_GET, handleGetCurrentGraph); 

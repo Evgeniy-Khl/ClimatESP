@@ -393,27 +393,47 @@ void handleArchiveList() {
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Архів");
 
-    server.sendContent(F("<div><h1>Виберіть добу для перегляду</h1>"));
+    server.sendContent(F("<div><h1>Виберіть дату для перегляду</h1>"));
     server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОЇ доби</a>"));
     server.sendContent(F("<ul>"));
     
-    std::vector<int> days;
+    std::vector<String> dates;
     Dir dir = LittleFS.openDir("/");
     while (dir.next()) {
         String fileName = dir.fileName();
         if (fileName.startsWith("day_") && fileName.endsWith("_graph.json")) {
             int start = 4;
-            int end = fileName.indexOf('_', start);
-            if (end > start) days.push_back(fileName.substring(start, end).toInt());
+            int end = fileName.indexOf("_graph.json");
+            if (end > start) {
+                dates.push_back(fileName.substring(start, end));
+            }
         }
     }
-    std::sort(days.begin(), days.end());
+    // Сортировка дат хронологически (по месяцу, затем по дню)
+    std::sort(dates.begin(), dates.end(), [](const String& a, const String& b) {
+        int a_day = a.substring(0, 2).toInt();
+        int a_mon = a.substring(3, 5).toInt();
+        int b_day = b.substring(0, 2).toInt();
+        int b_mon = b.substring(3, 5).toInt();
+        if (a_mon != b_mon) return a_mon < b_mon;
+        return a_day < b_day;
+    });
 
-    for (int i = days.size() - 1; i >= 0; i--) {
-        int day = days[i];
-        char link[128];
-        snprintf_P(link, sizeof(link), PSTR("<li><a href='/data?day=%d'>Перегляд даних за %d добу</a></li>"), day, day + 1);
-        server.sendContent(link);
+    for (int i = dates.size() - 1; i >= 0; i--) {
+        String dateStr = dates[i];
+        String dispDate = dateStr;
+        dispDate.replace('_', '.');
+        char itemHtml[384];
+        snprintf_P(itemHtml, sizeof(itemHtml), 
+          PSTR("<li style='display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05);'>"
+               "<span style='font-weight:500; font-size:1rem; color:#f8fafc;'>Дата: %s</span>"
+               "<div style='display:flex; gap:8px;'>"
+                 "<a href='/data?day=%s' style='background:linear-gradient(135deg,#3b82f6 0%%,#1d4ed8 100%%); padding:6px 12px; font-size:0.85rem; border-radius:6px; color:white; text-decoration:none; font-weight:600;'>Графік</a>"
+                 "<a href='/view_logs?day=%s' style='background:linear-gradient(135deg,#10b981 0%%,#047857 100%%); padding:6px 12px; font-size:0.85rem; border-radius:6px; color:white; text-decoration:none; font-weight:600;'>Логи</a>"
+               "</div>"
+               "</li>"), 
+          dispDate.c_str(), dateStr.c_str(), dateStr.c_str());
+        server.sendContent(itemHtml);
         yield();
     }
 
@@ -450,15 +470,15 @@ void handleShowData() {
 
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
-    sendPageHeader("Інтубатор - Доба " + String(day.toInt() + 1));
+    sendPageHeader("Інкубатор - Архів за " + day);
 
     server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
-    server.sendContent(String(day.toInt() + 1)); 
-    server.sendContent(F(" добу</h1>"));
+    server.sendContent(day); 
+    server.sendContent(F("</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     server.sendContent(F("<script>"));
-    server.sendContent("const dayNum = " + day + ";");
+    server.sendContent("const dayNum = \"" + day + "\";");
     server.sendContent("const sh = " + String(startH) + ";");
     server.sendContent("const sm = " + String(startM) + ";");
     server.sendContent(F(R"raw(
@@ -608,48 +628,52 @@ void handleCurrentData() {
 }
 
 void handleViewLogs() {
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send(200, "text/html", "");
-    sendPageHeader("Інкубатор - Логи системи");
-    
-    server.sendContent(F("<div><h1>Логи системи</h1>"));
-    server.sendContent(F("<pre style='background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; overflow-y:scroll; max-height:400px; font-family:monospace; font-size:0.85rem; color:#a3e635; border:1px solid rgba(255,255,255,0.05); text-align:left; white-space:pre-wrap;'>"));
-    
-    // Сначала выводим старый лог, если есть
-    if (LittleFS.exists("/system.log.old")) {
-        File oldFile = LittleFS.open("/system.log.old", "r");
-        if (oldFile) {
-            while (oldFile.available()) {
-                server.sendContent(oldFile.readStringUntil('\n') + "\n");
-            }
-            oldFile.close();
-        }
+    File file = LittleFS.open("/logs.html", "r");
+    if (!file) {
+        server.send(404, "text/plain", "logs.html not found");
+        return;
     }
-    
-    // Затем текущий лог
-    if (LittleFS.exists("/system.log")) {
-        File logFile = LittleFS.open("/system.log", "r");
-        if (logFile) {
-            while (logFile.available()) {
-                server.sendContent(logFile.readStringUntil('\n') + "\n");
-            }
-            logFile.close();
-        }
-    } else {
-        server.sendContent(F("Логів ще немає.\n"));
-    }
-    
-    server.sendContent(F("</pre>"));
-    server.sendContent(F("<div style='text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center;'>"));
-    server.sendContent(F("<a href='/clear_logs' class='btn' style='background:linear-gradient(135deg,#ef4444 0%,#b91c1c 100%); box-shadow:0 4px 12px rgba(239,68,68,0.2);'>Очистити лог</a>"));
-    server.sendContent(F("<a href='/' class='back'>Назад на головну</a>"));
-    server.sendContent(F("</div></div></body></html>"));
+    server.streamFile(file, "text/html");
+    file.close();
 }
 
 void handleClearLogs() {
-    LittleFS.remove("/system.log");
-    LittleFS.remove("/system.log.old");
-    logEvent("Файли логів очищено користувачем.");
-    server.sendHeader("Location", "/view_logs");
+    String dateStr = "";
+    if (server.hasArg("day") && server.arg("day") != "") {
+        dateStr = server.arg("day");
+    } else if (server.hasArg("date") && server.arg("date") != "") {
+        dateStr = server.arg("date");
+    } else {
+        DateTime curr = rtc.now();
+        char buf[8];
+        snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
+        dateStr = String(buf);
+    }
+    String logFilename = "/day_" + dateStr + "_log.txt";
+    LittleFS.remove(logFilename);
+    logEvent("Файл логу %s очищено користувачем.", logFilename.c_str());
+    
+    // Перенаправляем обратно в зависимости от того, какой параметр был передан
+    server.sendHeader("Location", "/view_logs?day=" + dateStr);
     server.send(303);
+}
+
+void handleLogs() {
+    String dateStr = "";
+    if (server.hasArg("day") && server.arg("day") != "") {
+        dateStr = server.arg("day");
+    } else {
+        DateTime curr = rtc.now();
+        char buf[8];
+        snprintf(buf, sizeof(buf), "%02d_%02d", curr.day(), curr.month());
+        dateStr = String(buf);
+    }
+    String logFilename = "/day_" + dateStr + "_log.txt";
+    if (LittleFS.exists(logFilename)) {
+        File file = LittleFS.open(logFilename, "r");
+        server.streamFile(file, "text/plain");
+        file.close();
+    } else {
+        server.send(404, "text/plain", "Log file not found");
+    }
 }

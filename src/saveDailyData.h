@@ -4,8 +4,8 @@
 
 void saveDailyDataToFile(int day);
 void clearIncubationData();
-int findOldestDay();
-void deleteFilesForDay(int day);
+String findOldestDate();
+void deleteFilesForDate(const String& dateStr);
 void checkAndManageSpace();
 void startIncubation();
 void restoreIncubationStatus();
