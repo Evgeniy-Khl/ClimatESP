@@ -405,7 +405,7 @@
 
             function validateField(input, errorEl) {
                 const val = parseFloat(input.value);
-                if (isNaN(val) || val < 35.0 || val > 40.0) {
+                if (isNaN(val) || val < 0.1 || val > 99.9) {
                     input.style.borderColor = 'var(--color-danger)';
                     input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.25)';
                     errorEl.style.display = 'block';
@@ -453,13 +453,13 @@
                 <div class="form-group">
                     <label for="spT0">Сухий датчик (від 0.1 до 99.9°C):</label>
                     <input type="number" name="spT0" id="spT0" required min="0.1" max="99.9" step="0.1">
-                    <span id="error-spT0" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 35.0 до 40.0°C (норма інкубації)</span>
+                    <span id="error-spT0" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 0.1 до 99.9°C</span>
                 </div>
 
                 <div class="form-group">
                     <label for="spT1">Вологий датчик (від 0.1 до 99.9°C):</label>
                     <input type="number" name="spT1" id="spT1" required min="0.1" max="99.9" step="0.1">
-                    <span id="error-spT1" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 35.0 до 40.0°C (норма інкубації)</span>
+                    <span id="error-spT1" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 0.1 до 99.9°C</span>
                 </div>
 
                 <div class="form-group">

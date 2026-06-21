@@ -3,7 +3,10 @@
 
 #include <Arduino.h>
 
+extern bool fsMounted;
+
 void logEvent(const char* format, ...);
 void logEvent(const String& message);
 
 #endif
+

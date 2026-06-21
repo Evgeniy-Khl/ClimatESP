@@ -30,23 +30,31 @@ void respondsValues() {
     data["temperature0"] = t0;
     data["settemp0"] = t0s;
     
-    if(detectedSensor == SENSOR_DS18B20 && numberOfDevices > 1){
-        formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
-        formatFloat(t1s, sizeof(t1s), (float)settings.sp_structs[1].spT/10.0, true);
-        data["temperature1"] = t1;
-        data["settemp1"] = t1s;
-
-        if(pvRH == 255) {
-            data["humidity"] = "не визначено"; 
-            data["sethum"] = " ";
-        } else {
-            snprintf(hum, sizeof(hum), "%d", pvRH);
-            data["humidity"] = hum; 
-            data["sethum"] = "%";
+    // Инициализируем значениями по умолчанию во избежание undefined на веб-интерфейсе
+    data["humidity"] = "--";
+    data["sethum"] = "[--]";
+    
+    if(detectedSensor == SENSOR_DS18B20){
+        if (numberOfDevices > 1) {
+            formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
+            formatFloat(t1s, sizeof(t1s), (float)settings.sp_structs[1].spT/10.0, true);
+            data["temperature1"] = t1;
+            data["settemp1"] = t1s;
         }
-        if(HIH5030) {
-            formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
-            data["sethum"] = hums;
+        
+        if (HIH5030 || numberOfDevices > 1) {
+            if(pvRH == 255) {
+                data["humidity"] = "не визначено"; 
+                data["sethum"] = " ";
+            } else {
+                snprintf(hum, sizeof(hum), "%d", pvRH);
+                data["humidity"] = hum; 
+                data["sethum"] = "%";
+            }
+            if(HIH5030) {
+                formatFloat(hums, sizeof(hums), (float)settings.sp_structs[1].spRH/10.0, false);
+                data["sethum"] = hums;
+            }
         }
     } else if(detectedSensor == SENSOR_DHT22){
         formatFloat(t1, sizeof(t1), (float)ds[1].pvT/10.0, false);
@@ -508,7 +516,7 @@ void handleShowData() {
             responsive: true, 
             maintainAspectRatio: false, 
             scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } },
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
               y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
               x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
             },
@@ -596,7 +604,7 @@ void handleCurrentData() {
             responsive: true, 
             maintainAspectRatio: false, 
             scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } },
+              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
               y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
               x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
             },

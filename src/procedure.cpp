@@ -511,7 +511,7 @@ void newSecond(){
     }
   }
 
-  #ifndef DEBUG  
+  #ifndef SIMULATION  
     sensorCheck();                                                  // Опрос датчиков должен быть всегда
   #else
     // В режиме отладки можно оставить симуляцию, если датчики не подключены

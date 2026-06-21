@@ -44,6 +44,7 @@
 #endif
 
 #define DEBUG
+#define SIMULATION
 
 #ifdef DEBUG
   // Вариативные макросы, принимающие любое количество аргументов

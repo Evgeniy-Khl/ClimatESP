@@ -565,7 +565,12 @@
                   position: 'left', 
                   title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' },
                   grid: { color: 'rgba(255, 255, 255, 0.08)' },
-                  ticks: { color: '#94a3b8' }
+                  ticks: { 
+                    color: '#94a3b8',
+                    callback: function(value) {
+                      return value.toFixed(1);
+                    }
+                  }
                 },
                 y1: { 
                   type: 'linear', 

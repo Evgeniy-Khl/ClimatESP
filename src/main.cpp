@@ -315,11 +315,6 @@ byte writePCF8574(byte data) {
         bool isOn = !(data & (1 << i));
         const char* relayName = "";
         switch(i) {
-          case 0: relayName = "Поворот лотків"; break;
-          case 1: relayName = "Нагрівач"; break;
-          case 2: relayName = "Зволожувач"; break;
-          case 3: relayName = "Вентилятор/Заслінка"; break;
-          case 4: relayName = "Додатковий канал"; break;
           case 5: relayName = "Сирена/Аварія"; break;
         }
         if (relayName[0] != '\0') {
