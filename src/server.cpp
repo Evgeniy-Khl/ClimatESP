@@ -663,7 +663,7 @@ void handleClearLogs() {
     }
     String logFilename = "/day_" + dateStr + "_log.txt";
     LittleFS.remove(logFilename);
-    logEvent("Файл логу %s очищено користувачем.", logFilename.c_str());
+    logEvent("Файл логу %s очищено.", logFilename.c_str());
     
     // Перенаправляем обратно в зависимости от того, какой параметр был передан
     server.sendHeader("Location", "/view_logs?day=" + dateStr);
