@@ -356,7 +356,7 @@ void sendPageHeader(String title) {
     server.sendContent(F("<style>"));
     server.sendContent(F("@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');"));
     server.sendContent(F("body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#f8fafc;min-height:100vh;margin:0;padding:20px 10px;display:flex;flex-direction:column;align-items:center}"));
-    server.sendContent(F("div{max-width:800px;width:100%;margin:0 auto;padding:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 8px 32px 0 rgba(0,0,0,0.2)}"));
+    server.sendContent(F("*{box-sizing:border-box}.container{max-width:800px;width:100%;margin:0 auto;padding:20px;background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 8px 32px 0 rgba(0,0,0,0.2)}"));
     server.sendContent(F("h1{text-align:center;color:#fff;margin-bottom:20px;font-weight:700}"));
     server.sendContent(F(".chart-container{position:relative;margin:20px auto;height:40vh;width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:10px}"));
     server.sendContent(F("table{border-collapse:collapse;width:100%;margin:20px auto;font-size:0.95rem;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)}"));
@@ -442,7 +442,7 @@ void handleArchiveList() {
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Архів");
 
-    server.sendContent(F("<div><h1>Виберіть дату для перегляду</h1>"));
+    server.sendContent(F("<div class='container'><h1>Виберіть дату для перегляду</h1>"));
     server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОЇ доби</a>"));
     server.sendContent(F("<ul>"));
     
@@ -521,7 +521,7 @@ void handleShowData() {
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Архів за " + day);
 
-    server.sendContent(F("<div><h1 style='text-align:center;'>Дані інкубації за "));
+    server.sendContent(F("<div class='container'><h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(day); 
     server.sendContent(F("</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
@@ -613,7 +613,7 @@ void handleCurrentData() {
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Поточна доба");
-    server.sendContent(F("<div><h1>Дані за поточну добу</h1>"));
+    server.sendContent(F("<div class='container'><h1>Дані за поточну добу</h1>"));
     server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     
