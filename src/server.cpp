@@ -370,6 +370,14 @@ void sendPageHeader(String title) {
     server.sendContent(F("a.back:hover, a.btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-2px)}"));
     server.sendContent(F("a.live{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 4px 12px rgba(16,185,129,0.2)}a.live:hover{background:linear-gradient(135deg,#34d399 0%,#10b981 100%);box-shadow:0 6px 16px rgba(16,185,129,0.35)}"));
     server.sendContent(F(".summary{background-color:rgba(59,130,246,0.1);font-weight:bold;color:#60a5fa}"));
+    server.sendContent(F(".archive-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;margin-bottom:8px}"));
+    server.sendContent(F(".btn-group{display:flex;gap:8px}"));
+    server.sendContent(F("a.btn-archive{display:inline-block;padding:8px 16px;font-size:0.85rem;border-radius:8px;box-shadow:none}"));
+    server.sendContent(F("a.btn-archive:hover{transform:translateY(-1px)}"));
+    server.sendContent(F("a.btn-graph{background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%)}"));
+    server.sendContent(F("a.btn-graph:hover{background:linear-gradient(135deg,#60a5fa 0%,#2563eb 100%);box-shadow:0 4px 12px rgba(59,130,246,0.25)}"));
+    server.sendContent(F("a.btn-logs{background:linear-gradient(135deg,#10b981 0%,#047857 100%)}"));
+    server.sendContent(F("a.btn-logs:hover{background:linear-gradient(135deg,#34d399 0%,#10b981 100%);box-shadow:0 4px 12px rgba(16,185,129,0.25)}"));
     server.sendContent(F("</style></head><body>"));
 }
 
@@ -464,14 +472,14 @@ void handleArchiveList() {
         String dateStr = dates[i];
         String dispDate = dateStr;
         dispDate.replace('_', '.');
-        char itemHtml[384];
+        char itemHtml[512];
         snprintf_P(itemHtml, sizeof(itemHtml), 
-          PSTR("<li style='display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05);'>"
+          PSTR("<li class='archive-item'>"
                "<span style='font-weight:500; font-size:1rem; color:#f8fafc;'>Дата: %s</span>"
-               "<div style='display:flex; gap:8px;'>"
-                 "<a href='/data?day=%s' style='background:linear-gradient(135deg,#3b82f6 0%%,#1d4ed8 100%%); padding:6px 12px; font-size:0.85rem; border-radius:6px; color:white; text-decoration:none; font-weight:600;'>Графік</a>"
-                 "<a href='/view_logs?day=%s' style='background:linear-gradient(135deg,#10b981 0%%,#047857 100%%); padding:6px 12px; font-size:0.85rem; border-radius:6px; color:white; text-decoration:none; font-weight:600;'>Логи</a>"
-               "</div>"
+               "<span class='btn-group'>"
+                 "<a href='/data?day=%s' class='btn-archive btn-graph'>Графік</a>"
+                 "<a href='/view_logs?day=%s' class='btn-archive btn-logs'>Логи</a>"
+               "</span>"
                "</li>"), 
           dispDate.c_str(), dateStr.c_str(), dateStr.c_str());
         server.sendContent(itemHtml);
