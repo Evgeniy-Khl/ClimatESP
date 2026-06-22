@@ -13,6 +13,7 @@
 #define FlashFS LittleFS
 #include <SPI.h>
 #include <Wire.h>           // Библиотека для I2C связи
+#include <Servo.h>
 #include "SoftwarePWMBit.h" // Подключаем наш новый класс
 #include <RTClib.h>         // Библиотека для работы с RTC DS3231
 #include <OneWire.h>
