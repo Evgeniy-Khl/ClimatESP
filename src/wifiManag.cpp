@@ -2,7 +2,7 @@
 #include "server.h"
 
 static bool serverStarted = false;
-static bool botStarted = false;
+bool botStarted = false;
 static unsigned long lastReconnectAttempt = 0;
 
 void setupWebServerRoutes() {
@@ -94,13 +94,7 @@ void setupServices() {
 }
 
 void initWiFiManag(void){
-    WiFiManagerParameter custom_botToken("botToken", "BOT token", botToken, 50);
-    WiFiManagerParameter custom_chatID("chatID", "Chat ID", chatID, 11);
-
     WiFiManager wifiManager;
-    wifiManager.setSaveConfigCallback(saveConfigCallback);
-    wifiManager.addParameter(&custom_botToken);
-    wifiManager.addParameter(&custom_chatID);
 
     if(settings.sp_structs[0].special & 0x08){
       settings.sp_structs[0].special &= 0xF7;
@@ -134,20 +128,6 @@ void initWiFiManag(void){
       module.setDisplay(data, 8);
       delay(1000);
     } else {
-        strcpy(botToken, custom_botToken.getValue());
-        strcpy(chatID, custom_chatID.getValue());
-        
-        if(shouldSaveConfig) {
-          JsonDocument json;
-          json["botToken"] = botToken;
-          json["chatID"] = chatID;
-          File configFile = LittleFS.open("/config.json", "w");
-          if (configFile) {
-            serializeJson(json, configFile);
-            configFile.close();
-          }
-        }
-        
         setupServices();
 
         data[3] = GR; data[4] = GR; data[5] = GR;

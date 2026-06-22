@@ -235,6 +235,7 @@ extern char chatID [15];
 extern MyTelegramBot bot;
 extern WiFiClientSecure client;
 extern bool shouldSaveConfig;
+extern bool botStarted;
 extern bool hasChanged;
 //-------------
 extern uint8_t earlyMode, mode, tmrResetMode, quarter, errors, seconds;

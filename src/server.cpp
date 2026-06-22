@@ -182,6 +182,8 @@ void respondsEeprom(){
         doc["ikoff0"] = settings.sp_structs[0].Ki;
         doc["ikoff1"] = settings.sp_structs[1].Ki;
         doc["identif"] = settings.sp_structs[1].special;
+        doc["botToken"] = botToken;
+        doc["chatID"] = chatID;
         doc["status"] = 1;
 
         server.setContentLength(measureJson(doc));
@@ -196,6 +198,8 @@ void acceptEeprom() {
   // Логирование всех параметров
   DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
   
+  bool configChanged = false;
+
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
       String paramValue = server.arg(i);
@@ -237,10 +241,39 @@ void acceptEeprom() {
       else if (paramName == "ikoff0") settings.sp_structs[0].Ki = paramValue.toInt();
       else if (paramName == "ikoff1") settings.sp_structs[1].Ki = paramValue.toInt();
       else if (paramName == "identif") settings.sp_structs[1].special = paramValue.toInt();
+      else if (paramName == "botToken") {
+          if (paramValue != botToken) {
+              strncpy(botToken, paramValue.c_str(), sizeof(botToken) - 1);
+              botToken[sizeof(botToken) - 1] = '\0';
+              configChanged = true;
+          }
+      }
+      else if (paramName == "chatID") {
+          if (paramValue != chatID) {
+              strncpy(chatID, paramValue.c_str(), sizeof(chatID) - 1);
+              chatID[sizeof(chatID) - 1] = '\0';
+              configChanged = true;
+          }
+      }
   }
 
   server.send(200);
   saveSetpoint();
+
+  if (configChanged) {
+      JsonDocument json;
+      json["botToken"] = botToken;
+      json["chatID"] = chatID;
+      File configFile = LittleFS.open("/config.json", "w");
+      if (configFile) {
+          serializeJson(json, configFile);
+          configFile.close();
+          MYDEBUG_PRINTLN("Saved new Telegram config to /config.json");
+      }
+      botStarted = false;
+      BOTENABLE = 0;
+      bot.updateToken(botToken);
+  }
 }
 
 uint8_t respondsProgram(){

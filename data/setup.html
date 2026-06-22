@@ -69,7 +69,7 @@
         /* Tabs Styling */
         .tabs-header {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 4px;
             background: rgba(0, 0, 0, 0.2);
             padding: 4px;
@@ -128,6 +128,7 @@
         }
 
         input[type="number"],
+        input[type="text"],
         select {
             width: 100%;
             padding: 12px;
@@ -341,6 +342,8 @@
                             document.getElementById('pkoff1').value = data.pkoff1;
                             document.getElementById('ikoff1').value = data.ikoff1;
                             document.getElementById('identif').value = data.identif;
+                            document.getElementById('botToken').value = data.botToken || '';
+                            document.getElementById('chatID').value = data.chatID || '';
                             
                             // Запуск валидации после автозаполнения
                             runValidation();
@@ -446,6 +449,7 @@
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-alarm')">Аварія/Охол</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Повор</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-pid')">ПІД-рег</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
             </div>
 
             <!-- Tab 1: Основні -->
@@ -651,6 +655,19 @@
                 <div class="form-group">
                     <label for="ikoff1">Інтегральний №2 (від 0 до 999 одиниць):</label>
                     <input type="number" name="ikoff1" id="ikoff1" min="0" max="999" required>
+                </div>
+            </div>
+
+            <!-- Tab 5: Telegram -->
+            <div id="tab-telegram" class="tab-pane">
+                <div class="form-group">
+                    <label for="botToken">Telegram Bot Token (від BotFather):</label>
+                    <input type="text" name="botToken" id="botToken" maxlength="50" placeholder="Введіть токен бота">
+                </div>
+
+                <div class="form-group">
+                    <label for="chatID">Telegram Chat ID (ID чату):</label>
+                    <input type="text" name="chatID" id="chatID" maxlength="14" placeholder="Введіть ID чату">
                 </div>
             </div>
 
