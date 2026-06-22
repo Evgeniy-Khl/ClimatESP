@@ -48,19 +48,7 @@ void setup(){
     MYDEBUG_PRINTLN("mounted file system");
     logEvent("Файлова система LittleFS змонтована успішно.");
     listFilesAndSizes();
-    //--------------------------------- clean LittleFS, for testing -----------------------
-    // **Здесь вы можете разместить LittleFS.format();  но ОЧЕНЬ ВАЖНО ПОНИМАТЬ КОГДА ЭТО ДЕЛАТЬ!**
-    // Например, вы можете отформатировать файловую систему только при первом запуске или при определенном условии.
-    // **ВНИМАНИЕ: Раскомментирование следующей строки приведет к форматированию LittleFS при каждом запуске!**
-    // Проверка и форматирование, если необходимо
-    // if (LittleFS.format()) {
-    //   MYDEBUG_PRINTLN("LittleFS formatted successfully");
-    // } else {
-    //   MYDEBUG_PRINTLN("Failed to format LittleFS");
-    // }
-    //
-    // clearIncubationData(); // Удаляем только файлы графиков и статистики (безопасная очистка)
-    //--------------------------------------------------------------------------------------
+    
     //--------------------- checkSetpoint ----------------------------------
     dataLed[2] = checkSetpoint();
     dataLed[3] = checkConfig();
@@ -102,12 +90,8 @@ void setup(){
   digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
   pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
 
-  displErrors();       // ИНДИКАЦИЯ ОШИБОК и IP адреса 
+  displErrors();       // ИНДИКАЦИЯ ОШИБОК
   
-  #ifdef DEBUG
-    clearEEPROM();    // Заполняет нулями область памяти в AT24C32 (только в режиме отладки)
-  #endif
-
   pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);

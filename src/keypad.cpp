@@ -124,34 +124,39 @@ void checkkey(uint8_t key){
                       case 31:  if(editBuff <   1) editBuff =   1;  break;
                     }
           break;
+        // Сброс установок к значениям по умолчанию
         case KEY_5_4_6: reset(); break;
-        case KEY_7_1: beeperOn(50); module.setDisplay(CLEAN_DATA, 8); clearIncubationData(); delay(1000); break;
+        // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
+        case KEY_5_4_2: clearEEPROM(); break;
+        // Запись программы инкубации по умолчанию
+        case KEY_7_1: prepareProg1(); beeperOn(100); break;
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
         case KEY_7_3: prepareProg3(); beeperOn(100); break;
         case KEY_7_4: prepareProg4(); beeperOn(100); break;
-        case KEY_7_4_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;// wifiManager.resetSettings()
-        case KEY_7_4_6_8: beeperOn(100); LittleFS.format(); ESP.restart();break; // форматирование
+        // wifiManager.resetSettings()
+        case KEY_7_4_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;
+        // Удаляем только файлы графиков и статистики (безопасная очистка)
+        case KEY_7_4_6_8: beeperOn(50); module.setDisplay(CLEAN_DATA, 8); clearIncubationData(); delay(1000); break;
         case KEY_8: saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 
   }
-      /* else if (setprgday)       // режим СОСТАВЛЕНИЕ ПРОГРАММЫ
-       {
-        waitset=10;             // удерживаем режим установок
-        drafting_prog(key);     // составление программы
-       } */
   else {  //==================== ОСНОВНОЙ РЕЖИМ РАБОТЫ =================================
     waitCheckKeyPad = WAITCHECKKEYPAD;
     switch (key) {
+        // Вход в режим Установок
         case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = RESETDISPLAY; break;
+        // TURN = ON
         case KEY_2: if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
                     else {pvTimer=settings.sp_structs[0].timer;} 
                     TURN = PCF_ON;
                     writePCF8574(portOut.value);
             break;
+        // Переключение дисплеев "F1","F2","F3","F4","F5"->IP0;IP1;	"F6"->IP2;IP3;
         case KEY_3: if(++displNum > 6) displNum = 0;
                     resetDispl = RESETDISPLAY;
             break;
+        // TURN = OFF
         case KEY_4: pvTimer=settings.sp_structs[0].timer; 
                     TURN = PCF_OFF;
                     writePCF8574(portOut.value);
@@ -159,19 +164,7 @@ void checkkey(uint8_t key){
         case KEY_5: break;
         case KEY_6: break;
         case KEY_7: break;
-        
-        #ifdef DEBUG
-          case KEY_7_1: errorsFlag.value = 0; ERROR1 = 1; break;
-          case KEY_7_2: errorsFlag.value = 0; ERROR2 = 1; break;
-          case KEY_7_3: errorsFlag.value = 0; ERROR4 = 1; break;
-          case KEY_7_4: errorsFlag.value = 0; ERROR8 = 1; break;
-          case KEY_7_5: errorsFlag.value = 0; ERROR10 = 1; break;
-          case KEY_7_6: errorsFlag.value = 0; FROZE = 1;  break;
-          case KEY_7_8: errorsFlag.value = 0; OVERHEAT = 1; break;
-          case KEY_8: errorsFlag.value = 0; break;
-        #else
         case KEY_8: if(errors && disableBeep==0) disableBeep=RESETDISPLAY;
-        #endif
           //  case KEY_4_3_2: pwTriac1=maxRun; CN2 = CN2ON; break;
           //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitCheckKeyPad = WAITCHECKKEYPAD; break;               // ПРОВЕТРИВАНИЕ начато 
           //  case KEY_5_4:   pvWait=aeration[0]; DoAeration=0; pvFlap=flpNow; break;                               // ПРОВЕТРИВАНИЕ закончено
@@ -205,7 +198,7 @@ void saveset(void){
       case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // У13 включение вспомогательного канала (0,5 - 40,0 °C)
       case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // У14 выключение вспомогательного канала (0,5 - 40,0 °C)
       case 15: 
-          if (settings.sp_structs[1].state != editBuff) {
+          if ((settings.sp_structs[1].state != editBuff) && WIFIENABLE) {// если нет WiFi установка программы невозможна
             settings.sp_structs[1].state = editBuff;
             startIncubation();
           }

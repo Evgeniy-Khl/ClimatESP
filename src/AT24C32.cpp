@@ -132,7 +132,9 @@ uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t leng
  */
 void clearEEPROM() {
   MYDEBUG_PRINTLN("Начало очистки AT24C32...");
-  
+  for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
+  module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
+  beeperOn(50);
   // Проходим по всем 288 пятиминутным периодам
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
     // Вычисляем адрес для текущего периода
@@ -146,7 +148,10 @@ void clearEEPROM() {
     // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
     // if (period % 10 == 0) Serial.print(".");
   }
-  
+  for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  beeperOn(50);
+  delay(1000);
   MYDEBUG_PRINTLN("Очистка AT24C32 завершена.");
 }
 
