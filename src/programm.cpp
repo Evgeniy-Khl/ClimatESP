@@ -136,38 +136,46 @@ uint8_t testProgs(){
   
   // 1. Проверка на "зеркальное" чтение (wrap-around)
   uint8_t buf0[8], buf700[8];
-  eepromReadBuffer(0x000, buf0, 8);
-  eepromReadBuffer(0x700, buf700, 8);
+  uint16_t r1 = eepromReadBuffer(0x000, buf0, 8);
+  uint16_t r2 = eepromReadBuffer(0x700, buf700, 8);
   
   bool aliasing = true;
-  for(int i=0; i<8; i++) {
-    if(buf0[i] != buf700[i]) aliasing = false;
+  if (r1 == 8 && r2 == 8) {
+    for(int i=0; i<8; i++) {
+      if(buf0[i] != buf700[i]) aliasing = false;
+    }
+    
+    if(aliasing && buf0[0] != 0xFF) {
+      MYDEBUG_PRINTLN("!!! CRITICAL: EEPROM Aliasing detected! Addr 0x700 mirrors 0x000.");
+    }
+  } else {
+    MYDEBUG_PRINTLN("EEPROM read error during wrap-around test.");
   }
-  
-  if(aliasing && buf0[0] != 0xFF) {
-    MYDEBUG_PRINTLN("!!! CRITICAL: EEPROM Aliasing detected! Addr 0x700 mirrors 0x000.");
-  }
-
+ 
   // 2. Проверка и инициализация программ
   for (uint8_t p = 1; p <= 4; p++) {
       uint16_t memoryAddress = eepromMemoryAddressForDay(p, 1);
-      eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+      uint16_t readLen = eepromReadBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
       
-      bool needRewrite = false;
-      if (unBuf.spDay.spT0 == -1 || unBuf.spDay.spT0 == 0) needRewrite = true;
-      if (unBuf.spDay.spT0 > 100 && unBuf.spDay.spT0 < 550 && (unBuf.spDay.flap < 0 || unBuf.spDay.flap > 100)) {
-          needRewrite = true;
-      }
+      if (readLen == sizeof(unBuf)) {
+          bool needRewrite = false;
+          if (unBuf.spDay.spT0 == -1 || unBuf.spDay.spT0 == 0) needRewrite = true;
+          if (unBuf.spDay.spT0 > 100 && unBuf.spDay.spT0 < 550 && (unBuf.spDay.flap < 0 || unBuf.spDay.flap > 100)) {
+              needRewrite = true;
+          }
 
-      if (needRewrite) {
-          MYDEBUG_PRINT("PROGRAMM N"); MYDEBUG_PRINT(p); MYDEBUG_PRINTLN(" invalid. Re-writing...");
-          if(p == 1) prepareProg1();
-          else if(p == 2) prepareProg2();
-          else if(p == 3) prepareProg3();
-          else if(p == 4) prepareProg4();
-          err |= (1 << (p-1));
+          if (needRewrite) {
+              MYDEBUG_PRINT("PROGRAMM N"); MYDEBUG_PRINT(p); MYDEBUG_PRINTLN(" invalid. Re-writing...");
+              if(p == 1) prepareProg1();
+              else if(p == 2) prepareProg2();
+              else if(p == 3) prepareProg3();
+              else if(p == 4) prepareProg4();
+              err |= (1 << (p-1));
+          } else {
+              MYDEBUG_PRINT("PROGRAMM N"); MYDEBUG_PRINT(p); MYDEBUG_PRINTLN(" Ok");
+          }
       } else {
-          MYDEBUG_PRINT("PROGRAMM N"); MYDEBUG_PRINT(p); MYDEBUG_PRINTLN(" Ok");
+          MYDEBUG_PRINT("PROGRAMM N"); MYDEBUG_PRINT(p); MYDEBUG_PRINTLN(" - EEPROM read error! Skipped re-writing.");
       }
   }
   return err;
