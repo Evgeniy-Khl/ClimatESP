@@ -77,7 +77,8 @@ void setup(){
         settings.sp_structs[1].state = 0;     // [1]-программа текущая обнулена
         // saveSetpoint();  //????????????????????
     } else {
-      restoreIncubationStatus();              // восстановим флаг и время
+        now = rtc.now();                        // Инициализируем глобальное время перед восстановлением
+        restoreIncubationStatus();              // восстановим флаг и время
     }
   } else {
     logEvent("ПОМИЛКА: Годинник RTC DS3231 не знайдено!");
