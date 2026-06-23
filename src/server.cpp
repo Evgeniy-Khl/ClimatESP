@@ -746,14 +746,23 @@ void streamFileChunked(File& file, const String& contentType) {
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, contentType, "");
     
-    char buffer[1024 + 1];
+    auto client = server.client();
+    if (!client) return;
+
+    uint8_t buffer[1024];
     while (file.available()) {
-        size_t len = file.read((uint8_t*)buffer, 1024);
+        if (!client.connected()) break; // Прекращаем чтение, если клиент отключился
+        size_t len = file.read(buffer, sizeof(buffer));
         if (len > 0) {
-            buffer[len] = '\0';
-            server.sendContent(String(buffer));
+            char hexBuf[16];
+            snprintf(hexBuf, sizeof(hexBuf), "%X\r\n", (unsigned int)len);
+            client.write((const uint8_t*)hexBuf, strlen(hexBuf));
+            client.write(buffer, len);
+            client.write((const uint8_t*)"\r\n", 2);
         }
         yield();
     }
-    server.sendContent("");
+    if (client.connected()) {
+        client.write((const uint8_t*)"0\r\n\r\n", 5);
+    }
 }
