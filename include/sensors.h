@@ -4,6 +4,7 @@
 
 void sensorType();
 void sensorCheck();
+int16_t checkPV(uint8_t cn);
 bool check_freeze(uint8_t i);
 void checkDs18b20(void);
 int16_t getRelativeHumidityESP8266(float temperature);

@@ -14,7 +14,6 @@ void beeperOn(uint8_t val);
 void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki);
 int16_t UpdatePID(uint8_t cn);
 void rotate_trays(void);
-int16_t checkPV(uint8_t cn);
 uint8_t RelayPos(unsigned char cn, unsigned char hysteresis);
 uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off);
 void OutPulse(void);

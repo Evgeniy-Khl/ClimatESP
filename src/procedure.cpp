@@ -19,9 +19,8 @@ int16_t UpdatePID(uint8_t cn){
     max = settings.sp_structs[1].pulse * TRIACON / 2;   // 255 * 10 = 2550 -> 10 секунд
     min = -max;
   }
-  // Вычисление ошибки
-  error = checkPV(cn);
-  ds[cn].pvErr = error;         // error > 0 -> холодно
+  // Получение ошибки из уже вычисленного значения
+  error = ds[cn].pvErr;         // error > 0 -> холодно
   // Пропорциональная составляющая
   pid[cn].pPart = (float)error * pid[cn].Kp;
   
@@ -65,23 +64,10 @@ void rotate_trays(void){
   }
 }
 
-int16_t checkPV(uint8_t cn){
-  int16_t err;
-  if(cn==1 && HIH5030){
-     if(pvRH < 10) {errorsFlag.value |= (cn+1); err = 0;}
-     else err = settings.sp_structs[1].spRH - pvRH;
-     ds[1].pvErr = err;         // err > 0 -> холодно
-  } else {
-     if(ds[cn].pvT >= 850) {errorsFlag.value |= (cn+1); err = 0;}
-     else err = settings.sp_structs[cn].spT - ds[cn].pvT;
-     ds[cn].pvErr = err;        // err > 0 -> холодно
-  };
-  return err;
-}
 
 uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал № 1 или 2
   uint8_t x=UNALTERED;
-  int16_t err = checkPV(cn);        // err > 0 -> холодно
+  int16_t err = ds[cn].pvErr;        // err > 0 -> холодно
   if(err >= hysteresis) x = ON;    // включить
   if(err <= 0) x = OFF;            // отключить
   return x;
@@ -89,14 +75,14 @@ uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал 
 
 uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 или 2
   uint8_t x=UNALTERED;
-  int16_t err = checkPV(cn);        // err > 0 -> холодно
+  int16_t err = ds[cn].pvErr;        // err > 0 -> холодно
   if ((err+on) <= 0) x = ON;        // включить
   if ((err+off) >= 0) x = OFF;      // отключить
   return x;
 }
 
 void OutPulse(void){
-  int16_t err = checkPV(1);                     // err > 0 -> холодно
+  int16_t err = ds[1].pvErr;                     // err > 0 -> холодно
   uint16_t maxPulse = settings.sp_structs[1].pulse * TRIACON / 2;// длительность впрыска не должна превышать пол периода
   if(err == 0){pvPulse = 0; return;};
   if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
@@ -118,7 +104,7 @@ void OutStatusLed(void){
 }
 
 void checkModeDevice(){
-  if(RUNAWAY_ERR) {
+  if(RUNAWAY) {
     heaterValue = TRIACOFF;
     return;
   }
@@ -526,6 +512,10 @@ void newSecond(){
       else pvRH = valTable;
   #endif
 
+  // Вычисляем ошибки PV один раз после обновления датчиков
+  checkPV(0);
+  checkPV(1);
+
   // Запуск логики автоматики менеджером
   IncubationManager::tick();
 }
@@ -603,18 +593,18 @@ void newMinute(){
           stagnationTimer = 5;
           // Если мы все еще далеко от уставки (ошибка больше аварийного порога)
           if(ds[0].pvErr > settings.sp_structs[0].alarm) {
-             RUNAWAY_ERR = 1;
+             RUNAWAY = 1;
              heaterValue = TRIACOFF; // Принудительно выключаем нагрев для безопасности
              MYDEBUG_PRINTLN("!!! WARNING: Runaway protection triggered (stagnation) !!!");
           }
        }
     } else {
        stagnationTimer = 0; // Есть рост - сбрасываем счетчик
-       RUNAWAY_ERR = 0;
+       RUNAWAY = 0;
     }
   } else {
     stagnationTimer = 0;
-    RUNAWAY_ERR = 0;
+    RUNAWAY = 0;
   }
   lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
   //------------------------------------------------------------------------

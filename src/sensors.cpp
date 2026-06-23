@@ -67,6 +67,20 @@ void sensorCheck(){
   }
 }
 
+int16_t checkPV(uint8_t cn){
+  int16_t err;
+  if(cn==1 && HIH5030){
+     if(pvRH < 10) {errorsFlag.value |= (cn+1); err = 0;}
+     else err = settings.sp_structs[1].spRH - pvRH;
+     ds[1].pvErr = err;         // err > 0 -> холодно
+  } else {
+     if(ds[cn].pvT >= 850) {errorsFlag.value |= (cn+1); err = 0;}
+     else err = settings.sp_structs[cn].spT - ds[cn].pvT;
+     ds[cn].pvErr = err;        // err > 0 -> холодно
+  };
+  return err;
+}
+
 //------------- индикация 66,0 - завис датчик. --------------
 bool check_freeze(uint8_t i){
  if(ds[i].pvT == ds[i].previousValue){

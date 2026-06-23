@@ -42,7 +42,7 @@ void sendErrMessages(int err){
     pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_PRODUCT);
     pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("%.1f\n"), (float)ds[1].pvT/10);
   }
-  if(RUNAWAY_ERR) pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)RUNAWAY_ERROR);
+  if(RUNAWAY) pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)RUNAWAY_ERROR);
   
   pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("```"));
   

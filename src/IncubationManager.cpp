@@ -76,7 +76,7 @@ void IncubationManager::processPID() {
 void IncubationManager::processVentilation() {
     if (AERATION) { // Идет ПРОВЕТРИВАНИЕ!
         EXTRA1 = PCF_ON; 
-        pvFlap = 100; 
+        pvFlap = settings.sp_structs[1].flapLimit; 
         beeperOn(10);
         if (--pvVenting == 0) {
             pvAeration = settings.sp_structs[0].aeration; 
@@ -84,18 +84,21 @@ void IncubationManager::processVentilation() {
             EXTRA1 = PCF_OFF;
         }
     } else { // Регулировка охлаждения/осушения заслонкой
-        uint8_t val = RelayNeg(0, settings.sp_structs[0].coolOn, settings.sp_structs[0].coolOff);
-        if (val == OFF && (ds[0].pvErr <= settings.sp_structs[0].alarm)) {
-            val = RelayNeg(1, settings.sp_structs[1].coolOn, settings.sp_structs[1].coolOff);
+        uint8_t val = 0;
+        if (settings.sp_structs[1].extendMode & 3)      // 1-ОХЛАЖДЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
+            val = RelayNeg(0, settings.sp_structs[0].coolOn, settings.sp_structs[0].coolOff);   // нужно ли охлаждать
+        if (settings.sp_structs[1].extendMode & 2) {    // 2-ОСУШЕНИЕ; 3-ОХЛАЖДЕНИЕ + ОСУШЕНИЕ
+            val = RelayNeg(1, settings.sp_structs[1].coolOn, settings.sp_structs[1].coolOff);       // нужно ли осушать
         }
-        
         if (val == ON) {
             EXTRA1 = PCF_ON; 
-            pvFlap = 100;
+            pvFlap = settings.sp_structs[1].flapLimit;  // полностью открыта
         } else if (val == OFF) {
             EXTRA1 = PCF_OFF; 
-            pvFlap = settings.sp_structs[0].state;
+            pvFlap = settings.sp_structs[0].state;      // текущее положение
         }
+        if (ds[0].pvErr > settings.sp_structs[0].alarm) 
+            pvFlap = settings.sp_structs[0].flapLimit;  // полностью закрыта
     }
 }
 
@@ -115,7 +118,7 @@ void IncubationManager::processRotation() {
 void IncubationManager::processAlarm() {
     if (numSetup == 0) {
         uint8_t res = alarm();
-        switch (settings.sp_structs[0].extendMode) {
+        switch (settings.sp_structs[0].extendMode) {    // 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ
             case 0: 
                 EXTRA3 = !res; 
                 break;
