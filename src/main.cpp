@@ -307,16 +307,31 @@ void recoverI2C() {
   }
 }
 
+void enterI2cCriticalError() {
+  logEvent("КРИТИЧНА ПОМИЛКА I2C: Робота зупинена! Очікування перезапуску...");
+  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: System halted! Beeping indefinitely...");
+  
+  while (true) {
+    ESP.wdtFeed(); // Кормим ватчдог, чтобы избежать циклической перезагрузки
+    digitalWrite(BEEP_PIN, LOW);  // Включаем бипер
+    delay(300);
+    ESP.wdtFeed();
+    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+    delay(300);
+  }
+}
+
 static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
 static byte last_port_val = 0xFF;
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
-  // Отслеживаем изменения битов реле (активный уровень - 0)
-  if (data != last_port_val) {
-    byte changed = data ^ last_port_val;
-    for (int i = 0; i < 6; i++) {
-      if (changed & (1 << i)) {
+  #ifdef DEBUG
+    // Сравниваем только 8 бит данных
+    if (data != last_port_val) {
+      for (int i = 0; i < 8; i++) {
+        bool isChanged = (data & (1 << i)) != (last_port_val & (1 << i));
+        if (!isChanged) continue;
         bool isOn = !(data & (1 << i));
         const char* relayName = "";
         switch(i) {
@@ -326,9 +341,9 @@ byte writePCF8574(byte data) {
           logEvent("Реле [%s] -> %s", relayName, isOn ? "УВІМКНЕНО" : "ВИМКНЕНО");
         }
       }
+      last_port_val = data;
     }
-    last_port_val = data;
-  }
+  #endif
 
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
@@ -341,22 +356,8 @@ byte writePCF8574(byte data) {
     MYDEBUG_PRINT(" | Fail count: ");
     MYDEBUG_PRINTLN(i2c_error_count);
 
-    if (i2c_error_count >= 20) { // Если 20 попыток (с учетом повторов) не помогли
-      logEvent("КРИТИЧНА ПОМИЛКА I2C: Перезавантаження ESP...");
-      delay(1000);
-      ESP.restart();
-    }
-
-    recoverI2C(); // Попытка мягкого восстановления шины
-    
-    // Повторная попытка после восстановления
-    Wire.beginTransmission(PCF8574_ADDRESS);
-    Wire.write(data);
-    error = Wire.endTransmission();
-    
-    if (error == 0) {
-      i2c_error_count = 0; // Сброс при успехе
-    }
+    // Немедленная остановка программы при первой же ошибке записи
+    enterI2cCriticalError();
   } else {
     i2c_error_count = 0; // Ошибок нет - сброс счетчика
   }
@@ -374,14 +375,18 @@ byte readPCF8574() {
     MYDEBUG_PRINT("\nError reading from PCF8574. Fail count: ");
     MYDEBUG_PRINTLN(i2c_error_count);
 
-    if (i2c_error_count >= 20) {
-      MYDEBUG_PRINTLN("CRITICAL I2C ERROR: Restarting ESP...");
-      delay(1000);
-      ESP.restart();
+    recoverI2C(); // Попытка мягкого восстановления шины
+    
+    // Повторная попытка
+    count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+    if (count > 0) {
+      i2c_error_count = 0;
+      return Wire.read();
+    } else {
+      // Ошибка чтения осталась даже после восстановления
+      enterI2cCriticalError();
+      return 0xFF;
     }
-
-    recoverI2C(); // Попытка восстановления
-    return 0xFF; // Возвращаем 0xFF в случае ошибки
   }
 }
 
