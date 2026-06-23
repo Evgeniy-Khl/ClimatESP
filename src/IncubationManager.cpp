@@ -50,12 +50,12 @@ void IncubationManager::tick() {
                     case 1: errName = "Помилка датчика №2 (відключений/завис)"; break;
                     case 2: errName = "Відхилення по каналу №1"; break;
                     case 3: errName = "Відхилення по каналу №2"; break;
-                    case 4: errName = "Отказ одного з двох датчиків температури"; break;
-                    case 5: errName = "Захист від розносу температури"; break;
-                    case 6: errName = "Перегрів симістора"; break;
-                    case 7: errName = "Зависання датчика"; break;
+                    case 4: errName = "Захист від розносу температури"; break;
+                    case 5: errName = "Зависання датчика"; break;
+                    case 6: errName = "Резерв"; break;
+                    case 7: errName = "Перегрів симістора"; break;
                 }
-                if (errName[0] != '\0') {
+                if (errName[0] != '\0' && i != 6) { // Пропускаем резервный бит
                     logEvent("Статус [%s] -> %s", errName, isSet ? "АКТИВОВАНО" : "СКАСОВАНО");
                 }
             }
