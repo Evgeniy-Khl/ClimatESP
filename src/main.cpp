@@ -34,6 +34,13 @@ void setup(){
 
   Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
   Wire.setClock(100000);                // Снижаем скорость до 100кГц для стабильности
+  
+  // Первоначальный запуск RTC для корректного логирования времени с самого старта
+  if (rtc.begin()) {
+    RTCENABLE = 1;
+    now = rtc.now();
+  }
+
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
@@ -65,8 +72,7 @@ void setup(){
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
   //---------- Инициализация DS3231 ----------------------------------------
-  if(rtc.begin()){
-    RTCENABLE = 1;
+  if(RTCENABLE){
     logEvent("Годинник RTC DS3231 ініціалізовано успішно.");
     if(rtc.lostPower()) {                     // у RTC села батарейка
         logEvent("Увага: RTC втратив живлення! Час обнулено.");
