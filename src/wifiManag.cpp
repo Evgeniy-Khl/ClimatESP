@@ -16,8 +16,7 @@ void setupWebServerRoutes() {
             server.send(404, "text/plain", "I can't open the index.html");
             return;
         }
-        server.sendHeader("Connection", "close");
-        server.streamFile(file, "text/html");
+        streamFileChunked(file, "text/html");
         file.close();
       }
     });
@@ -28,8 +27,7 @@ void setupWebServerRoutes() {
           server.send(404, "text/plain", "File Not Found");
           return;
       }
-      server.sendHeader("Connection", "close");
-      server.streamFile(file, "text/html");
+      streamFileChunked(file, "text/html");
       file.close();
     });
     server.on("/table", HTTP_GET, []() {
@@ -39,8 +37,7 @@ void setupWebServerRoutes() {
           server.send(404, "text/plain", "File Not Found");
           return;
       }
-      server.sendHeader("Connection", "close");
-      server.streamFile(file, "text/html");
+      streamFileChunked(file, "text/html");
       file.close();
     });
     server.on("/archive", HTTP_GET, handleArchiveList); // Генерирует HTML-страницу со списком всех архивных файлов (_graph.json).

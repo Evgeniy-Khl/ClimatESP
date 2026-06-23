@@ -50,5 +50,6 @@ void handleCurrentData();           // Генерирует таблицу с д
 void handleViewLogs();              // Страница просмотра логов системы
 void handleClearLogs();             // Сброс файлов логов
 void handleLogs();                  // Отдает сырой лог файл в зависимости от параметра day
+void streamFileChunked(File& file, const String& contentType); // Безопасная отдача файлов чанками
 
 #endif /*SERVER_H*/

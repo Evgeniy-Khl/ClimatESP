@@ -391,7 +391,7 @@ void handleGetGraph() {
     
     if (LittleFS.exists(filename)) {
         File file = LittleFS.open(filename, "r");
-        server.streamFile(file, "application/json");
+        streamFileChunked(file, "application/json");
         file.close();
     } else {
         server.send(404, "text/plain", "File Not Found");
@@ -688,7 +688,7 @@ void handleViewLogs() {
         server.send(404, "text/plain", "logs.html not found");
         return;
     }
-    server.streamFile(file, "text/html");
+    streamFileChunked(file, "text/html");
     file.close();
 }
 
@@ -734,9 +734,26 @@ void handleLogs() {
     String logFilename = "/day_" + dateStr + "_log.txt";
     if (LittleFS.exists(logFilename)) {
         File file = LittleFS.open(logFilename, "r");
-        server.streamFile(file, "text/plain");
+        streamFileChunked(file, "text/plain");
         file.close();
     } else {
         server.send(404, "text/plain", "Log file not found");
     }
+}
+
+void streamFileChunked(File& file, const String& contentType) {
+    server.sendHeader("Connection", "close");
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, contentType, "");
+    
+    char buffer[1024 + 1];
+    while (file.available()) {
+        size_t len = file.read((uint8_t*)buffer, 1024);
+        if (len > 0) {
+            buffer[len] = '\0';
+            server.sendContent(String(buffer));
+        }
+        yield();
+    }
+    server.sendContent("");
 }
