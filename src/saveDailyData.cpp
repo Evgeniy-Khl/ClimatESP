@@ -9,9 +9,25 @@ void saveDailyDataToFile(int day) {
 
   DEBUG_PRINTF("Начало сохранения данных за день #%d\n", day);
   
-  DateTime nowTime = rtc.now();
+  DateTime targetDate;
+  uint8_t start_data[7];
+  bool startValid = false;
+  
+  if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
+    if (start_data[2] > 0 && start_data[2] <= 12 && start_data[3] > 0 && start_data[3] <= 31) {
+      DateTime startDate(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
+      targetDate = startDate + TimeSpan(day, 0, 0, 0);
+      startValid = true;
+    }
+  }
+  
+  if (!startValid) {
+    // Резервный вариант: вчерашний день
+    targetDate = rtc.now() - TimeSpan(1, 0, 0, 0);
+  }
+
   char dateBuf[8];
-  snprintf(dateBuf, sizeof(dateBuf), "%02d_%02d", nowTime.day(), nowTime.month());
+  snprintf(dateBuf, sizeof(dateBuf), "%02d_%02d", targetDate.day(), targetDate.month());
   String dateStr(dateBuf);
 
   String graphFilename = "/day_" + dateStr + "_graph.json";
