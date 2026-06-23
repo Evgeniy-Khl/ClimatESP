@@ -43,11 +43,11 @@ void setup(){
 
   uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
-  for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-  module.setDisplay(data, 8);                       //"ooo ooo oo"
-  if(temp){
-     dataLed[5] = 1;                                // ошибка writePCF8574
-  }
+  // for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
+  // module.setDisplay(data, 8);                       //"ooo ooo oo"
+  // if(temp){
+  //    dataLed[5] = 1;                                // ошибка writePCF8574
+  // }
   //----------------------------------- MOUNTING FS ----------------------------------------
   MYDEBUG_PRINTLN("\n mounting FS...");
   bool lFS = LittleFS.begin();
@@ -314,10 +314,13 @@ void enterI2cCriticalError() {
   while (true) {
     ESP.wdtFeed(); // Кормим ватчдог, чтобы избежать циклической перезагрузки
     digitalWrite(BEEP_PIN, LOW);  // Включаем бипер
-    delay(300);
+    module.setDisplay(PCF_ERROR, 8);
+    delay(500);
     ESP.wdtFeed();
     digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    delay(300);
+    for (uint8_t i = 0; i < 8; i++) { data[i] = 0;}
+    module.setDisplay(data, 8);                       // BLANK
+    delay(500);
   }
 }
 
