@@ -16,6 +16,7 @@ void setupWebServerRoutes() {
             server.send(404, "text/plain", "I can't open the index.html");
             return;
         }
+        server.sendHeader("Connection", "close");
         server.streamFile(file, "text/html");
         file.close();
       }
@@ -27,6 +28,7 @@ void setupWebServerRoutes() {
           server.send(404, "text/plain", "File Not Found");
           return;
       }
+      server.sendHeader("Connection", "close");
       server.streamFile(file, "text/html");
       file.close();
     });
@@ -37,6 +39,7 @@ void setupWebServerRoutes() {
           server.send(404, "text/plain", "File Not Found");
           return;
       }
+      server.sendHeader("Connection", "close");
       server.streamFile(file, "text/html");
       file.close();
     });
