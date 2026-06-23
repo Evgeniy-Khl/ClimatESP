@@ -26,6 +26,11 @@ void saveDailyDataToFile(int day) {
     targetDate = rtc.now() - TimeSpan(1, 0, 0, 0);
   }
 
+  // Защита от сбоев времени: архивный день не может быть в будущем относительно реального времени RTC
+  if (targetDate > rtc.now()) {
+    targetDate = rtc.now() - TimeSpan(1, 0, 0, 0);
+  }
+
   char dateBuf[8];
   snprintf(dateBuf, sizeof(dateBuf), "%02d_%02d", targetDate.day(), targetDate.month());
   String dateStr(dateBuf);
