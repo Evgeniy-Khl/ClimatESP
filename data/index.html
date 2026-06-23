@@ -360,8 +360,8 @@
     </div>
 
     <!-- Alarm Banner -->
-    <div id="alarmBanner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 16px; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; align-items: center; gap: 10px; justify-content: flex-start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); width: 100%; box-sizing: border-box;">
-      <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #fca5a5; flex-shrink: 0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    <div id="alarmBanner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 16px; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; align-items: flex-start; gap: 10px; justify-content: flex-start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); width: 100%; box-sizing: border-box;">
+      <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #fca5a5; flex-shrink: 0; margin-top: 2px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
       <span id="alarmBannerText" style="font-weight: 500; line-height: 1.4;"></span>
     </div>
 
@@ -486,7 +486,7 @@
         const alarmBanner = document.getElementById("alarmBanner");
         const alarmBannerText = document.getElementById("alarmBannerText");
         if (activeAlarms.length > 0) {
-          alarmBannerText.innerText = "Увага: " + activeAlarms.join(", ");
+          alarmBannerText.innerHTML = "<strong>Увага!</strong><br>" + activeAlarms.join("<br>");
           alarmBanner.style.display = "flex";
         } else {
           alarmBanner.style.display = "none";
