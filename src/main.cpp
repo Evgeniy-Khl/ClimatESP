@@ -41,7 +41,7 @@ void setup(){
     now = rtc.now();
   }
 
-  uint8_t temp = writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
+  /* uint8_t temp =  */writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
 
   // for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
   // module.setDisplay(data, 8);                       //"ooo ooo oo"
@@ -325,28 +325,28 @@ void enterI2cCriticalError() {
 }
 
 static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
-static byte last_port_val = 0xFF;
+// static byte last_port_val = 0xFF; // Закомментировано, так как отладочный блок в writePCF8574 отключен
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
-  #ifdef DEBUG
-    // Сравниваем только 8 бит данных
-    if (data != last_port_val) {
-      for (int i = 0; i < 8; i++) {
-        bool isChanged = (data & (1 << i)) != (last_port_val & (1 << i));
-        if (!isChanged) continue;
-        bool isOn = !(data & (1 << i));
-        const char* relayName = "";
-        switch(i) {
-          case 5: relayName = "Сирена/Аварія"; break;
-        }
-        if (relayName[0] != '\0') {
-          logEvent("Реле [%s] -> %s", relayName, isOn ? "УВІМКНЕНО" : "ВИМКНЕНО");
-        }
-      }
-      last_port_val = data;
-    }
-  #endif
+  // #ifdef DEBUG
+  //   // Сравниваем только 8 бит данных
+  //   if (data != last_port_val) {
+  //     for (int i = 0; i < 8; i++) {
+  //       bool isChanged = (data & (1 << i)) != (last_port_val & (1 << i));
+  //       if (!isChanged) continue;
+  //       bool isOn = !(data & (1 << i));
+  //       const char* relayName = "";
+  //       switch(i) {
+  //         case 5: relayName = "Сирена/Аварія"; break;
+  //       }
+  //       if (relayName[0] != '\0') {
+  //         logEvent("Реле [%s] -> %s", relayName, isOn ? "УВІМКНЕНО" : "ВИМКНЕНО");
+  //       }
+  //     }
+  //     last_port_val = data;
+  //   }
+  // #endif
 
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
