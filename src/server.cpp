@@ -488,6 +488,7 @@ void handleArchiveList() {
 
     server.sendContent(F("</ul><div style='text-align:center;'><a href='/' class='back'>Назад на головну</a></div>"));
     server.sendContent(F("</div></body></html>"));
+    server.sendContent("");
 }
 
 void formatTimeBuffer(char* buf, size_t size, int period, int sh, int sm) {
@@ -599,6 +600,7 @@ void handleShowData() {
         graphFile.close();
     }
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='back'>Назад</a></div></div></body></html>"));
+    server.sendContent("");
 }
 
 void handleCurrentData() {
@@ -674,6 +676,7 @@ void handleCurrentData() {
         yield();
     }
     server.sendContent(F("</table><div style='text-align:center;'><a href='/archive' class='back'>Назад</a></div></div></body></html>"));
+    server.sendContent("");
 }
 
 void handleViewLogs() {
