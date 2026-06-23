@@ -359,6 +359,12 @@
       </div>
     </div>
 
+    <!-- Alarm Banner -->
+    <div id="alarmBanner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 16px; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; align-items: center; gap: 10px; justify-content: flex-start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); width: 100%; box-sizing: border-box;">
+      <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #fca5a5; flex-shrink: 0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      <span id="alarmBannerText" style="font-weight: 500; line-height: 1.4;"></span>
+    </div>
+
     <!-- Status Indicators (LEDs Grid) -->
     <div class="led-grid">
       <!-- led0: Rotation -->
@@ -387,9 +393,9 @@
         <span>Нагрів 2</span>
       </div>
       <!-- led5: Alarm -->
-      <div id="led5" class="led-card">
+      <div id="led5" class="led-card" title="Аварія">
         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-        <span>Аварія</span>
+        <span id="alarmText">Аварія</span>
       </div>
     </div>
 
@@ -467,6 +473,34 @@
         const error2 = jsonResponse.error2;
         const error4 = jsonResponse.error4;
         const error8 = jsonResponse.error8;
+        const overheat = jsonResponse.overheat;
+
+        // Обробка баннера помилок
+        const activeAlarms = [];
+        if (error1 == 1) activeAlarms.push("Помилка датчика №1 (температура)");
+        if (error2 == 1) activeAlarms.push("Помилка датчика №2 (вологість)");
+        if (error4 == 1) activeAlarms.push("Відхилення температури від уставки");
+        if (error8 == 1) activeAlarms.push("Відхилення вологості від уставки");
+        if (overheat == 1) activeAlarms.push("Перегрів симістора!");
+
+        const alarmBanner = document.getElementById("alarmBanner");
+        const alarmBannerText = document.getElementById("alarmBannerText");
+        if (activeAlarms.length > 0) {
+          alarmBannerText.innerText = "Увага: " + activeAlarms.join(", ");
+          alarmBanner.style.display = "flex";
+        } else {
+          alarmBanner.style.display = "none";
+        }
+
+        const led5 = document.getElementById("led5");
+        const alarmText = document.getElementById("alarmText");
+        if (overheat == 1) {
+          led5.title = "Перегрів симістора";
+          alarmText.innerText = "Перегрів";
+        } else {
+          led5.title = "Аварія";
+          alarmText.innerText = "Аварія";
+        }
         
         // Т1 Card Status
         const t1Card = document.getElementById("rcorners0");
