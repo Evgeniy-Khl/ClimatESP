@@ -626,7 +626,12 @@ void newMinute(){
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
   if(settings.sp_structs[0].timer) rotate_trays();
   //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
-  
+  if (settings.sp_structs[0].aeration && settings.sp_structs[1].aeration && !AERATION) {
+    if (--pvAeration <= 0) {
+      pvVenting = settings.sp_structs[1].aeration; // Задаем время работы в секундах
+      AERATION = 1;
+    }
+  }
   //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
   if((countMinutes % 5) == 0){
     // DEBUG_PRINTF("============ RTC month:%02u day:%02u  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
