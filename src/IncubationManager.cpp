@@ -38,30 +38,30 @@ void IncubationManager::tick() {
     pctHimidifier = map(pctHimidifier, 0, 255, 0, 100);
 
     // 7. Автоматическое циклическое логирование статусов ошибок при изменении
-    static byte last_errors_val = 0;
-    if (errorsFlag.value != last_errors_val) {
-        byte changed = errorsFlag.value ^ last_errors_val;
-        for (int i = 0; i < 8; i++) {
-            if (changed & (1 << i)) {
-                bool isSet = (errorsFlag.value & (1 << i));
-                const char* errName = "";
-                switch(i) {
-                    case 0: errName = "Помилка датчика №1 (відключений/завис)"; break;
-                    case 1: errName = "Помилка датчика №2 (відключений/завис)"; break;
-                    case 2: errName = "Відхилення по каналу №1"; break;
-                    case 3: errName = "Відхилення по каналу №2"; break;
-                    case 4: errName = "Захист від розносу температури"; break;
-                    case 5: errName = "Зависання датчика"; break;
-                    case 6: errName = "Резерв"; break;
-                    case 7: errName = "Перегрів симістора"; break;
-                }
-                if (errName[0] != '\0' && i != 6) { // Пропускаем резервный бит
-                    logEvent("Статус [%s] -> %s", errName, isSet ? "АКТИВОВАНО" : "СКАСОВАНО");
-                }
-            }
-        }
-        last_errors_val = errorsFlag.value;
-    }
+    // static byte last_errors_val = 0;
+    // if (errorsFlag.value != last_errors_val) {
+    //     byte changed = errorsFlag.value ^ last_errors_val;
+    //     for (int i = 0; i < 8; i++) {
+    //         if (changed & (1 << i)) {
+    //             bool isSet = (errorsFlag.value & (1 << i));
+    //             const char* errName = "";
+    //             switch(i) {
+    //                 case 0: errName = "Помилка датчика №1 (відключений/завис)"; break;
+    //                 case 1: errName = "Помилка датчика №2 (відключений/завис)"; break;
+    //                 case 2: errName = "Відхилення по каналу №1"; break;
+    //                 case 3: errName = "Відхилення по каналу №2"; break;
+    //                 case 4: errName = "Захист від розносу температури"; break;
+    //                 case 5: errName = "Зависання датчика"; break;
+    //                 case 6: errName = "Резерв"; break;
+    //                 case 7: errName = "Перегрів симістора"; break;
+    //             }
+    //             if (errName[0] != '\0' && i != 6) { // Пропускаем резервный бит
+    //                 logEvent("Статус [%s] -> %s", errName, isSet ? "АКТИВОВАНО" : "СКАСОВАНО");
+    //             }
+    //         }
+    //     }
+    //     last_errors_val = errorsFlag.value;
+    // }
 }
 
 void IncubationManager::processPID() {

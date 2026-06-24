@@ -186,7 +186,7 @@ void loop(){
     writePCF8574(portOut.value);
     byte portState = readPCF8574();
     // Извлекаем состояние 6-го и 7-го выводов (нумерация битов с 0)
-    RESERVE  = (portState & (1 << 6)) != 0; // true — на P6 уровень HIGH (открыт), false — притянут к LOW
+    // RESERVE  = (portState & (1 << 6)) != 0; // true — на P6 уровень HIGH (открыт), false — притянут к LOW
     OVERHEAT = (portState & (1 << 7)) == 0; // true — на P7 уровень LOW (активный), false — уровень HIGH
     OutStatusLed();               // для HTML страницы
     incubatorServo.write(pvFlap); // Пример поворота на pvFlap градусов
