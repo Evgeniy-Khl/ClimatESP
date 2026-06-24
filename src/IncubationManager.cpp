@@ -76,7 +76,7 @@ void IncubationManager::processPID() {
 void IncubationManager::processVentilation() {
     if (AERATION) { // Идет ПРОВЕТРИВАНИЕ!
         EXTRA1 = PCF_ON; 
-        pvFlap = settings.sp_structs[1].flapLimit; 
+        pvFlap = settings.sp_structs[1].flapLimit; // полностью открыта
         beeperOn(10);
         if (--pvVenting == 0) {
             pvAeration = settings.sp_structs[0].aeration; 

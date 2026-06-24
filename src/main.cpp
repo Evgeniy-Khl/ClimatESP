@@ -103,9 +103,8 @@ void setup(){
   // Инициализируем сервопривод на GPIO15.
   // Стандартные параметры ширины импульса для большинства сервоприводов: 544 мкс (0°) - 2400 мкс (180°).
   incubatorServo.attach(15);
-
-  // Установка начального положения (например, 0 градусов - среднее положение)
-  incubatorServo.write(0);
+  pvFlap = settings.sp_structs[0].flapLimit;  // полностью закрыта 
+  incubatorServo.write(pvFlap);
   
   pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
   pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
@@ -189,8 +188,7 @@ void loop(){
     // RESERVE  = (portState & (1 << 6)) != 0; // true — на P6 уровень HIGH (открыт), false — притянут к LOW
     OVERHEAT = (portState & (1 << 7)) == 0; // true — на P7 уровень LOW (активный), false — уровень HIGH
     OutStatusLed();               // для HTML страницы
-    // incubatorServo.write(pvFlap); // Пример поворота на pvFlap градусов
-    if (countSeconds & 1) incubatorServo.write(90); else incubatorServo.write(0);
+    incubatorServo.write(pvFlap);
     // #ifndef DEBUG
       if (++countSeconds > 59) {
       newMinute();
@@ -235,8 +233,8 @@ void ledSet(void){
     if(!EXTRA1) led |= 8;
     if(!EXTRA2) led |= 0x10;
     if(!EXTRA3) led |= 0x20;
-    if(!FROZE)  led |= 0x40;
-    if(!RUNAWAY) led|= 0x80;
+    if(FROZE)  led |= 0x40;
+    if(RUNAWAY) led|= 0x80;
     for (uint8_t i = 0; i < 8; i++){
         module.setLED(led&1, i);
         led >>= 1;

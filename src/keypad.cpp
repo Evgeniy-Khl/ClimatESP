@@ -54,8 +54,8 @@ void checkkey(uint8_t key){
                       case 20: if(editBuff >   3) editBuff =   3;  break;
                       case 21: if(editBuff > 100) editBuff = 100;  break;
                       case 22: if(editBuff >  60) editBuff =  60;  break;
-                      case 23: if(editBuff > 999) editBuff = 999;  break;
-                      case 24: if(editBuff > 999) editBuff = 999;  break;
+                      case 23: if(editBuff > 100) editBuff = 100;  break;
+                      case 24: if(editBuff > 100) editBuff = 100;  break;
                       case 25: if(editBuff > 999) editBuff = 999;  break;
                       case 26: if(editBuff > 999) editBuff = 999;  break;
                       case 27: if(editBuff > 999) editBuff = 999;  break;
