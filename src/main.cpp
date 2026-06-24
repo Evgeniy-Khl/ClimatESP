@@ -228,13 +228,15 @@ void loop(){
 
 void ledSet(void){
     byte led = 0;
-    if(!TURN) led |= 1;
-    if(!(portOut.value&2)) led |= 2;
-    if(!(portOut.value&4)) led |= 4;
+    if(!TURN)   led |= 1;
+    if(!HEATER) led |= 2;
+    if(!HUMIDI) led |= 4;
     if(!EXTRA1) led |= 8;
     if(!EXTRA2) led |= 0x10;
     if(!EXTRA3) led |= 0x20;
-    for (uint8_t i = 0; i < 6; i++){
+    if(!FROZE)  led |= 0x40;
+    if(!RUNAWAY) led|= 0x80;
+    for (uint8_t i = 0; i < 8; i++){
         module.setLED(led&1, i);
         led >>= 1;
     }
