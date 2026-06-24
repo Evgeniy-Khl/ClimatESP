@@ -58,11 +58,12 @@ void InvertedServo::writeMicroseconds(int us) {
   interrupts();
 }
 
-void InvertedServo::write(int angle) {
-  if (angle < 0) angle = 0;
-  if (angle > 180) angle = 180;
+void InvertedServo::write(int percent) {
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
   
-  // Маппинг угла 0-180 в длительность импульса 544-2400 мкс
+  // 100% открытия заслонки соответствует углу в 90 градусов (максимальный диапазон хода)
+  int angle = map(percent, 0, 100, 0, 90);
   int us = map(angle, 0, 180, 544, 2400);
   writeMicroseconds(us);
 }
