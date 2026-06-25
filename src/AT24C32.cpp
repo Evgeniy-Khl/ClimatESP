@@ -137,6 +137,10 @@ void clearEEPROM() {
   beeperOn(50);
   // Проходим по всем 288 пятиминутным периодам
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
+    if (period % 10 == 0) {
+      ESP.wdtFeed();
+      yield();
+    }
     // Вычисляем адрес для текущего периода
     int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
     

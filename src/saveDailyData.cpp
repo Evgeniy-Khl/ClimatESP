@@ -52,6 +52,10 @@ void saveDailyDataToFile(int day) {
 
   // --- Основной цикл: читаем 288 записей и сразу пишем в файл ---
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
+    if (period % 10 == 0) {
+      ESP.wdtFeed();
+      yield();
+    }
     int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
     int16_t raw_t1, raw_t2, raw_rh;
     eepromReadInt16(currentAddress, raw_t1);

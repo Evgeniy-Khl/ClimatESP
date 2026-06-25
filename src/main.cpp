@@ -66,7 +66,11 @@ void setup(){
     dataLed[4] = 1;
   }
   //---------------------------- инициализация WiFiManager -----------------------------------
-  if(settings.sp_structs[0].special & 0x03) initWiFiManag();
+  if(settings.sp_structs[0].special & 0x03) {
+    ESP.wdtDisable();
+    initWiFiManag();
+    ESP.wdtEnable(5000);
+  }
   else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
   //------------------------------------------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
