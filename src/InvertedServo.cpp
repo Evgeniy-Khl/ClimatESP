@@ -33,7 +33,6 @@ void InvertedServo::write(int percent) {
   if (percent > 100) percent = 100;
   
   // 100% открытия заслонки соответствует углу в 90 градусов (максимальный ход заслонки)
-  int angle = map(percent, 0, 100, 0, 90);
-  int us = map(angle, 0, 180, 544, 2400);
+  int us = map(percent, 0, 100, 544, 1472);
   writeMicroseconds(us);
 }
