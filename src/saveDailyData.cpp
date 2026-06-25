@@ -38,7 +38,7 @@ void saveDailyDataToFile(int day) {
   String graphFilename = "/day_" + dateStr + "_graph.json";
   File graphFile = LittleFS.open(graphFilename, "w");
   if (!graphFile) {
-    Serial.println("Ошибка открытия файла для графика!");
+    MYDEBUG_PRINTLN("Ошибка открытия файла для графика!");
     return;
   }
 
@@ -329,7 +329,7 @@ void restoreIncubationStatus() {
  * Также показывает общую информацию о занятом и свободном месте.
  */
 void listFilesAndSizes() {
-  Serial.println("\n--- Список файлов в LittleFS ---");
+  MYDEBUG_PRINTLN("\n--- Список файлов в LittleFS ---");
   
   Dir dir = LittleFS.openDir("/");
   long totalSize = 0;
@@ -339,25 +339,25 @@ void listFilesAndSizes() {
     // Для каждого элемента получаем объект File
     File entry = dir.openFile("r");
     if (entry) {
-      Serial.print("Файл: ");
-      Serial.print(entry.name());
-      Serial.print("\tРазмер: ");
-      Serial.print(entry.size());
-      Serial.println(" Байт");
+      MYDEBUG_PRINT("Файл: ");
+      MYDEBUG_PRINT(entry.name());
+      MYDEBUG_PRINT("\tРазмер: ");
+      MYDEBUG_PRINT(entry.size());
+      MYDEBUG_PRINTLN(" Байт");
       totalSize += entry.size();
       fileCount++;
       entry.close(); // Важно закрывать файл после использования
     }
   }
 
-  Serial.println("------------------------------------");
-  Serial.printf("Всего файлов: %d\n", fileCount);
-  Serial.printf("Общий размер: %ld Байт\n", totalSize);
+  MYDEBUG_PRINTLN("------------------------------------");
+  DEBUG_PRINTF("Всего файлов: %d\n", fileCount);
+  DEBUG_PRINTF("Общий размер: %ld Байт\n", totalSize);
 
   // Дополнительная информация о файловой системе
   FSInfo fs_info;
   LittleFS.info(fs_info);
-  Serial.printf("Всего места:  %d Байт\n", fs_info.totalBytes);
-  Serial.printf("Использовано: %d Байт\n", fs_info.usedBytes);
-  Serial.println("------------------------------------");
+  DEBUG_PRINTF("Всего места:  %d Байт\n", fs_info.totalBytes);
+  DEBUG_PRINTF("Использовано: %d Байт\n", fs_info.usedBytes);
+  MYDEBUG_PRINTLN("------------------------------------");
 }
