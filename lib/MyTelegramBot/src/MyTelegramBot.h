@@ -13,6 +13,15 @@
 #include <Client.h>
 #include <TelegramCertificate.h>
 
+#if defined(TELEGRAM_DEBUG) || defined(_debug)
+  #ifndef MYDEBUG_PRINT
+    #define MYDEBUG_PRINT(...) Serial.print(__VA_ARGS__)
+  #endif
+  #ifndef MYDEBUG_PRINTLN
+    #define MYDEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+  #endif
+#endif
+
 #define TELEGRAM_HOST "api.telegram.org"
 #define TELEGRAM_SSL_PORT 443
 #define HANDLE_MESSAGES 1
