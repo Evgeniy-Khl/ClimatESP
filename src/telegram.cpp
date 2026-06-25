@@ -91,9 +91,8 @@ void handleNewMessages(int numNewMessages) {
           continue;
         }
         
-        const char* text = bot.messages[i].text.c_str();
         MYDEBUG_PRINTLN("received message: ");
-        MYDEBUG_PRINTLN(text);
+        MYDEBUG_PRINTLN(bot.messages[i].text.c_str());
     
         if (bot.messages[i].text == TXT_START) {
           char welcome[256];

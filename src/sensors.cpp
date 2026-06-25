@@ -20,9 +20,11 @@ void sensorType(){
       //------- Получаем и сохраняем адреса всех найденных датчиков ------
       for (int i = 0; i < numberOfDevices; i++){
         if(sensors.getAddress(sensorAddresses[i], i)){
-          DEBUG_PRINTF("  Датчик %d: ", i);
-          printAddress(sensorAddresses[i]);
-          MYDEBUG_PRINTLN();
+          #ifdef DEBUG
+            DEBUG_PRINTF("  Датчик %d: ", i);
+            printAddress(sensorAddresses[i]);
+            MYDEBUG_PRINTLN();
+          #endif
         } else {
           DEBUG_PRINTF("He удалось получить адрес для датчика %d\n", i);
         }

@@ -87,6 +87,7 @@ void prepareTable(uint8_t prg, uint8_t day, uint8_t amountday, int16_t t0, int16
         uint8_t curday = day + i;
         uint16_t memoryAddress = eepromMemoryAddressForDay(prg, curday);
         byte res = eepromWriteBuffer(memoryAddress, unBuf.buffer, sizeof(unBuf));
+        (void)res;
         MYDEBUG_PRINT("DAY:"); MYDEBUG_PRINT(curday); 
         MYDEBUG_PRINT("; ADD:"); MYDEBUG_PRINT(memoryAddress);
         MYDEBUG_PRINT("; RES:"); MYDEBUG_PRINTLN(res);

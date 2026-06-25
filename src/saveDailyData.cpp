@@ -108,8 +108,10 @@ void saveDailyDataToFile(int day) {
       statsFile.close();
       DEBUG_PRINTF("  Статистика сохранена в %s", statsFilename.c_str());
     }
+    #ifdef DEBUG
     uint16_t heapSize = ESP.getFreeHeap();    // Проверка доступной памяти
     DEBUG_PRINTF("  Free heap size: %d\n", heapSize);
+    #endif
   }
 }
 
