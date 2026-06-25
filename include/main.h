@@ -44,8 +44,8 @@
 #include "strings_ua.h"
 #endif
 
-#define DEBUG
-#define SIMULATION
+// #define DEBUG
+// #define SIMULATION
 
 #ifdef DEBUG
   // Вариативные макросы, принимающие любое количество аргументов
@@ -58,6 +58,7 @@
   #define DEBUG_SPRINTF(...)
   #define MYDEBUG_PRINT(...)
   #define MYDEBUG_PRINTLN(...)
+  #define DEBUG_PRINTF(...)
 #endif
 // --- Конец блока макросов ---
 
