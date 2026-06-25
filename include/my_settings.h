@@ -1,8 +1,8 @@
 #include "main.h"
 float dpv0 = 0, dpv1 = 0;
 
-char botToken[50] = "";  // your Bot Token (Get from Botfather);
-char chatID [15] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
+char botToken[80] = "";  // your Bot Token (Get from Botfather);
+char chatID [25] = "";   // your Chat ID (search for “IDBot” or open this link t.me/myidbot in your smartphone.)
 uint8_t data[8];
 uint8_t dataLed[6];
 

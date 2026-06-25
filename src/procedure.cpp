@@ -207,9 +207,16 @@ uint8_t checkConfig(void){
       auto deserializeError = deserializeJson(json, buf.get());
       serializeJson(json, Serial);
       if( ! deserializeError ){
-        MYDEBUG_PRINTLN("\nparsed json");
-        strcpy(botToken, json["botToken"]);
-        strcpy(chatID, json["chatID"]);
+        const char* token = json["botToken"];
+        if (token) {
+            strncpy(botToken, token, sizeof(botToken) - 1);
+            botToken[sizeof(botToken) - 1] = '\0';
+        }
+        const char* chat = json["chatID"];
+        if (chat) {
+            strncpy(chatID, chat, sizeof(chatID) - 1);
+            chatID[sizeof(chatID) - 1] = '\0';
+        }
       } else {
         err = 3; MYDEBUG_PRINTLN("failed to load json config");
       }

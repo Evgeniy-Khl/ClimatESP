@@ -231,8 +231,8 @@ extern uint8_t data[8];
 
 extern char displStr[200];
 extern float dpv0, dpv1;
-extern char botToken[50];
-extern char chatID [15];
+extern char botToken[80];
+extern char chatID [25];
 extern MyTelegramBot bot;
 extern WiFiClientSecure client;
 extern bool shouldSaveConfig;
