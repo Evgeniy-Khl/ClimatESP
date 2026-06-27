@@ -314,19 +314,19 @@ void recoverI2C() {
 
 void enterI2cCriticalError() {
   logEvent("КРИТИЧНА ПОМИЛКА I2C: Робота зупинена! Очікування перезапуску...");
-  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: System halted! Beeping indefinitely...");
-  
-  while (true) {
-    ESP.wdtFeed(); // Кормим ватчдог, чтобы избежать циклической перезагрузки
-    digitalWrite(BEEP_PIN, LOW);  // Включаем бипер
+  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: Rebooting in 5 seconds...");
+
+  // Сигнализируем ошибкой (~5 сек), затем перезагружаем
+  for (uint8_t n = 0; n < 5; n++) {
+    digitalWrite(BEEP_PIN, LOW);
     module.setDisplay(PCF_ERROR, 8);
     delay(500);
-    ESP.wdtFeed();
-    digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
-    for (uint8_t i = 0; i < 8; i++) { data[i] = 0;}
-    module.setDisplay(data, 8);                       // BLANK
+    digitalWrite(BEEP_PIN, HIGH);
+    for (uint8_t i = 0; i < 8; i++) { data[i] = 0; }
+    module.setDisplay(data, 8);
     delay(500);
   }
+  ESP.restart(); // Аппаратный перезапуск вместо вечного зависания
 }
 
 static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
@@ -334,68 +334,81 @@ static uint8_t i2c_error_count = 0; // Счетчик последователь
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
-  // #ifdef DEBUG
-  //   // Сравниваем только 8 бит данных
-  //   if (data != last_port_val) {
-  //     for (int i = 0; i < 8; i++) {
-  //       bool isChanged = (data & (1 << i)) != (last_port_val & (1 << i));
-  //       if (!isChanged) continue;
-  //       bool isOn = !(data & (1 << i));
-  //       const char* relayName = "";
-  //       switch(i) {
-  //         case 5: relayName = "Сирена/Аварія"; break;
-  //       }
-  //       if (relayName[0] != '\0') {
-  //         logEvent("Реле [%s] -> %s", relayName, isOn ? "УВІМКНЕНО" : "ВИМКНЕНО");
-  //       }
-  //     }
-  //     last_port_val = data;
-  //   }
-  // #endif
-
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
-  
-  if(error) {
+
+  if (error) {
     i2c_error_count++;
     MYDEBUG_PRINT("\nError writing to PCF8574. Code: ");
     MYDEBUG_PRINT(error);
     MYDEBUG_PRINT(" | Fail count: ");
     MYDEBUG_PRINTLN(i2c_error_count);
 
-    // Немедленная остановка программы при первой же ошибке записи
-    enterI2cCriticalError();
+    recoverI2C(); // Попытка восстановления шины
+
+    // Повторная попытка после recovery
+    Wire.beginTransmission(PCF8574_ADDRESS);
+    Wire.write(data);
+    error = Wire.endTransmission();
+    if (error == 0) {
+      i2c_error_count = 0;
+      MYDEBUG_PRINTLN("writePCF8574: retry after recovery OK");
+    } else if (i2c_error_count >= 5) {
+      enterI2cCriticalError(); // Перезагрузка после 5 последовательных ошибок
+    }
   } else {
-    i2c_error_count = 0; // Ошибок нет - сброс счетчика
+    i2c_error_count = 0;
   }
   return error;
 }
 
 // Функция для чтения байта с PCF8574
+// Возвращает последнее известное значение при ошибке (не вызывает остановку).
 byte readPCF8574() {
+  static byte lastKnownValue = 0xFF; // Кеш последнего успешного чтения
+
   uint8_t count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
   if (count > 0) {
-    i2c_error_count = 0; // Успешное чтение - сброс счетчика
-    return Wire.read();
-  } else {
-    i2c_error_count++;
-    MYDEBUG_PRINT("\nError reading from PCF8574. Fail count: ");
-    MYDEBUG_PRINTLN(i2c_error_count);
-
-    recoverI2C(); // Попытка мягкого восстановления шины
-    
-    // Повторная попытка
-    count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
-    if (count > 0) {
-      i2c_error_count = 0;
-      return Wire.read();
-    } else {
-      // Ошибка чтения осталась даже после восстановления
-      enterI2cCriticalError();
-      return 0xFF;
-    }
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    return lastKnownValue;
   }
+
+  // --- Ошибка чтения ---
+  i2c_error_count++;
+  MYDEBUG_PRINT("\nError reading from PCF8574. Fail count: ");
+  MYDEBUG_PRINTLN(i2c_error_count);
+
+  recoverI2C();
+
+  // Повторная попытка после recovery
+  count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    MYDEBUG_PRINTLN("readPCF8574: retry after recovery OK");
+    return lastKnownValue;
+  }
+
+  // Recovery не помог - второй retry
+  delay(10);
+  count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    MYDEBUG_PRINTLN("readPCF8574: 2nd retry OK");
+    return lastKnownValue;
+  }
+
+  // После 5 последовательных ошибок - перезагрузка
+  if (i2c_error_count >= 5) {
+    enterI2cCriticalError();
+  }
+
+  // Возвращаем кешированное значение чтобы не ломать логику
+  MYDEBUG_PRINTLN("readPCF8574: using cached value");
+  return lastKnownValue;
 }
 
 
