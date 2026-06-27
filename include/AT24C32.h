@@ -45,8 +45,9 @@ uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t leng
 /**
  * @brief Очищает область памяти в AT24C32, используемую для хранения суточных данных.
  * Заполняет нулями 288 записей (t1 и t2).
+ * @param quiet Если true, очистка происходит без звуков и вывода на дисплей.
  */
-void clearEEPROM();
+void clearEEPROM(bool quiet = false);
 
 /** @return true в случае успеха, иначе false. */
 bool eepromWriteInt16(uint16_t address, int16_t value);

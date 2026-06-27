@@ -399,17 +399,10 @@ void handleGetGraph() {
 }
 
 void handleGetCurrentGraph() {
-    uint8_t start_data[7];
-    int startH = 0, startM = 0;
-    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
-        startH = start_data[4];
-        startM = start_data[5];
-    }
-
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
     JsonDocument doc;
-    doc["sh"] = startH;
-    doc["sm"] = startM;
+    doc["sh"] = 0;
+    doc["sm"] = 0;
     JsonArray array = doc["points"].to<JsonArray>();
 
     // DEBUG_PRINTF("handleGetCurrentGraph: start=%02d:%02d, currentPeriod=%d\n", startH, startM, currentPeriod);
@@ -531,8 +524,8 @@ void handleShowData() {
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = \"" + day + "\";");
-    server.sendContent("const sh = " + String(startH) + ";");
-    server.sendContent("const sm = " + String(startM) + ";");
+    server.sendContent("const sh = 0;");
+    server.sendContent("const sm = 0;");
     server.sendContent(F(R"raw(
     fetch('/get_graph?day=' + dayNum)
       .then(r => r.json())
@@ -592,7 +585,7 @@ void handleShowData() {
                 JsonObject point = array[i];
                 char row[128];
                 char fmtTime[32];
-                formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), startH, startM);
+                formatTimeBuffer(fmtTime, sizeof(fmtTime), point["p"].as<int>(), 0, 0);
                 snprintf(row, sizeof(row), "<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", 
                          fmtTime, point["t1"].as<float>(), point["t2"].as<float>(), point["rh"].as<float>());
                 server.sendContent(row);
@@ -623,8 +616,8 @@ void handleCurrentData() {
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     
     server.sendContent(F("<script>"));
-    server.sendContent("const sh = " + String(startH) + ";");
-    server.sendContent("const sm = " + String(startM) + ";");
+    server.sendContent("const sh = 0;");
+    server.sendContent("const sm = 0;");
     server.sendContent(F(R"raw(
     fetch('/get_current_graph')
       .then(r=>r.json())
@@ -672,7 +665,7 @@ void handleCurrentData() {
         if (t1 == 0 && t2 == 0) continue;
         
         char fmtTime[32];
-        formatTimeBuffer(fmtTime, sizeof(fmtTime), period, startH, startM);
+        formatTimeBuffer(fmtTime, sizeof(fmtTime), period, 0, 0);
         char row[128];
         snprintf(row, sizeof(row), "<tr><td>%s</td><td>%.1f</td><td>%.1f</td><td>%.1f</td></tr>", fmtTime, t1/10.0, t2/10.0, (float)rh);
         server.sendContent(row);

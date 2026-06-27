@@ -128,13 +128,17 @@ uint16_t eepromReadBuffer(uint16_t memoryAddress, uint8_t* buffer, uint16_t leng
 
 /**
  * @brief Очищает область памяти в AT24C32, используемую для хранения суточных данных.
- * Заполняет нулями 288 записей (t1 и t2).
+ * Заполняет нулями 288 записей (t1, t2 и rh).
+ * @param quiet Если true, очистка происходит без звуков и вывода на дисплей.
  */
-void clearEEPROM() {
-  MYDEBUG_PRINTLN("Начало очистки AT24C32...");
-  for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
-  module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
-  beeperOn(50);
+void clearEEPROM(bool quiet) {
+  if (!quiet) {
+    MYDEBUG_PRINTLN("Начало очистки AT24C32...");
+    for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
+    module.setDisplay(data, 8); // Вывод на дисплей "ooo ooo oo"
+    beeperOn(50);
+  }
+  
   // Проходим по всем 288 пятиминутным периодам
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
     if (period % 10 == 0) {
@@ -148,15 +152,17 @@ void clearEEPROM() {
     eepromWriteInt16(currentAddress, 0);
     eepromWriteInt16(currentAddress + 2, 0);
     eepromWriteInt16(currentAddress + 4, 0);
-
-    // Выводим точку каждые 10 записей, чтобы показать, что процесс идет
-    // if (period % 10 == 0) Serial.print(".");
   }
-  for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
-  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
-  beeperOn(50);
-  delay(1000);
-  MYDEBUG_PRINTLN("Очистка AT24C32 завершена.");
+  
+  if (!quiet) {
+    for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
+    module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+    beeperOn(50);
+    delay(1000);
+    MYDEBUG_PRINTLN("Очистка AT24C32 завершена.");
+  } else {
+    MYDEBUG_PRINTLN("Фоновая очистка AT24C32 завершена.");
+  }
 }
 
 // ----- Функции для работы с разными типами данных -----

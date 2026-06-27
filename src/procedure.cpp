@@ -557,8 +557,10 @@ bool updateIncubationTime() {
       // Базовая проверка на валидность даты
       if (start_data[2] > 0 && start_data[2] <= 12 && start_data[3] > 0 && start_data[3] <= 31) {
         DateTime start(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
-        if (now >= start) {
-          TimeSpan diff = now - start;
+        DateTime startMidnight(start.year(), start.month(), start.day(), 0, 0, 0);
+        DateTime nowMidnight(now.year(), now.month(), now.day(), 0, 0, 0);
+        if (nowMidnight >= startMidnight) {
+          TimeSpan diff = nowMidnight - startMidnight;
           uint16_t currentDays = diff.days();
           
           if (currentDays >= 31) {
@@ -566,14 +568,16 @@ bool updateIncubationTime() {
           } else {
             countDays = (uint8_t)currentDays;
           }
-          countHours = diff.hours();
-          countMinutes = diff.minutes();
-          countSeconds = diff.seconds();
+          countHours = now.hour();
+          countMinutes = now.minute();
+          countSeconds = now.second();
           return true;
         } else {
-          // Если RTC время сбилось и оно раньше времени старта
-          // В этом случае мы тоже не должны сбрасывать countDays, если инкубация была активна
-          // Но это сложный случай. Для начала просто вернем true, чтобы не сбрасывать в else.
+          // Если RTC время сбилось
+          countDays = 0;
+          countHours = now.hour();
+          countMinutes = now.minute();
+          countSeconds = now.second();
           return true; 
         }
       }
@@ -648,6 +652,7 @@ void newMinute(){
     // Записываем в EEPROM
     if (countDays != lastDayProcessed && countDays <= 31) {
       saveDailyDataToFile(lastDayProcessed);
+      clearEEPROM(true); // Очищаем EEPROM для нового дня в фоновом режиме (тихо)
       lastDayProcessed = countDays;
     } 
     eepromWriteInt16(address, ds[0].pvT);

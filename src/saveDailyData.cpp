@@ -283,10 +283,12 @@ void startIncubation() {
 
   if (currentState > 0) {
     clearIncubationData();
+    clearEEPROM(false); // Очищаем область суточных данных в EEPROM с анимацией и звуком
     countDays = 0;
-    countHours = 0;
-    countMinutes = 0;
-    countSeconds = 0;
+    countHours = nowTime.hour();
+    countMinutes = nowTime.minute();
+    countSeconds = nowTime.second();
+    lastDayProcessed = 0;
     
     if (currentState == 5) {
       MYDEBUG_PRINTLN("Ручная инкубация запущена!");
@@ -310,6 +312,8 @@ void restoreIncubationStatus() {
       if (updateIncubationTime()) {
         MYDEBUG_PRINT("Инкубация восстановлена. Текущий день: ");
         DEBUG_PRINTF("%d дн. %02d:%02d:%02d\n", countDays, countHours, countMinutes, countSeconds);
+        
+        lastDayProcessed = countDays; // Синхронизируем последний обработанный день
         
         // Если это была программа (не ручной режим 5) и она совпадает с текущей в настройках
         if (savedState < 5 && savedState == settings.sp_structs[1].state) {
