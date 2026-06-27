@@ -35,7 +35,34 @@ void setup(){
   Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
   Wire.setClock(100000);                // Снижаем скорость до 100кГц для стабильности
   Wire.setClockStretchLimit(150000);    // 150мс лимит clock stretch (защита от зависания)
-  
+
+  // --- I2C сканер: показывает все устройства на шине при старте ---
+  {
+    MYDEBUG_PRINTLN("\n--- I2C Bus Scan ---");
+    uint8_t found = 0;
+    for (uint8_t addr = 1; addr < 127; addr++) {
+      Wire.beginTransmission(addr);
+      uint8_t err = Wire.endTransmission();
+      if (err == 0) {
+        char buf[48];
+        snprintf(buf, sizeof(buf), "I2C found: 0x%02X", addr);
+        MYDEBUG_PRINTLN(buf);
+        logEvent(buf);
+        found++;
+      }
+      ESP.wdtFeed();
+    }
+    if (found == 0) {
+      MYDEBUG_PRINTLN("I2C scan: NO devices found!");
+      logEvent("I2C scan: НЕТ устройств на шине!");
+    }
+    char buf[40];
+    snprintf(buf, sizeof(buf), "I2C scan done. Devices: %d", found);
+    MYDEBUG_PRINTLN(buf);
+    MYDEBUG_PRINTLN("--- End of I2C scan ---\n");
+  }
+
+
   // Первоначальный запуск RTC для корректного логирования времени с самого старта
   if (rtc.begin()) {
     RTCENABLE = 1;
