@@ -329,11 +329,24 @@ void enterI2cCriticalError() {
   ESP.restart(); // Аппаратный перезапуск вместо вечного зависания
 }
 
-static uint8_t i2c_error_count = 0; // Счетчик последовательных ошибок I2C
-// static byte last_port_val = 0xFF; // Закомментировано, так как отладочный блок в writePCF8574 отключен
+static uint8_t i2c_error_count = 0;    // Счетчик последовательных ошибок I2C
+static bool pcf8574_available = true;   // Флаг доступности PCF8574
+static unsigned long pcf8574_retry_ms = 0; // Время следующей попытки переподключения
 
 // Функция для записи байта на PCF8574
 byte writePCF8574(byte data) {
+  // Устройство отмечено как недоступное - периодически пробуем снова
+  if (!pcf8574_available) {
+    if (millis() - pcf8574_retry_ms > 60000UL) { // раз в 60 секунд
+      pcf8574_retry_ms = millis();
+      MYDEBUG_PRINTLN("PCF8574: повторная попытка подключения...");
+      Wire.begin();
+      Wire.setClock(100000);
+    } else {
+      return 4; // устройство недоступно
+    }
+  }
+
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
@@ -345,7 +358,7 @@ byte writePCF8574(byte data) {
     MYDEBUG_PRINT(" | Fail count: ");
     MYDEBUG_PRINTLN(i2c_error_count);
 
-    recoverI2C(); // Попытка восстановления шины
+    recoverI2C();
 
     // Повторная попытка после recovery
     Wire.beginTransmission(PCF8574_ADDRESS);
@@ -353,12 +366,19 @@ byte writePCF8574(byte data) {
     error = Wire.endTransmission();
     if (error == 0) {
       i2c_error_count = 0;
+      pcf8574_available = true;
       MYDEBUG_PRINTLN("writePCF8574: retry after recovery OK");
-    } else if (i2c_error_count >= 5) {
-      enterI2cCriticalError(); // Перезагрузка после 5 последовательных ошибок
+    } else if (i2c_error_count >= 10) {
+      // После 10 ошибок помечаем устройство как недоступное, но НЕ перезагружаемся
+      MYDEBUG_PRINTLN("PCF8574: устройство недоступно. Продолжаем работу без него.");
+      logEvent("УВАГА: PCF8574 недоступний! Реле вимкнено.");
+      pcf8574_available = false;
+      i2c_error_count = 0;
+      pcf8574_retry_ms = millis();
     }
   } else {
     i2c_error_count = 0;
+    pcf8574_available = true;
   }
   return error;
 }
@@ -367,6 +387,11 @@ byte writePCF8574(byte data) {
 // Возвращает последнее известное значение при ошибке (не вызывает остановку).
 byte readPCF8574() {
   static byte lastKnownValue = 0xFF; // Кеш последнего успешного чтения
+
+  // Устройство помечено как недоступное - возвращаем кеш
+  if (!pcf8574_available) {
+    return lastKnownValue;
+  }
 
   uint8_t count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
   if (count > 0) {
@@ -401,12 +426,7 @@ byte readPCF8574() {
     return lastKnownValue;
   }
 
-  // После 5 последовательных ошибок - перезагрузка
-  if (i2c_error_count >= 5) {
-    enterI2cCriticalError();
-  }
-
-  // Возвращаем кешированное значение чтобы не ломать логику
+  // Возвращаем кешированное значение, НЕ перезагружаем
   MYDEBUG_PRINTLN("readPCF8574: using cached value");
   return lastKnownValue;
 }
