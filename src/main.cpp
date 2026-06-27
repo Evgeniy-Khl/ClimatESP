@@ -34,6 +34,7 @@ void setup(){
 
   Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
   Wire.setClock(100000);                // Снижаем скорость до 100кГц для стабильности
+  Wire.setClockStretchLimit(150000);    // 150мс лимит clock stretch (защита от зависания)
   
   // Первоначальный запуск RTC для корректного логирования времени с самого старта
   if (rtc.begin()) {
@@ -248,7 +249,7 @@ void ledSet(void){
 // Функция для восстановления шины I2C (если SDA или SCL зависли)
 void recoverI2C() {
   static unsigned long lastRecoveryTime = 0;
-  if (millis() - lastRecoveryTime < 200) return; // Ограничение частоты попыток
+  if (millis() - lastRecoveryTime < 500) return; // Ограничение частоты попыток
   lastRecoveryTime = millis();
 
   MYDEBUG_PRINTLN("Attempting I2C bus recovery...");
@@ -256,51 +257,51 @@ void recoverI2C() {
   const uint8_t sda = 4; 
   const uint8_t scl = 5;
 
-  // 1. Предварительно переводим пины в INPUT_PULLUP
+  // 1. Переводим пины в INPUT_PULLUP
   pinMode(sda, INPUT_PULLUP);
   pinMode(scl, INPUT_PULLUP);
-  delay(1);
+  delay(5);
 
-  // 2. Если SDA или SCL низкие, значит шина физически занята
   MYDEBUG_PRINT("Bus state before pulses: SDA=");
   MYDEBUG_PRINT(digitalRead(sda));
   MYDEBUG_PRINT(", SCL=");
   MYDEBUG_PRINTLN(digitalRead(scl));
 
-  // 3. Генерируем до 20 тактов SCL, чтобы вывести ведомых из состояния передачи
+  // 2. Генерируем до 20 тактов SCL чтобы вывести ведомых из состояния передачи
+  //    Используем более медленную частоту (~5кГц) для надёжности
   pinMode(scl, OUTPUT);
   for (int i = 0; i < 20; i++) {
     digitalWrite(scl, LOW);
-    delayMicroseconds(20);
+    delayMicroseconds(100);
     digitalWrite(scl, HIGH);
-    delayMicroseconds(20);
-    if (digitalRead(sda) == HIGH && i > 8) {
+    delayMicroseconds(100);
+    if (digitalRead(sda) == HIGH && i >= 8) {
        MYDEBUG_PRINT("SDA released after ");
-       MYDEBUG_PRINT(i);
+       MYDEBUG_PRINT(i + 1);
        MYDEBUG_PRINTLN(" pulses.");
        break;
     }
   }
 
-  // 4. Генерация START + STOP условий вручную
+  // 3. Генерируем корректную последовательность STOP
   pinMode(sda, OUTPUT);
-  digitalWrite(sda, LOW);    // START
-  delayMicroseconds(20);
-  digitalWrite(scl, LOW);
-  delayMicroseconds(20);
-  digitalWrite(scl, HIGH);   // STOP setup
-  delayMicroseconds(20);
-  digitalWrite(sda, HIGH);   // STOP
-  delayMicroseconds(20);
+  digitalWrite(sda, LOW);
+  delayMicroseconds(100);
+  digitalWrite(scl, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(sda, HIGH);   // STOP: SDA LOW→HIGH при SCL HIGH
+  delayMicroseconds(100);
 
-  // 5. Возвращаем пины под управление Wire
+  // 4. Возвращаем пины под управление Wire
   pinMode(sda, INPUT_PULLUP);
   pinMode(scl, INPUT_PULLUP);
+  delay(20); // ждём стабилизации линий
 
   Wire.begin(sda, scl);
-  Wire.setClock(100000); // Работаем на 100кГц для стабильности
+  Wire.setClock(100000);
+  Wire.setClockStretchLimit(150000); // 150мс - предотвращаем таймаут при clock stretch
   
-  delay(10); // Пауза для стабилизации
+  delay(50); // Увеличенная пауза - дать Wire и устройствам время стабилизироваться
   
   if (digitalRead(sda) == LOW || digitalRead(scl) == LOW) {
     MYDEBUG_PRINT("I2C recovery: FAILED. SDA=");
@@ -360,7 +361,8 @@ byte writePCF8574(byte data) {
 
     recoverI2C();
 
-    // Повторная попытка после recovery
+    // Повторная попытка после recovery - пауза чтобы Wire и устройства стабилизировались
+    delay(50);
     Wire.beginTransmission(PCF8574_ADDRESS);
     Wire.write(data);
     error = Wire.endTransmission();
@@ -407,7 +409,8 @@ byte readPCF8574() {
 
   recoverI2C();
 
-  // Повторная попытка после recovery
+  // Повторная попытка после recovery - пауза чтобы Wire и устройства стабилизировались
+  delay(50);
   count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
   if (count > 0) {
     i2c_error_count = 0;
