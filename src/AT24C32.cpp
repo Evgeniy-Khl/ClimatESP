@@ -141,9 +141,11 @@ void clearEEPROM(bool quiet) {
   
   // Проходим по всем 288 пятиминутным периодам
   for (int period = 0; period < DAILY_DATA_MAX_REC; ++period) {
-    if (period % 10 == 0) {
+    // Даём WiFi-стеку обработать пакеты каждые 5 итераций
+    // чтобы WiFi-прерывания не происходили во ВРЕМЯ I2C транзакций
+    if (period % 5 == 0) {
       ESP.wdtFeed();
-      yield();
+      yield(); // Позволяем WiFi сделать своё дело ДО следующей I2C операции
     }
     // Вычисляем адрес для текущего периода
     int currentAddress = DAILY_DATA_START + period * DAILY_DATA_REC_SIZE;
@@ -153,6 +155,15 @@ void clearEEPROM(bool quiet) {
     eepromWriteInt16(currentAddress + 2, 0);
     eepromWriteInt16(currentAddress + 4, 0);
   }
+  
+  // После большого количества I2C операций принудительно
+  // переинициализируем шину - это восстанавливает корректное
+  // состояние Wire library после возможных помех от WiFi
+  Wire.begin();
+  Wire.setClock(100000);
+  Wire.setClockStretchLimit(150000);
+  delay(100);
+  MYDEBUG_PRINTLN("I2C bus re-initialized after clearEEPROM.");
   
   if (!quiet) {
     for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
