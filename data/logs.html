@@ -140,7 +140,7 @@
 
       <div class="actions">
         <button id="clear-btn" class="btn-danger">Очистити журнал</button>
-        <a href="/" class="btn-link btn-back">Назад на головну</a>
+        <a href="/" id="back-link" class="btn-link btn-back">Назад на головну</a>
       </div>
     </div>
   </div>
@@ -153,6 +153,7 @@
       const pageTitle = document.getElementById('page-title');
       const logOutput = document.getElementById('log-output');
       const clearBtn = document.getElementById('clear-btn');
+      const backLink = document.getElementById('back-link');
 
       // Формируем URL для запроса логов
       let requestUrl = '/logs';
@@ -165,6 +166,12 @@
         
         // Скрываем кнопку очистки для архивных логов
         clearBtn.style.display = 'none';
+        
+        // Настраиваем возврат в архив
+        if (backLink) {
+          backLink.href = '/archive';
+          backLink.innerText = 'Назад до архіву';
+        }
       } else {
         pageTitle.innerText = 'Журнал подій (поточний)';
       }
@@ -182,7 +189,7 @@
             logOutput.innerText = text.trim() || 'Логів ще немає.';
           })
           .catch(err => {
-            logOutput.innerText = 'Помилка завантаження логів: ' + err.message;
+            logOutput.innerText = 'Помилка завантаження логов: ' + err.message;
           });
       }
 
