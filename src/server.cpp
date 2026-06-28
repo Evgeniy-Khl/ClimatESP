@@ -497,12 +497,6 @@ void handleShowData() {
     }
     String day = server.arg("day");
 
-    uint8_t start_data[7];
-    int startH = 0, startM = 0;
-    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
-        startH = start_data[4];
-        startM = start_data[5];
-    }
 
     String statsFilename = "/day_" + day + "_stats.json";
     File statsFile = LittleFS.open(statsFilename, "r");
@@ -599,12 +593,6 @@ void handleShowData() {
 }
 
 void handleCurrentData() {
-    uint8_t start_data[7];
-    int startH = 0, startM = 0;
-    if (eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7) == 7 && start_data[0] > 0) {
-        startH = start_data[4];
-        startM = start_data[5];
-    }
 
     int currentPeriod = (countHours * 60 + countMinutes) / 5;
     server.sendHeader("Connection", "close");
