@@ -125,19 +125,20 @@ void checkkey(uint8_t key){
                     }
           break;
         //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
-        case KEY_5_4_6: reset(); break;             // Сброс установок к значениям по умолчанию
+        case KEY_5_4_1: ESP.restart(); break;       
         // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
         case KEY_5_4_2: clearEEPROM(false); break;  // с анимацией и звуком
+        // Удаляем только файлы графиков и статистики (безопасная очистка)
+        case KEY_5_4_3: beeperOn(50); module.setDisplay(CLEAN_DATA, 8); clearIncubationData(); delay(1000); break;
         // Запись программы инкубации по умолчанию
         case KEY_7_1: prepareProg1(); beeperOn(100); break;
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
         case KEY_7_3: prepareProg3(); beeperOn(100); break;
         case KEY_7_4: prepareProg4(); beeperOn(100); break;
-        // wifiManager.resetSettings()
-        case KEY_7_4_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;
-        // Удаляем только файлы графиков и статистики (безопасная очистка)
-        case KEY_7_4_6_8: beeperOn(50); module.setDisplay(CLEAN_DATA, 8); clearIncubationData(); delay(1000); break;
-        case KEY_8: saveset(); break;
+        case KEY_7_5: reset(); break;               // Сброс установок к значениям по умолчанию
+        // WiFi Reset Settings
+        case KEY_7_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;
+        case KEY_8:   saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 
   }

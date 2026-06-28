@@ -7,7 +7,9 @@
 #define KEY_3 2
 #define KEY_4 32
 #define KEY_5 4
+#define KEY_5_4_1 4+32+1
 #define KEY_5_4_2 4+32+16
+#define KEY_5_4_3 4+32+2
 #define KEY_5_4_6 4+32+64
 #define KEY_6 64
 #define KEY_7 8
