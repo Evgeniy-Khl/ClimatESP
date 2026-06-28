@@ -124,10 +124,10 @@ void checkkey(uint8_t key){
                       case 31:  if(editBuff <   1) editBuff =   1;  break;
                     }
           break;
-        // Сброс установок к значениям по умолчанию
-        case KEY_5_4_6: reset(); break;
+        //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
+        case KEY_5_4_6: reset(); break;             // Сброс установок к значениям по умолчанию
         // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
-        case KEY_5_4_2: clearEEPROM(); break;
+        case KEY_5_4_2: clearEEPROM(false); break;  // с анимацией и звуком
         // Запись программы инкубации по умолчанию
         case KEY_7_1: prepareProg1(); beeperOn(100); break;
         case KEY_7_2: prepareProg2(); beeperOn(100); break;
