@@ -204,10 +204,14 @@ void acceptEeprom() {
   int16_t old_alarm0 = settings.sp_structs[0].alarm;
   int16_t old_alarm1 = settings.sp_structs[1].alarm;
   int16_t old_flpNow = settings.sp_structs[0].state;
-  int16_t old_timer0 = settings.sp_structs[0].timer;
-  int16_t old_timer1 = settings.sp_structs[1].timer;
-  int16_t old_air0   = settings.sp_structs[0].aeration;
-  int16_t old_air1   = settings.sp_structs[1].aeration;
+  int16_t old_aux0    = settings.sp_structs[0].auxiliary;
+  int16_t old_aux1    = settings.sp_structs[1].auxiliary;
+  int16_t old_coolOn0 = settings.sp_structs[0].coolOn;
+  int16_t old_coolOff0= settings.sp_structs[0].coolOff;
+  int16_t old_coolOn1 = settings.sp_structs[1].coolOn;
+  int16_t old_coolOff1= settings.sp_structs[1].coolOff;
+  int16_t old_air0    = settings.sp_structs[0].aeration;
+  int16_t old_air1    = settings.sp_structs[1].aeration;
 
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
@@ -292,17 +296,21 @@ void acceptEeprom() {
   LOG_CHANGED_D("RH:",   old_spRH,   settings.sp_structs[0].spRH)
   LOG_CHANGED_F("Аварія №1:",old_alarm0, settings.sp_structs[0].alarm, 10.0f)
   LOG_CHANGED_F("Аварія №2:",old_alarm1, settings.sp_structs[1].alarm, 10.0f)
-  LOG_CHANGED_D("Заслінка:",  old_flpNow, settings.sp_structs[0].state)
-  LOG_CHANGED_D("Таймер №1:", old_timer0, settings.sp_structs[0].timer)
-  LOG_CHANGED_D("Таймер №2:", old_timer1, settings.sp_structs[1].timer)
-  LOG_CHANGED_D("Вентил. №1:",old_air0,   settings.sp_structs[0].aeration)
-  LOG_CHANGED_D("Вентил. №2:",old_air1,   settings.sp_structs[1].aeration)
+  LOG_CHANGED_D("Заслінка:",   old_flpNow,  settings.sp_structs[0].state)
+  LOG_CHANGED_D("Допоміжн.№1:",old_aux0,   settings.sp_structs[0].auxiliary)
+  LOG_CHANGED_D("Допоміжн.№2:",old_aux1,   settings.sp_structs[1].auxiliary)
+  LOG_CHANGED_D("CoolOn №1:",  old_coolOn0, settings.sp_structs[0].coolOn)
+  LOG_CHANGED_D("CoolOff №1:", old_coolOff0,settings.sp_structs[0].coolOff)
+  LOG_CHANGED_D("CoolOn №2:",  old_coolOn1, settings.sp_structs[1].coolOn)
+  LOG_CHANGED_D("CoolOff №2:", old_coolOff1,settings.sp_structs[1].coolOff)
+  LOG_CHANGED_D("Вентил. №1:", old_air0,    settings.sp_structs[0].aeration)
+  LOG_CHANGED_D("Вентил. №2:", old_air1,    settings.sp_structs[1].aeration)
 
   #undef LOG_CHANGED_F
   #undef LOG_CHANGED_D
 
   if (anyChanged) logEvent(logStr.c_str());
-  DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
+//   DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
 
   if (configChanged) {
       JsonDocument json;
