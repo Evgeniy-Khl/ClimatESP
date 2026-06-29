@@ -276,7 +276,7 @@ void acceptEeprom() {
   // Логируем только изменённые параметры
   String logStr = "Налаштування: ";
   bool anyChanged = false;
-  char tmp[36];
+  char tmp[64];
 
   #define LOG_CHANGED_F(label, oldVal, newVal, divisor) \
     if ((oldVal) != (newVal)) { \
@@ -291,20 +291,20 @@ void acceptEeprom() {
       logStr += tmp; anyChanged = true; \
     }
 
-  LOG_CHANGED_F("T1:",   old_spT0,   settings.sp_structs[0].spT,   10.0f)
-  LOG_CHANGED_F("T2:",   old_spT1,   settings.sp_structs[1].spT,   10.0f)
-  LOG_CHANGED_D("RH:",   old_spRH,   settings.sp_structs[0].spRH)
-  LOG_CHANGED_F("Аварія №1:",old_alarm0, settings.sp_structs[0].alarm, 10.0f)
-  LOG_CHANGED_F("Аварія №2:",old_alarm1, settings.sp_structs[1].alarm, 10.0f)
-  LOG_CHANGED_D("Заслінка:",   old_flpNow,  settings.sp_structs[0].state)
-  LOG_CHANGED_D("Допоміжн.№1:",old_aux0,   settings.sp_structs[0].auxiliary)
-  LOG_CHANGED_D("Допоміжн.№2:",old_aux1,   settings.sp_structs[1].auxiliary)
-  LOG_CHANGED_D("CoolOn №1:",  old_coolOn0, settings.sp_structs[0].coolOn)
-  LOG_CHANGED_D("CoolOff №1:", old_coolOff0,settings.sp_structs[0].coolOff)
-  LOG_CHANGED_D("CoolOn №2:",  old_coolOn1, settings.sp_structs[1].coolOn)
-  LOG_CHANGED_D("CoolOff №2:", old_coolOff1,settings.sp_structs[1].coolOff)
-  LOG_CHANGED_D("Вентил. №1:", old_air0,    settings.sp_structs[0].aeration)
-  LOG_CHANGED_D("Вентил. №2:", old_air1,    settings.sp_structs[1].aeration)
+  LOG_CHANGED_F("Температура №1:",  old_spT0,   settings.sp_structs[0].spT,   10.0f)
+  LOG_CHANGED_F("Температура №2:",  old_spT1,   settings.sp_structs[1].spT,   10.0f)
+  LOG_CHANGED_D("Вологість:",       old_spRH,   settings.sp_structs[0].spRH)
+  LOG_CHANGED_F("Аварія №1:",       old_alarm0, settings.sp_structs[0].alarm, 10.0f)
+  LOG_CHANGED_F("Аварія №2:",       old_alarm1, settings.sp_structs[1].alarm, 10.0f)
+  LOG_CHANGED_D("Заслінка:",        old_flpNow,  settings.sp_structs[0].state)
+  LOG_CHANGED_D("Увімкнення доп.:", old_aux0,   settings.sp_structs[0].auxiliary)
+  LOG_CHANGED_D("Вимкнення доп.:",  old_aux1,   settings.sp_structs[1].auxiliary)
+  LOG_CHANGED_D("Увімкнення охол.:",old_coolOn0, settings.sp_structs[0].coolOn)
+  LOG_CHANGED_D("Вимкнення охол.:", old_coolOff0,settings.sp_structs[0].coolOff)
+  LOG_CHANGED_D("Увімкнення осуш.:",old_coolOn1, settings.sp_structs[1].coolOn)
+  LOG_CHANGED_D("Вимкнення осуш.:", old_coolOff1,settings.sp_structs[1].coolOff)
+  LOG_CHANGED_D("Пауза провіт.:",   old_air0,    settings.sp_structs[0].aeration)
+  LOG_CHANGED_D("Тривалість провіт.:", old_air1,    settings.sp_structs[1].aeration)
 
   #undef LOG_CHANGED_F
   #undef LOG_CHANGED_D
