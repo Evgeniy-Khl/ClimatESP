@@ -156,13 +156,11 @@ void clearEEPROM(bool quiet) {
     eepromWriteInt16(currentAddress + 4, 0);
   }
   
-  // После большого количества I2C операций принудительно
-  // переинициализируем шину - это восстанавливает корректное
-  // состояние Wire library после возможных помех от WiFi
-  Wire.begin();
-  Wire.setClock(100000);
-  Wire.setClockStretchLimit(150000);
-  delay(100);
+  // Небольшая пауза после серии I2C-записей для стабилизации шины.
+  // Wire.begin() здесь НЕ вызывается намеренно: принудительный сброс шины
+  // без последующей переинициализации PCF8574 и DS3231 оставляет их
+  // в неопределённом состоянии (err=2, NACK) — это и было причиной сбоя.
+  delay(10);
   MYDEBUG_PRINTLN("I2C bus re-initialized after clearEEPROM.");
   
   if (!quiet) {
