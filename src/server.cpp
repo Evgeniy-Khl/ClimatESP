@@ -195,10 +195,19 @@ void respondsEeprom(){
 }
 
 void acceptEeprom() {
-  // Логирование всех параметров
-//   DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
-  
   bool configChanged = false;
+
+  // Запоминаем текущие значения до применения новых
+  int16_t old_spT0   = settings.sp_structs[0].spT;
+  int16_t old_spT1   = settings.sp_structs[1].spT;
+  int16_t old_spRH   = settings.sp_structs[0].spRH;
+  int16_t old_alarm0 = settings.sp_structs[0].alarm;
+  int16_t old_alarm1 = settings.sp_structs[1].alarm;
+  int16_t old_flpNow = settings.sp_structs[0].state;
+  int16_t old_timer0 = settings.sp_structs[0].timer;
+  int16_t old_timer1 = settings.sp_structs[1].timer;
+  int16_t old_air0   = settings.sp_structs[0].aeration;
+  int16_t old_air1   = settings.sp_structs[1].aeration;
 
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
@@ -259,6 +268,41 @@ void acceptEeprom() {
 
   server.send(200);
   saveSetpoint();
+
+  // Логируем только изменённые параметры
+  String logStr = "Налаштування: ";
+  bool anyChanged = false;
+  char tmp[36];
+
+  #define LOG_CHANGED_F(label, oldVal, newVal, divisor) \
+    if ((oldVal) != (newVal)) { \
+      if (anyChanged) logStr += " | "; \
+      snprintf(tmp, sizeof(tmp), label "%.1f->%.1f", (oldVal)/(divisor), (newVal)/(divisor)); \
+      logStr += tmp; anyChanged = true; \
+    }
+  #define LOG_CHANGED_D(label, oldVal, newVal) \
+    if ((oldVal) != (newVal)) { \
+      if (anyChanged) logStr += " | "; \
+      snprintf(tmp, sizeof(tmp), label "%d->%d", (int)(oldVal), (int)(newVal)); \
+      logStr += tmp; anyChanged = true; \
+    }
+
+  LOG_CHANGED_F("T1:",   old_spT0,   settings.sp_structs[0].spT,   10.0f)
+  LOG_CHANGED_F("T2:",   old_spT1,   settings.sp_structs[1].spT,   10.0f)
+  LOG_CHANGED_D("RH:",   old_spRH,   settings.sp_structs[0].spRH)
+  LOG_CHANGED_F("Аварія №1:",old_alarm0, settings.sp_structs[0].alarm, 10.0f)
+  LOG_CHANGED_F("Аварія №2:",old_alarm1, settings.sp_structs[1].alarm, 10.0f)
+  LOG_CHANGED_D("Заслінка:",  old_flpNow, settings.sp_structs[0].state)
+  LOG_CHANGED_D("Таймер №1:", old_timer0, settings.sp_structs[0].timer)
+  LOG_CHANGED_D("Таймер №2:", old_timer1, settings.sp_structs[1].timer)
+  LOG_CHANGED_D("Вентил. №1:",old_air0,   settings.sp_structs[0].aeration)
+  LOG_CHANGED_D("Вентил. №2:",old_air1,   settings.sp_structs[1].aeration)
+
+  #undef LOG_CHANGED_F
+  #undef LOG_CHANGED_D
+
+  if (anyChanged) logEvent(logStr.c_str());
+  DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
 
   if (configChanged) {
       JsonDocument json;
