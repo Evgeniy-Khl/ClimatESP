@@ -190,13 +190,13 @@ void respondsEeprom(){
         server.send(200, "application/json", "");
         serializeJson(doc, server.client());
 
-        DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
+        // DEBUG_PRINTF("SERVER responds to the client with EEPROM: %d,%ld\n",seconds,millis()-lastSendTime);
         mode = SAVEEEPROM; interval = INTERVAL_1000;
 }
 
 void acceptEeprom() {
   // Логирование всех параметров
-  DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
+//   DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
   
   bool configChanged = false;
 
@@ -301,7 +301,7 @@ uint8_t respondsProgram(){
       server.send(200, "application/json", "");
       serializeJson(doc, server.client());
       
-      DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
+    //   DEBUG_PRINTF("SERVER responds to the client PROGRAM DATA #: %d,%ld\n",seconds,millis()-lastSendTime);
     }
     return err;
 }

@@ -43,14 +43,14 @@ void applyDailyProgram() {
         pvTimer = settings.sp_structs[0].timer; 
         pvAeration = settings.sp_structs[0].aeration;
 
-        MYDEBUG_PRINTLN("-----------------------------------------");
-        DEBUG_PRINTF("applyDailyProgram: ЗАГРУЖЕНА Программа %d, День %d (Адрес: 0x%04X)\n", prg, day, address);
-        DEBUG_PRINTF("  Уставки T: %d, T: %d, Волог: %d\n", unBuf.spDay.spT0, unBuf.spDay.spT1, unBuf.spDay.spRH);
-        DEBUG_PRINTF("  Таймеры(лотков): %d/%d, Провітрювання: %d/%d, Заслінка: %d\n", 
-                     unBuf.spDay.timer0, unBuf.spDay.timer1, 
-                     unBuf.spDay.aeration0, unBuf.spDay.aeration1, 
-                     unBuf.spDay.flap);
-        MYDEBUG_PRINTLN("-----------------------------------------");
+        // MYDEBUG_PRINTLN("-----------------------------------------");
+        // DEBUG_PRINTF("applyDailyProgram: ЗАГРУЖЕНА Программа %d, День %d (Адрес: 0x%04X)\n", prg, day, address);
+        // DEBUG_PRINTF("  Уставки T: %d, T: %d, Волог: %d\n", unBuf.spDay.spT0, unBuf.spDay.spT1, unBuf.spDay.spRH);
+        // DEBUG_PRINTF("  Таймеры(лотков): %d/%d, Провітрювання: %d/%d, Заслінка: %d\n", 
+        //              unBuf.spDay.timer0, unBuf.spDay.timer1, 
+        //              unBuf.spDay.aeration0, unBuf.spDay.aeration1, 
+        //              unBuf.spDay.flap);
+        // MYDEBUG_PRINTLN("-----------------------------------------");
 
         // Запись загрузки программы в системный лог
         char logBuffer[256];

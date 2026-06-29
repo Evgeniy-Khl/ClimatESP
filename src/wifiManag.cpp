@@ -21,7 +21,7 @@ void setupWebServerRoutes() {
       }
     });
     server.on("/setup", HTTP_GET, []() {
-      DEBUG_PRINTF("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
+    //   DEBUG_PRINTF("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
       File file = LittleFS.open("/setup.html", "r");
       if (!file) {
           server.send(404, "text/plain", "File Not Found");
@@ -31,7 +31,7 @@ void setupWebServerRoutes() {
       file.close();
     });
     server.on("/table", HTTP_GET, []() {
-      DEBUG_PRINTF("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
+    //   DEBUG_PRINTF("/table ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
       File file = LittleFS.open("/table.html", "r");
       if (!file) {
           server.send(404, "text/plain", "File Not Found");
