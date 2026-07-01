@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Налаштування</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-primary: #3b82f6;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.6rem;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        form {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            width: 100%;
+        }
+
+        /* Tabs Styling */
+        .tabs-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 2px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--color-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        select option {
+            background-color: #1e293b;
+            color: var(--text-main);
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--color-primary);
+            background: rgba(255, 255, 255, 0.08);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        /* Details info alert styling */
+        details {
+            background: rgba(59, 130, 246, 0.08);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-size: 0.85rem;
+        }
+
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: #60a5fa;
+            outline: none;
+            user-select: none;
+        }
+
+        ol {
+            margin-top: 8px;
+            padding-left: 20px;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Popup overlay styles */
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
+        .popup-card {
+            background: #1e293b;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 260px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            animation: popupIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popupIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        #popupMessage {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Buttons footer */
+        .actions-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button.btn-submit {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        button.btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        }
+
+        button.btn-cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        button.btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const popup = document.getElementById('popup');
+            const popupMessage = document.getElementById('popupMessage');
+
+            function showPopup(message) {
+                popupMessage.textContent = message;
+                popup.classList.add('active');
+            }
+
+            function closePopup() {
+                popup.classList.remove('active');
+            }
+
+            // Tabs Switcher
+            window.switchTab = function(event, tabId) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+                event.currentTarget.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            };
+
+            function fetchData(retries = 5) {
+                showPopup('Завантаження даних...');
+                
+                fetch('/geteeprom')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Сетевая ошибка: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        closePopup();
+                        console.log('Полученные данные:', data);
+                        if (data.status === 0) {
+                            console.log(`Попытка загрузки данных не удалась. Осталось попыток: ${retries}`);
+                            if (retries > 0) {
+                                showPopup(`З'єднання... Спроба ${6 - retries}`);
+                                setTimeout(() => fetchData(retries - 1), 1000);
+                            } else {
+                                showPopup('Не вдалося отримати дані від приладу.');
+                                setTimeout(closePopup, 3000);
+                            }
+                        } else if (data.status === 1) {
+                            document.getElementById('spT0').value = (data.spT0 / 10).toFixed(1);
+                            document.getElementById('spT1').value = (data.spT1 / 10).toFixed(1);
+                            document.getElementById('spRH0').value = data.spRH0;
+                            document.getElementById('spRH1').value = data.spRH1;
+                            document.getElementById('flpNow').value = data.flpNow;
+                            document.getElementById('program').value = data.program;
+                            document.getElementById('ventMode').value = data.ventMode;
+                            document.getElementById('extendMode').value = data.extendMode;
+                            document.getElementById('relayMode').value = data.relayMode;
+                            document.getElementById('checkDry').value = data.checkDry;
+                            document.getElementById('rotate0').value = data.rotate0;
+                            document.getElementById('rotate1').value = data.rotate1;
+                            document.getElementById('alarm0').value = (data.alarm0 / 10).toFixed(1);
+                            document.getElementById('alarm1').value = (data.alarm1 / 10).toFixed(1);
+                            document.getElementById('coolOn0').value = (data.coolOn0 / 10).toFixed(1);
+                            document.getElementById('coolOff0').value = (data.coolOff0 / 10).toFixed(1);
+                            document.getElementById('coolOn1').value = (data.coolOn1 / 10).toFixed(1);
+                            document.getElementById('coolOff1').value = (data.coolOff1 / 10).toFixed(1);
+                            document.getElementById('extOn').value = (data.extOn / 10).toFixed(1);
+                            document.getElementById('extOff').value = (data.extOff / 10).toFixed(1);
+                            document.getElementById('minRun').value = (data.minRun / 100).toFixed(1);
+                            document.getElementById('period').value = data.period;
+                            document.getElementById('air0').value = data.air0;
+                            document.getElementById('air1').value = data.air1;
+                            document.getElementById('flpClose').value = data.flpClose;
+                            document.getElementById('flpOpen').value = data.flpOpen;
+                            document.getElementById('pkoff0').value = data.pkoff0;
+                            document.getElementById('ikoff0').value = data.ikoff0;
+                            document.getElementById('pkoff1').value = data.pkoff1;
+                            document.getElementById('ikoff1').value = data.ikoff1;
+                            document.getElementById('identif').value = data.identif;
+                            document.getElementById('botToken').value = data.botToken || '';
+                            document.getElementById('chatID').value = data.chatID || '';
+                            
+                            // Запуск валидации после автозаполнения
+                            runValidation();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении настроек:', error);
+                        showPopup('Помилка з\'єднання з сервером.');
+                        setTimeout(closePopup, 3000);
+                    });
+            }
+
+            document.getElementById('settingsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                showPopup('Збереження налаштувань...');
+
+                const formData = new FormData(event.target);
+                const fieldsToTransform = ['spT0','spT1','alarm0','alarm1','coolOn0','coolOff0','coolOn1','coolOff1','extOn','extOff','minRun'];
+
+                fieldsToTransform.forEach(field => {
+                    const inputValue = parseFloat(formData.get(field));
+                    if (!isNaN(inputValue)) {
+                        let transformedValue;
+                        if (field === 'minRun') {
+                            transformedValue = Math.round(inputValue * 100);
+                        } else {
+                            transformedValue = Math.round(inputValue * 10);
+                        }
+                        formData.set(field, transformedValue);
+                    }
+                });
+
+                const searchParams = new URLSearchParams(formData);
+                fetch('/seteeprom', {
+                    method: 'POST',
+                    body: searchParams
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showPopup('Налаштування збережено!');
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 1500);
+                    } else {
+                        showPopup('Помилка збереження.');
+                        setTimeout(closePopup, 2000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке настроек:', error);
+                    showPopup('Помилка мережі при збереженні.');
+                    setTimeout(closePopup, 2000);
+                });
+            });
+
+            // Валидация на лету
+            const spT0 = document.getElementById('spT0');
+            const spT1 = document.getElementById('spT1');
+            const errT0 = document.getElementById('error-spT0');
+            const errT1 = document.getElementById('error-spT1');
+            const submitBtn = document.querySelector('.btn-submit');
+
+            function validateField(input, errorEl) {
+                const val = parseFloat(input.value);
+                if (isNaN(val) || val < 0.1 || val > 99.9) {
+                    input.style.borderColor = 'var(--color-danger)';
+                    input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.25)';
+                    errorEl.style.display = 'block';
+                    return false;
+                } else {
+                    input.style.borderColor = '';
+                    input.style.boxShadow = '';
+                    errorEl.style.display = 'none';
+                    return true;
+                }
+            }
+
+            function runValidation() {
+                const isT0Valid = validateField(spT0, errT0);
+                const isT1Valid = validateField(spT1, errT1);
+                submitBtn.disabled = !(isT0Valid && isT1Valid);
+            }
+
+            spT0.addEventListener('input', runValidation);
+            spT1.addEventListener('input', runValidation);
+
+            fetchData();
+        });
+
+        function updateDisplay() {
+            // Placeholder function if needed, preserved from original file logic
+        }
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <h2>Налаштування приладу</h2>
+        
+        <form action="/set_parameters" id="settingsForm" method="POST" novalidate>
+            <!-- Tabs Menu -->
+            <div class="tabs-header">
+                <button type="button" class="tab-btn active" onclick="switchTab(event, 'tab-main')">Основні</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-alarm')">Аварія/Охол</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Повор</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-pid')">ПІД-рег</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
+            </div>
+
+            <!-- Tab 1: Основні -->
+            <div id="tab-main" class="tab-pane active">
+                <div class="form-group">
+                    <label for="spT0">Сухий датчик (від 0.1 до 99.9°C):</label>
+                    <input type="number" name="spT0" id="spT0" required min="0.1" max="99.9" step="0.1">
+                    <span id="error-spT0" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 0.1 до 99.9°C</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="spT1">Вологий датчик (від 0.1 до 99.9°C):</label>
+                    <input type="number" name="spT1" id="spT1" required min="0.1" max="99.9" step="0.1">
+                    <span id="error-spT1" style="display:none; color:var(--color-danger); font-size:0.75rem; margin-top:-2px;">Температура має бути від 0.1 до 99.9°C</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="spRH1">Вологість (від 1 до 99%):</label>
+                    <input type="number" name="spRH1" id="spRH1" min="1" max="99" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="flpNow">Положення заслінки (від 0 до 100%):</label>
+                    <input type="number" name="flpNow" id="flpNow" min="0" max="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="program">Виконувана програма:</label>
+                    <select name="program" id="program">
+                        <option value="0">НЕМАЄ</option>
+                        <option value="1">Програма №1</option>
+                        <option value="2">Програма №2</option>
+                        <option value="3">Програма №3</option>
+                        <option value="4">Програма №4</option>
+                        <option value="5">Старт вручну</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="relayMode">Релейний режим роботи:</label>
+                    <select name="relayMode" id="relayMode">
+                        <option value="0">НЕМАЄ</option>
+                        <option value="1">За каналом №1</option>
+                        <option value="2">За каналом №2</option>
+                        <option value="3">За кан.№1 и №2</option>
+                        <option value="4">Кан.№2 імпульсний</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkDry">Затримка регулювання кан.№2:</label>
+                    <select name="checkDry" id="checkDry">
+                        <option value="0">НЕМАЄ</option>
+                        <option value="1">ПРИСУТНЯ</option>
+                        <option value="0">НЕМАЄ (реле)</option>
+                        <option value="1">ПРИСУТНЯ (реле)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="spRH0">Корекція вологості (від -40% до 40%):</label>
+                    <input type="number" name="spRH0" id="spRH0" min="-40" max="40" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="identif">Номер приладу (від 0 до 999):</label>
+                    <input type="number" name="identif" id="identif" min="1" max="999" required>
+                </div>
+            </div>
+
+            <!-- Tab 2: Аварія / Охолодження -->
+            <div id="tab-alarm" class="tab-pane">
+                <div class="form-group">
+                    <label for="alarm0">Увімкнення попередження по кан.№1 (дельта від 0.5 до 40.0°C):</label>
+                    <input type="number" name="alarm0" id="alarm0" min="0.5" max="40" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="alarm1">Увімкнення попередження по кан.№2 (дельта від 0.5 до 40.0°C/%):</label>
+                    <input type="number" name="alarm1" id="alarm1" min="0.5" max="40" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coolOn0">Увімкнення охолодження по кан.№1 (дельта от 0.1 до 20.0°C):</label>
+                    <input type="number" name="coolOn0" id="coolOn0" min="0.1" max="20" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coolOff0">Вимкнення охолодження по кан.№1 (дельта от 0.1 до 15.0°C):</label>
+                    <input type="number" name="coolOff0" id="coolOff0" min="0.1" max="15" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coolOn1">Увімкнення осушення по кан.№2 (дельта от 0.1 до 20.0°C/%):</label>
+                    <input type="number" name="coolOn1" id="coolOn1" min="0.1" max="20" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coolOff1">Вимкнення осушення по кан.№2 (дельта от 0.1 до 15.0°C/%):</label>
+                    <input type="number" name="coolOff1" id="coolOff1" min="0.1" max="25" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="extendMode">Розширений режим роботи:</label>
+                    <select name="extendMode" id="extendMode">
+                        <option value="0">СИРЕНА</option>
+                        <option value="1">АВАРІЙНЕ ВІДКЛЮЧЕННЯ</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="extOn">Увімкнення допоміжного каналу (дельта від 0.5 до 40.0°C):</label>
+                    <input type="number" name="extOn" id="extOn" min="0.5" max="40" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="extOff">Вимкнення допоміжного каналу (дельта від 0.2 до 40.0°C):</label>
+                    <input type="number" name="extOff" id="extOff" min="0.2" max="40" step="0.1" required>
+                </div>
+            </div>
+
+            <!-- Tab 3: Вент / Поворот -->
+            <div id="tab-vent" class="tab-pane">
+                <div class="form-group">
+                    <label for="rotate0">Поворот "режим-0" (від 1 до 999 хвилин):</label>
+                    <input type="number" name="rotate0" id="rotate0" min="1" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="rotate1">Поворот "режим-1" (від 0 до 250 секунд):</label>
+                    <input type="number" name="rotate1" id="rotate1" min="0" max="250" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ventMode">Режим роботи вентиляції:</label>
+                    <select name="ventMode" id="ventMode">
+                        <option value="1">ОХОЛОДЖЕННЯ</option>
+                        <option value="2">ОСУШЕННЯ</option>
+                        <option value="3">ОХОЛОДЖЕННЯ + ОСУШЕННЯ</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="minRun">Помпа мінімум роботи (від 0.1 до 10 секунд):</label>
+                    <input type="number" name="minRun" id="minRun" min="0.1" max="10" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="period">Помпа пауза (від 5 до 60 секунд):</label>
+                    <input type="number" name="period" id="period" min="5" max="60" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="air0">Провітрювання пауза (від 1 до 999 хвилин):</label>
+                    <input type="number" name="air0" id="air0" min="1" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="air1">Провітрювання робота (від 0 до 999 секунд):</label>
+                    <input type="number" name="air1" id="air1" min="0" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="flpClose">Заслінка закрита (%):</label>
+                    <input type="number" name="flpClose" id="flpClose" min="0" max="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="flpOpen">Заслінка відкрита (%):</label>
+                    <input type="number" name="flpOpen" id="flpOpen" min="50" max="100" required>
+                </div>
+            </div>
+
+            <!-- Tab 4: ПІД-регулятор -->
+            <div id="tab-pid" class="tab-pane">
+                <details>
+                    <summary>ℹ️ Як налаштувати ПІД-регулятор?</summary>
+                    <ol>
+                        <li>Встановіть <b>Ki (Інтегральний)</b> = 0.</li>
+                        <li>Встановіть <b>Kp (Пропорційний)</b> = 50.</li>
+                        <li>Спостерігайте за графіком температури.</li>
+                        <li>Якщо температура довго не добирає норму, додайте Kp по +20.</li>
+                        <li>Якщо виникають значні коливання («хвилі»), зменшіть Kp на 10%. Це оптимальний Kp.</li>
+                        <li>Поступово додавайте <b>Ki</b> (по +50), поки графік не вирівняється.</li>
+                    </ol>
+                </details>
+
+                <div class="form-group">
+                    <label for="pkoff0">Пропорційний №1 (від 1 до 999 одиниць):</label>
+                    <input type="number" name="pkoff0" id="pkoff0" min="1" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ikoff0">Інтегральний №1 (від 0 до 999 одиниць):</label>
+                    <input type="number" name="ikoff0" id="ikoff0" min="0" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pkoff1">Пропорційний №2 (від 1 до 999 одиниць):</label>
+                    <input type="number" name="pkoff1" id="pkoff1" min="1" max="999" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ikoff1">Інтегральний №2 (від 0 до 999 одиниць):</label>
+                    <input type="number" name="ikoff1" id="ikoff1" min="0" max="999" required>
+                </div>
+            </div>
+
+            <!-- Tab 5: Telegram -->
+            <div id="tab-telegram" class="tab-pane">
+                <div class="form-group">
+                    <label for="botToken">Telegram Bot Token (від BotFather):</label>
+                    <input type="text" name="botToken" id="botToken" maxlength="50" placeholder="Введіть токен бота">
+                </div>
+
+                <div class="form-group">
+                    <label for="chatID">Telegram Chat ID (ID чату):</label>
+                    <input type="text" name="chatID" id="chatID" maxlength="14" placeholder="Введіть ID чату">
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="actions-group">
+                <button type="submit" class="btn-submit">ЗБЕРІГТИ</button>
+                <a href="/" style="text-decoration:none;"><button type="button" class="btn-cancel">СКАСУВАТИ</button></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Всплывающее окно -->
+    <div id="popup" class="popup">
+        <div class="popup-card">
+            <div id="popupMessage">Завантаження...</div>
+        </div>
+    </div>
+</body>
+</html>

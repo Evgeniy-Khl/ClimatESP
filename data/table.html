@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Редагування програми</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --color-primary: #3b82f6;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.6rem;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            min-width: 800px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background-color: rgba(15, 23, 42, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+        }
+
+        /* Sticky Left Column for days */
+        td:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #1e293b;
+            font-weight: 600;
+            z-index: 1;
+            color: var(--color-primary);
+            border-right: 1.5px solid var(--card-border);
+        }
+
+        th:first-child {
+            left: 0;
+            z-index: 3;
+            background-color: #0f172a;
+            border-right: 1.5px solid var(--card-border);
+        }
+
+        /* Editable highlight */
+        td[contenteditable="true"] {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        td[contenteditable="true"]:focus {
+            outline: none;
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            box-shadow: inset 0 0 0 2px var(--color-primary);
+        }
+
+        /* Table row hover */
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Buttons styles */
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        button {
+            width: 100%;
+            font-family: inherit;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #saveButton {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        #saveButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        }
+
+        #canselButton {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            box-shadow: none;
+        }
+
+        #canselButton:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Loading Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
+        .popup-card {
+            background: #1e293b;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 280px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            animation: popupIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popupIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        #popupMessage {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>Таблиця інкубації</h1>
+        
+        <div class="table-responsive">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Доба</th> 
+                        <th>Темп. №1 (&deg;C)</th>
+                        <th>Темп. №2 (&deg;C)</th>
+                        <th>Волог. (%)</th>
+                        <th>Заслін. (%)</th>
+                        <th>Поворот (хвл.)</th>
+                        <th>Поворот (сек.)</th>
+                        <th>Пауза (хвл.)</th>
+                        <th>Провітр. (сек.)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="buttons-container">
+            <button id="saveButton">ЗБЕРІГТИ</button>
+            <a href="/" style="text-decoration:none;"><button id="canselButton" type="button">СКАСУВАТИ</button></a>
+        </div>
+    </div>
+
+    <!-- Всплывающее окно -->
+    <div id="loadingPopup" class="popup">
+        <div class="popup-card">
+            <div id="popupMessage">Завантаження даних, будь ласка зачекайте...</div>
+        </div>
+    </div>
+
+    <script>
+        const loadingPopup = document.getElementById('loadingPopup');
+        const popupMessage = document.getElementById('popupMessage');
+
+        function showPopup(msg) {
+            popupMessage.textContent = msg;
+            loadingPopup.classList.add('active');
+        }
+
+        function closePopup() {
+            loadingPopup.classList.remove('active');
+        }
+
+        async function fetchData() {
+            const maxAttempts = 5;
+            let attempts = 0;
+
+            showPopup('Завантаження даних, зачекайте...');
+
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch('/get_table', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка загрузки данных');
+                    }
+
+                    const data = await response.json();
+                    const tbody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+                    tbody.innerHTML = ''; // Очистка таблицы
+
+                    data.forEach((row, index) => {
+                        const tr = document.createElement('tr');
+                        const dayCell = document.createElement('td');
+                        dayCell.innerHTML = `Д.${index + 1}`;
+                        tr.appendChild(dayCell);
+
+                        row.forEach((cell, cellIndex) => {
+                            const td = document.createElement('td');
+                            if (cellIndex === 0 || cellIndex === 1) {
+                                td.innerHTML = (cell / 10).toFixed(1);
+                            } else {
+                                td.innerHTML = cell;
+                            }
+                            td.contentEditable = true;
+                            tr.appendChild(td);
+                            
+                            td.addEventListener('focus', () => {
+                                td.dataset.originalValue = td.innerHTML;
+                            });
+
+                            td.addEventListener('input', () => {
+                                td.style.backgroundColor = 'rgba(59, 130, 246, 0.08)';
+                            });
+
+                            td.addEventListener('blur', () => {
+                                const newValue = td.innerHTML.trim();
+                                let minValue, maxValue;
+
+                                // Устанавливаем пределы для каждой колонки
+                                if (cellIndex === 0) { // Температура №1 (°C)
+                                    minValue = 20;
+                                    maxValue = 40;
+                                } else if (cellIndex === 1) { // Температура №2 (°C)
+                                    minValue = 20;
+                                    maxValue = 40;
+                                } else if (cellIndex === 2) { // Влажность (%)
+                                    minValue = 20;
+                                    maxValue = 90;
+                                } else if (cellIndex === 3) { // Заслонка (%)
+                                    minValue = 0;
+                                    maxValue = 100;
+                                }
+
+                                if (newValue === '') {
+                                    td.innerHTML = td.dataset.originalValue;
+                                } else {
+                                    const numericValue = parseFloat(newValue);
+                                    if (isNaN(numericValue)) {
+                                        td.innerHTML = td.dataset.originalValue;
+                                    } else if (minValue !== undefined && (numericValue < minValue || numericValue > maxValue)) {
+                                        showPopup(`Значення повинно бути між ${minValue} та ${maxValue}.`);
+                                        setTimeout(() => {
+                                            closePopup();
+                                            td.innerHTML = td.dataset.originalValue;
+                                        }, 2000);
+                                    } else {
+                                        td.innerHTML = numericValue;
+                                    }
+                                }
+                                td.style.backgroundColor = '';
+                            });
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    break;
+                } catch (error) {
+                    attempts++;
+                    console.error(`Попытка ${attempts}: ${error.message}`);
+                    if (attempts === maxAttempts) {
+                        showPopup('Не вдалося завантажити дані таблиці.');
+                        setTimeout(closePopup, 3000);
+                        return;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            closePopup();
+        }
+
+        async function saveData() {
+            showPopup('Збереження таблиці...');
+            const tbody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            const dataToSend = rows.map(row => {
+                return Array.from(row.getElementsByTagName('td')).map((cell, index) => {
+                    const formattedValue = cell.innerHTML.replace(',', '.');
+                    const value = (index === 1 || index === 2) ? Math.round(parseFloat(formattedValue) * 10) : parseInt(formattedValue);
+                    return isNaN(value) ? null : value;
+                }).filter(cell => cell !== null);
+            }).filter(row => row.length > 0);
+
+            const payload = { data: dataToSend };
+            const jsonData = encodeURIComponent(JSON.stringify(payload));
+            console.log("Отправляемые данные:", jsonData);
+
+            try {
+                const response = await fetch(`/save_table?data=${jsonData}`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    showPopup('Програму успішно збережено!');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    showPopup('Помилка при збереженні програми.');
+                    setTimeout(closePopup, 2000);
+                }
+            } catch(e) {
+                console.error(e);
+                showPopup('Помилка з\'єднання.');
+                setTimeout(closePopup, 2000);
+            }
+        }
+
+        document.getElementById('saveButton').addEventListener('click', saveData);
+        window.onload = fetchData;
+    </script>
+</body>
+</html>

@@ -1,205 +1,417 @@
-// #include <Arduino.h>
-#include <TM1638.h>
-#include <Wire.h>     // Библиотека для I2C связи
-#include <RTClib.h>   // Библиотека для работы с RTC DS3231
-#include <OneWire.h>
-#include <DallasTemperature.h>
-//#include "AT24C32.h"
-// Пин, к которому подключен светодиод (например, D4 на NodeMCU, это GPIO2)
-const int ledPin = 2; // GPIO2
-// Пин, к которому подключен информационный вывод (DQ) датчика DS18B20
-#define ONE_WIRE_BUS_PIN 13 // используется номер GPIO
+#include "main.h"
+#include "my_settings.h"
+char displStr[200];
 
-// Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
-OneWire oneWire(ONE_WIRE_BUS_PIN);
-// Передаем ссылку на объект oneWire в конструктор DallasTemperature
-DallasTemperature sensors(&oneWire);
-// Переменная для хранения адреса датчика (если их несколько)
-DeviceAddress sensorAddress;
+ESP8266WebServer server(80);
+WiFiClientSecure client;
+MyTelegramBot bot(botToken, client);
 
-// Переменные для управления яркостью
-int brightness = 0;    // Текущая яркость
-int fadeAmount = 5;    // На сколько изменять яркость за один шаг
+PIDController pid[2];
+SoftwarePWMBit heaterPwm(&portOut.value, 1); 
+SoftwarePWMBit humidiPwm(&portOut.value, 2);
 
-// Адрес PCF8574. Может быть разным в зависимости от конфигурации A0, A1, A2.
-// Стандартные адреса: 0x20-0x27 для PCF8574 и 0x38-0x3F для PCF8574A.
-// Уточните адрес вашего модуля. Часто по умолчанию 0x27 или 0x3F.
-#define PCF8574_ADDRESS 0x27 // Замените на ваш адрес, если необходимо
-long lastMsg = 0, number = 0;
-int16_t t1 = 375, t2 = 302;
-byte data[] = {
-  0b01011011, // 2
-  0b01011110, // d
-  0b00000110, // 1
-  0b11101101, // 5.
-  0b01011011, // 2
-  0b01101101, // 5
-  0,
-  0
-};
+RTC_DS3231 rtc;                     // Создаем объект RTC для DS3231
+DateTime now;
+
+DHT dht(ONE_WIRE_BUS_PIN, DHT22);
+OneWire oneWire(ONE_WIRE_BUS_PIN);  // Создаем экземпляр объекта OneWire для взаимодействия с шиной 1-Wire
+DallasTemperature sensors(&oneWire);// Передаем ссылку на объект oneWire в конструктор DallasTemperature
+DeviceAddress sensorAddresses[MAX_DEVICE];  // Массив для хранения уникальных адресов датчиков
 
 byte writePCF8574(byte data);
-byte readPCF8574();
-void testAT24C32();
-void printAddress(DeviceAddress deviceAddress);
-// NodeMcu    DIO CLK STB            
-TM1638 module(16, 14, 12);    // Создаем объект module для TM1638
-RTC_DS3231 rtc;               // Создаем объект RTC для DS3231
+bool recoverI2C();
 
-void setup() {
-  Serial.begin(115200);       // Инициализация последовательного порта для отладки
-  //------------------------------------------------------------------------------
-  pinMode(ledPin, OUTPUT);    // Устанавливаем пин светодиода как выход
-  // Можно установить желаемую частоту ШИМ (опционально)
-  // analogWriteFreq(1000);   // По умолчанию и так 1000 Гц
-  // Можно установить желаемый диапазон (опционально)
-  analogWriteRange(255);      // Если хотите диапазон 0-255
-  //------------------------------------------------------------------------------
-  Wire.begin();               // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
-  // Wire.begin(D2, D1);      // Если вы хотите использовать другие пины для I2C (например, D2 для SDA, D1 для SCL)
-  //--------------------- Инициализация PCF8574 ----------------------------------
-  /* Пример: Установить все пины PCF8574 как выходы и выключить их (записать 0)
-            Для PCF8574, чтобы использовать пин как "выход", мы просто записываем в него значение.
-            Чтобы использовать пин как "вход", мы записываем в него '1' (высокий уровень),
-            а затем читаем состояние. Внутренние подтягивающие резисторы слабые. 
-  */
-  writePCF8574(0x00);         // Установить все пины в LOW (если они используются как выходы)
+TM1638 module(13, 14, 12);    // Создаем объект module для TM1638
+InvertedServo incubatorServo; // Создаем объект управления сервоприводом
+void ledSet(void);
 
-  //---------------------------------------  Инициализация DS3231 ----------------------------------------
-  if (!rtc.begin()) {
-    // Serial.println("Couldn't find RTC! Check wiring or I2C address.");
-    // Serial.flush();       // гарантированно вывелось в монитор порта
-    // while (1) delay(10);  // Остановка, если RTC не найден
-    data[6] = NUMBER_FONT[14];  // "E"
-  }
-  Serial.println("RTC found!");
-  //------------------------------------------------------------------------------
-  testAT24C32();              // тест
-  //==============================================================================
-  Serial.println("---------------ESP8266 <-> DS18B20 Temperature Sensor Test----------------");
+void setup(){
+  logEvent("Система запускається...");
+  #ifdef DEBUG
+    Serial.begin(115200);               // Инициализация последовательного порта для отладки
+  #endif
 
-  // Инициализация библиотеки DallasTemperature
-  sensors.begin();
-  sensors.setWaitForConversion(false);    // false: функция вернет управление немедленно.
-  sensors.setCheckForConversion(false);   // Часто используется вместе с waitForConversion = false
-  sensors.setAutoSaveScratchPad(false);   // Флаг автоматического сохранения настроек в EEPROM датчика.
-  sensors.setResolution(12);
-  Serial.println("DallasTemperature Library Initialized.");
+  ESP.wdtEnable(5000);                  // Включаем аппаратный ватчдог на 5 секунд
 
-  // Поиск устройств на шине 1-Wire
-  int numberOfDevices = sensors.getDeviceCount();
-  Serial.print("Found ");
-  Serial.print(numberOfDevices, DEC);
-  Serial.println(" devices.");
+  Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
+  Wire.setClock(100000);                // Снижаем скорость до 100кГц для стабильности
+  Wire.setClockStretchLimit(150000);    // 150мс лимит clock stretch (защита от зависания)
 
-  if (numberOfDevices == 0) {
-    Serial.println("No DS18B20 sensors found! Check wiring and pull-up resistor.");
-    // Можно остановить выполнение, если датчики не найдены
-    // while(true) delay(100);
-  } else {
-    Serial.println("Sensor addresses:");
-    // Выводим адрес каждого найденного устройства
-    for (int i = 0; i < numberOfDevices; i++) {
-      if (sensors.getAddress(sensorAddress, i)) {
-        Serial.print("  Sensor ");
-        Serial.print(i);
-        Serial.print(": ");
-        printAddress(sensorAddress);
-        Serial.println();
-      } else {
-        Serial.print("Could not get address for sensor ");
-        Serial.println(i);
+  // --- I2C сканер: показывает все устройства на шине при старте ---
+  {
+    MYDEBUG_PRINTLN("\n--- I2C Bus Scan ---");
+    uint8_t found = 0;
+    for (uint8_t addr = 1; addr < 127; addr++) {
+      Wire.beginTransmission(addr);
+      uint8_t err = Wire.endTransmission();
+      if (err == 0) {
+        char buf[48];
+        snprintf(buf, sizeof(buf), "I2C found: 0x%02X", addr);
+        MYDEBUG_PRINTLN(buf);
+        logEvent(buf);
+        found++;
       }
+      ESP.wdtFeed();
     }
-    // Устанавливаем разрешение для всех датчиков (9, 10, 11, or 12 бит)
-    // 12 бит дает наибольшую точность, но и наибольшее время преобразования (~750ms)
-    // sensors.setResolution(12); // Уже по умолчанию 12 бит при инициализации
+    if (found == 0) {
+      MYDEBUG_PRINTLN("I2C scan: NO devices found!");
+      logEvent("I2C scan: НЕТ устройств на шине!");
+    }
+    char buf[40];
+    snprintf(buf, sizeof(buf), "I2C scan done. Devices: %d", found);
+    MYDEBUG_PRINTLN(buf);
+    MYDEBUG_PRINTLN("--- End of I2C scan ---\n");
   }
-  //==================================================================================
-  module.setDisplay(data, 8); // Вывод на дисплей "2d1 | 5.12"
-  delay(2000);
+
+
+  // Первоначальный запуск RTC для корректного логирования времени с самого старта
+  if (rtc.begin()) {
+    RTCENABLE = 1;
+    now = rtc.now();
+  }
+
+  /* uint8_t temp =  */writePCF8574(0xFF);    // Установить все пины в LOW (если они используются как выходы)
+
+  // for (uint8_t i = 0; i < 8; i++) { data[i] = OO;}
+  // module.setDisplay(data, 8);                       //"ooo ooo oo"
+  // if(temp){
+  //    dataLed[5] = 1;                                // ошибка writePCF8574
+  // }
+  //----------------------------------- MOUNTING FS ----------------------------------------
+  MYDEBUG_PRINTLN("\n mounting FS...");
+  bool lFS = LittleFS.begin();
+  if(lFS) {
+    fsMounted = true;
+    MYDEBUG_PRINTLN("mounted file system");
+    logEvent("Файлова система LittleFS змонтована успішно.");
+    listFilesAndSizes();
+    
+    //--------------------- checkSetpoint ----------------------------------
+    dataLed[2] = checkSetpoint();
+    dataLed[3] = checkConfig();
+  } else {
+    MYDEBUG_PRINTLN("failed to mount FS");
+    logEvent("ПОМИЛКА: Не вдалося змонтувати файлову систему LittleFS!");
+    dataLed[4] = 1;
+  }
+  //---------------------------- инициализация WiFiManager -----------------------------------
+  if(settings.sp_structs[0].special & 0x03) {
+    ESP.wdtDisable();
+    initWiFiManag();
+    ESP.wdtEnable(5000);
+  }
+  else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
+  //------------------------------------------------------------------------------
+  PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
+  PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
+  //---------- Инициализация DS3231 ----------------------------------------
+  if(RTCENABLE){
+    logEvent("Годинник RTC DS3231 ініціалізовано успішно.");
+    if(rtc.lostPower()) {                     // у RTC села батарейка
+        logEvent("Увага: RTC втратив живлення! Час обнулено.");
+        MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
+        dataLed[1] = 1;                       // RTC lost power
+        // Установка времени: 1 год, 1 месяц, 1 день, 00:00:00
+        rtc.adjust(DateTime(2026, 1, 1, 0, 0, 0));
+        settings.sp_structs[1].state = 0;     // [1]-программа текущая обнулена
+        // saveSetpoint();  //????????????????????
+    } else {
+        now = rtc.now();                        // Инициализируем глобальное время перед восстановлением
+        restoreIncubationStatus();              // восстановим флаг и время
+    }
+  } else {
+    logEvent("ПОМИЛКА: Годинник RTC DS3231 не знайдено!");
+    dataLed[0] = 1;      // DS3231 не инициализирован
+  }
+  //------------------------------------------------------------------------------
+  testProgs();              // тест
+  //----------------------- определяем какой датчик подключен --------------------------------
+  sensorType();
+  //------------------------------------------------------------------------------------------
+  digitalWrite(BEEP_PIN, HIGH); // Выключаем бипер
+  pinMode(BEEP_PIN, OUTPUT);    // Настраиваем пин бипера как выход только для LED
+
+  displErrors();       // ИНДИКАЦИЯ ОШИБОК
+
+  // Инициализируем сервопривод на GPIO15.
+  // Стандартные параметры ширины импульса для большинства сервоприводов: 544 мкс (0°) - 2400 мкс (180°).
+  incubatorServo.attach(15);
+  pvFlap = settings.sp_structs[0].flapLimit;  // полностью закрыта 
+  incubatorServo.write(pvFlap);
+  
+  pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
+  pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
+  heaterPwm.write(heaterValue);
+  humidiPwm.write(humidiValue);
+  portOut.value = 0xFF;
+  delay(3000);
+  IncubationManager::init();
+  previousHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
+  DEBUG_PRINTF("Free heap size: %d\n", previousHeapSize);
 }
 
-void loop() {
-  byte keys = module.getButtons();
-  // light the first 4 red LEDs and the last 4 green LEDs as the buttons are pressed
-  module.setLEDs(((keys & 0xFF) << 8) | (keys & 0xFF));
-  //-------------------------------------------------------------------------------
-  analogWrite(ledPin, brightness);      // Устанавливаем яркость светодиода
-  brightness = brightness + fadeAmount; // Изменяем яркость для следующего шага
-  // Меняем направление изменения яркости, если достигнуты пределы
-  if (brightness <= 0 || brightness >= 255) { // analogWriteRange(255) /  Для диапазона по умолчанию 0-1023:
-    fadeAmount = -fadeAmount;
-  }
-  delay(30);                            // Небольшая задержка для плавности эффекта
-  //-------------------------------------------------------------------------------
+void loop(){
+  ESP.wdtFeed();
+  handleWiFi();          // Фоновое управление WiFi и переподключение
+  server.handleClient(); // Обработка входящих запросов
+  //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ 10 mSec. ---------------------------------
+  long nowMillis = millis();
+  if(nowMillis - counter10 > 10){
+    counter10 = nowMillis;
+    hasChanged = false;
+    hasChanged |= heaterPwm.update();
+    hasChanged |= humidiPwm.update();
 
-  long now = millis();
-  
-  if (now - lastMsg > 1000) {
-    lastMsg = now;
-    //===================
-  if (sensors.getDeviceCount()) {
-    // Запрос на измерение температуры у всех датчиков на шине
-    Serial.print("Requesting temperatures...");
-    sensors.requestTemperatures(); // Отправляем команду на измерение
-    Serial.println(" DONE");
-
-    // Получаем температуру с первого найденного датчика (индекс 0)
-    // Если у вас несколько датчиков, вы можете получать температуру по адресу:
-    // sensors.getTempC(sensorAddress)
-    float tempC = sensors.getTempCByIndex(0); // Температура в градусах Цельсия
-    t1 = tempC*10;
-    // Проверка на корректность чтения
-    if (tempC == DEVICE_DISCONNECTED_C) { // DEVICE_DISCONNECTED_C обычно -127
-      Serial.println("Error: Could not read temperature data for sensor 0.");
-    } else {
-      Serial.print("Temperature (Sensor 0): ");
-      Serial.print(tempC);
-      Serial.print(" °C");
+    if(hasChanged) {
+      writePCF8574(portOut.value);
+      ledSet();
     }
-    Serial.println("------------------------------------");
-  } else {
-      // Serial.println("No sensors to read from.");
-      if(t1>400) t1 = 375;
-      else t1++;
-  }
 
-    data[0] = NUMBER_FONT[t1/100];
-    data[1] = NUMBER_FONT[(t1%100)/10] | 0b10000000;
-    data[2] = NUMBER_FONT[t1%10];
-    // data[3] = NUMBER_FONT[t2/100];
-    // data[4] = NUMBER_FONT[(t2%100)/10] | 0b10000000;
-    // data[5] = NUMBER_FONT[t2%10];
-    //-------------------------
-    DateTime now = rtc.now();
-    data[3] = 0;
-    data[4] = NUMBER_FONT[now.second()/10];
-    data[5] = NUMBER_FONT[now.second()%10];
-    //-------------------------
+    if(beepOn) beepOn--; else digitalWrite(BEEP_PIN, HIGH);   // Выключаем бипер
+
+    if(settings.sp_structs[0].mode == 4 && --pvPulse == 0){   // импульсный режим увлажнения
+      humidiValue = TRIACOFF;
+      writePCF8574(portOut.value);
+      ledSet();
+    }
+
+    keys = module.getButtons();
+    if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}  // если не удерживается ни одна кнопка то сброс времени ожидания.
+  }
+  //-------------------------------------------- КЛАВИАТУРА --------------------------------------
+    if(nowMillis - counterWait > waitCheckKeyPad){
+      counterWait = nowMillis;
+      keys = module.getButtons();
+      
+      if(lastKey == keys && keys > 0){
+        keyCount++;
+        checkkey(keys);
+        if(numSetup == 0) ledDispl(displNum);
+        else display_setup();
+        module.setDisplay(data, 8);
+      } 
+      else if(keys == 0) {waitCheckKeyPad = MINWAIT; keyCount = 0;}
+      else lastKey = keys;
+    }
+  //============================= НОВАЯ ПОЛ-СЕКУНДА =================================
+  if(nowMillis - counter500 > 500){
+    halfSecond++;
+    counter500 = nowMillis; 
+
+    if(resetDispl) --resetDispl;
+    else if(numSetup) saveset();  // сохраняем установки
+    else displNum = 0;            // возврат к главному дисплею
+
+    if(numSetup == 0) ledDispl(displNum); 
+    else display_setup();
+
     module.setDisplay(data, 8);
-    //-----------------------------------------------------------------------------
-    // -- Пример 1: Управление выходами PCF8574 (как светодиодами) ---
-    if(writePCF8574(t1%10)) data[7] = NUMBER_FONT[14];  // "E"
-    else data[7] = 0;
-    /* -- Пример 2: Чтение входов PCF8574 ---
-          Чтобы читать пины как входы, сначала запишите в них 0xFF (все единицы),
-          чтобы перевести их в режим "квази-входа" с высоким импедансом.
-          Если к пину ничего не подключено или подключено к VCC, вы прочитаете '1'.
-          Если пин замкнут на GND, вы прочитаете '0'. 
-    writePCF8574(0x80); // Устанавливаем  пин в режим "квази-входа"
-    delay(100); // Небольшая задержка для стабилизации
-    byte inputData = readPCF8574();
-    // Пример проверки состояния конкретного пина (например, P8)
-    if (!(inputData & 0x80)) { // Если P8 равен 0
-      Serial.println("Pin P8 is LOW");
-    } else {
-      Serial.println("Pin P8 is HIGH");
-    }
-    */
-    
+    ledSet();                     // светодиоды панели
+    // writePCF8574(portOut.value);  // ??????????????
   }
-    //-----------------------------------------------------------------------------
+  //================================ НОВАЯ СЕКУНДА =================================
+  if(nowMillis - counter1000 > 1000){
+    counter1000 = nowMillis;
+    newSecond();                  // обновление показаний датчиков, расчет PID и управление реле
+    heaterPwm.write(heaterValue);
+    humidiPwm.write(humidiValue);
+    writePCF8574(portOut.value);
+    byte portState = readPCF8574();
+    // Извлекаем состояние 6-го и 7-го выводов (нумерация битов с 0)
+    // RESERVE  = (portState & (1 << 6)) != 0; // true — на P6 уровень HIGH (открыт), false — притянут к LOW
+    OVERHEAT = (portState & (1 << 7)) == 0; // true — на P7 уровень LOW (активный), false — уровень HIGH
+    OutStatusLed();               // для HTML страницы
+    incubatorServo.write(pvFlap);
+    // #ifndef DEBUG
+      if (++countSeconds > 59) {
+      newMinute();
+      countSeconds = 0;
+    }
+    // #else
+    //   if(++countSeconds > 0) newMinute(); // В режиме отладки - каждая секунда это минута
+    // #endif
+  }
+  //************************************************ TELEGRAM *************************************************/
+  if (nowMillis - lastSendTime > interval) {
+    if(earlyMode != mode){
+      // DEBUG_PRINTF("mode:%d; seconds:%d; All time:%ld; \n", mode, seconds, allTime);
+      earlyMode = mode;
+    }
+    lastSendTime = nowMillis;
+    // Serial.print("Free heap size: ");
+    // MYDEBUG_PRINTLN(system_get_free_heap_size());
+
+    if(seconds==0 && mode == READDEFAULT) {mode = READEEPROM; interval = INTERVAL_1000;}
+    else if(tableData[0][0]==0 && settings.sp_structs[1].state) {mode = READPROG; interval = INTERVAL_1000; quarter = GET_PROG1;}
+    seconds += interval/1000;
+    allTime += interval/1000;
+    tmrTelegramOff -= interval/1000;  // if you use HTML telegram does not work (5 min.)
+    
+    /* switch (mode){
+      case READEEPROM: getData(GET_EEPROM); break;
+      case READPROG:   getData(quarter); break;
+      case SAVEEEPROM: if(++tmrResetMode > 60) tmrResetMode = 0; mode = READDEFAULT; interval = INTERVAL_4000; break;
+      case SAVEPROG:   if(++tmrResetMode > 60) tmrResetMode = 0; mode = READDEFAULT; interval = INTERVAL_4000; break;
+      default: getData(GET_VALUES); break;
+    } */
+  }
+}
+//----------------------------------- END loop() ----------------------------------------------------------------------
+
+void ledSet(void){
+    byte led = 0;
+    if(!TURN)   led |= 1;
+    if(!HEATER) led |= 2;
+    if(!HUMIDI) led |= 4;
+    if(!EXTRA1) led |= 8;
+    if(!EXTRA2) led |= 0x10;
+    if(!EXTRA3) led |= 0x20;
+    if(FROZE)  led |= 0x40;
+    if(RUNAWAY) led|= 0x80;
+    for (uint8_t i = 0; i < 8; i++){
+        module.setLED(led&1, i);
+        led >>= 1;
+    }
+}
+
+// Функция для восстановления шины I2C (если SDA или SCL зависли)
+// Возвращает true если PCF8574 откликается на шине после восстановления
+bool recoverI2C() {
+  static unsigned long lastRecoveryTime = 0;
+  if (millis() - lastRecoveryTime < 500) return false; // Ограничение частоты попыток
+  lastRecoveryTime = millis();
+
+  MYDEBUG_PRINTLN("Attempting I2C bus recovery...");
+
+  const uint8_t sda = 4; 
+  const uint8_t scl = 5;
+
+  // 1. Переводим пины в INPUT_PULLUP
+  pinMode(sda, INPUT_PULLUP);
+  pinMode(scl, INPUT_PULLUP);
+  delay(5);
+
+  MYDEBUG_PRINT("Bus state before pulses: SDA=");
+  MYDEBUG_PRINT(digitalRead(sda));
+  MYDEBUG_PRINT(", SCL=");
+  MYDEBUG_PRINTLN(digitalRead(scl));
+
+  // 2. Генерируем до 20 тактов SCL чтобы вывести ведомых из состояния передачи
+  //    Используем более медленную частоту (~5кГц) для надёжности
+  pinMode(scl, OUTPUT);
+  for (int i = 0; i < 20; i++) {
+    digitalWrite(scl, LOW);
+    delayMicroseconds(100);
+    digitalWrite(scl, HIGH);
+    delayMicroseconds(100);
+    if (digitalRead(sda) == HIGH && i >= 8) {
+       MYDEBUG_PRINT("SDA released after ");
+       MYDEBUG_PRINT(i + 1);
+       MYDEBUG_PRINTLN(" pulses.");
+       break;
+    }
+  }
+
+  // 3. Генерируем корректную последовательность STOP
+  pinMode(sda, OUTPUT);
+  digitalWrite(sda, LOW);
+  delayMicroseconds(100);
+  digitalWrite(scl, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(sda, HIGH);   // STOP: SDA LOW→HIGH при SCL HIGH
+  delayMicroseconds(100);
+
+  // 4. Возвращаем пины под управление Wire
+  pinMode(sda, INPUT_PULLUP);
+  pinMode(scl, INPUT_PULLUP);
+  delay(20); // ждём стабилизации линий
+
+  Wire.begin(sda, scl);
+  Wire.setClock(100000);
+  Wire.setClockStretchLimit(150000); // 150мс - предотвращаем таймаут при clock stretch
+  
+  delay(50); // Увеличенная пауза - дать Wire и устройствам время стабилизироваться
+
+  if (digitalRead(sda) == LOW || digitalRead(scl) == LOW) {
+    MYDEBUG_PRINT("I2C recovery: FAILED (bus stuck). SDA=");
+    MYDEBUG_PRINT(digitalRead(sda));
+    MYDEBUG_PRINT(", SCL=");
+    MYDEBUG_PRINTLN(digitalRead(scl));
+    return false;
+  }
+
+  // 5. Проверяем наличие PCF8574 на шине (как при старте)
+  Wire.beginTransmission(PCF8574_ADDRESS);
+  uint8_t err = Wire.endTransmission();
+  if (err == 0) {
+    MYDEBUG_PRINTLN("I2C recovery: SUCCESS (PCF8574 responds)");
+    return true;
+  } else {
+    MYDEBUG_PRINT("I2C recovery: bus OK, but PCF8574 not found. err=");
+    MYDEBUG_PRINTLN(err);
+    return false;
+  }
+}
+
+void enterI2cCriticalError() {
+  logEvent("КРИТИЧНА ПОМИЛКА I2C: Перезапуск!");
+  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: Hardware WDT reset now...");
+
+  // Освобождаем I2C шину через STOP-условие перед сбросом
+  const uint8_t sda = 4;
+  const uint8_t scl = 5;
+  pinMode(scl, OUTPUT); digitalWrite(scl, HIGH);
+  pinMode(sda, OUTPUT); digitalWrite(sda, LOW);
+  delayMicroseconds(100);
+  digitalWrite(scl, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(sda, HIGH); // SDA LOW→HIGH при SCL HIGH = STOP condition
+  delayMicroseconds(100);
+  pinMode(sda, INPUT_PULLUP);
+  pinMode(scl, INPUT_PULLUP);
+
+  // Аппаратный сброс через Hardware WDT (rst cause:4) — полный сброс чипа,
+  // аналогичный нажатию RESET. Без yield/delay WDT срабатывает через ~8 сек.
+  MYDEBUG_PRINTLN("Waiting for Hardware WDT...");
+  ESP.wdtDisable();
+  while (true) { }
+}
+
+static uint8_t i2c_error_count = 0;        // Счётчик последовательных ошибок I2C
+static uint8_t recovery_fail_count = 0;    // Счётчик подряд неудачных recoverI2C()
+// Примечание: флаг pcf8574_available удалён намеренно.
+// «Мягкий режим» без перезагрузки не позволяет восстановить работу реле.
+// При сбое PCF8574 выполняется 3 попытки recoverI2C() с паузой 5 сек,
+// после чего выполняется перезагрузка.
+
+// Делает до maxRetries попыток recoverI2C() с паузой pauseMs между ними.
+// Если устройство не отвечает — вызывает enterI2cCriticalError() → ESP.restart().
+static void waitForPCF8574OrReboot(uint8_t maxRetries = 3,
+                                   unsigned long pauseMs = 5000UL) {
+  logEvent("УВАГА: PCF8574 недоступний! Спроба відновлення...");
+  MYDEBUG_PRINTLN("PCF8574: starting recovery (3 attempts, 5s pause)...");
+
+  for (uint8_t attempt = 1; attempt <= maxRetries; attempt++) {
+    ESP.wdtFeed();
+    // Пауза перед попыткой — дать шине время стабилизироваться
+    unsigned long waitStart = millis();
+    while (millis() - waitStart < pauseMs) {
+      ESP.wdtFeed();
+      delay(100);
+    }
+    DEBUG_PRINTF("PCF8574: recovery attempt %d / %d\n", attempt, maxRetries);
+    if (recoverI2C()) {
+      MYDEBUG_PRINTLN("PCF8574: recovered successfully!");
+      logEvent("PCF8574 відновлено. Продовжуємо роботу.");
+      i2c_error_count = 0;
+      recovery_fail_count = 0;
+      return; // восстановились — выходим
+    }
+  }
+
+  // Все 3 попытки провалились — перезагружаемся
+  logEvent("PCF8574 не відновлено після 3 спроб. Перезапуск!");
+  enterI2cCriticalError();
 }
 
 // Функция для записи байта на PCF8574
@@ -207,40 +419,92 @@ byte writePCF8574(byte data) {
   Wire.beginTransmission(PCF8574_ADDRESS);
   Wire.write(data);
   byte error = Wire.endTransmission();
-  if (error == 0) {
-    //Serial.print("Data written: 0b");
-    //printBinary(data);
-    //Serial.println();
+
+  if (error) {
+    i2c_error_count++;
+    MYDEBUG_PRINT("\nError writing to PCF8574. Code: ");
+    MYDEBUG_PRINT(error);
+    MYDEBUG_PRINT(" | Fail count: ");
+    MYDEBUG_PRINTLN(i2c_error_count);
+
+    // Первая попытка быстрого восстановления
+    bool recovered = recoverI2C();
+    if (recovered) {
+      recovery_fail_count = 0;
+      delay(50);
+      Wire.beginTransmission(PCF8574_ADDRESS);
+      Wire.write(data);
+      error = Wire.endTransmission();
+      if (error == 0) {
+        i2c_error_count = 0;
+        MYDEBUG_PRINTLN("writePCF8574: retry after recovery OK");
+        return error;
+      }
+    }
+
+    // Быстрое восстановление не помогло — запускаем цикл ожидания с таймаутом
+    recovery_fail_count++;
+    MYDEBUG_PRINT("PCF8574: recovery failed. Consecutive failures: ");
+    MYDEBUG_PRINTLN(recovery_fail_count);
+    waitForPCF8574OrReboot(); // 2 мин попыток → перезагрузка если безуспешно
+
+    // Если дошли сюда — recoverI2C() вернул true внутри waitForPCF8574OrReboot,
+    // повторяем запись
+    delay(50);
+    Wire.beginTransmission(PCF8574_ADDRESS);
+    Wire.write(data);
+    error = Wire.endTransmission();
   } else {
-    Serial.print("Error writing to PCF8574. Error code: ");
-    Serial.println(error);
+    i2c_error_count = 0;
+    recovery_fail_count = 0;
   }
   return error;
 }
 
-// Функция для чтения байта с PCF8574
+// Функция для чтения байта с PCF8574.
+// При ошибке пробует восстановить шину. Если не удаётся — возвращает кеш.
+// Чтение не вызывает перезагрузку (за это отвечает writePCF8574).
 byte readPCF8574() {
-  Wire.requestFrom(PCF8574_ADDRESS, 1); // Запросить 1 байт данных
-  if (Wire.available()) {
-    return Wire.read();
-  } else {
-    Serial.println("Error reading from PCF8574: No data available.");
-    return 0xFF; // Возвращаем 0xFF в случае ошибки (можно выбрать другое значение)
+  static byte lastKnownValue = 0xFF; // Кеш последнего успешного чтения
+
+  uint8_t count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    return lastKnownValue;
   }
+
+  // --- Ошибка чтения ---
+  i2c_error_count++;
+  MYDEBUG_PRINT("\nError reading from PCF8574. Fail count: ");
+  MYDEBUG_PRINTLN(i2c_error_count);
+
+  recoverI2C();
+
+  // Повторная попытка после recovery
+  delay(50);
+  count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    MYDEBUG_PRINTLN("readPCF8574: retry after recovery OK");
+    return lastKnownValue;
+  }
+
+  // Второй retry
+  delay(10);
+  count = Wire.requestFrom((uint8_t)PCF8574_ADDRESS, (uint8_t)1);
+  if (count > 0) {
+    i2c_error_count = 0;
+    lastKnownValue = Wire.read();
+    MYDEBUG_PRINTLN("readPCF8574: 2nd retry OK");
+    return lastKnownValue;
+  }
+
+  // Не удалось прочитать — возвращаем кеш.
+  // Перезагрузка будет инициирована через writePCF8574 в следующем цикле.
+  MYDEBUG_PRINTLN("readPCF8574: using cached value");
+  return lastKnownValue;
 }
 
-// Вспомогательная функция для печати байта в двоичном формате
-void printBinary(byte inByte) {
-  for (int b = 7; b >= 0; b--) {
-    Serial.print(bitRead(inByte, b));
-  }
-}
 
-// Вспомогательная функция для вывода адреса датчика
-void printAddress(DeviceAddress deviceAddress) {
-  for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-    if (i < 7) Serial.print(":");
-  }
-}

@@ -47,7 +47,7 @@ const byte NUMBER_FONT[] = {
   0b00111001, // C
   0b01011110, // D
   0b01111001, // E
-  0b01110001  // F
+  0b01110001, // F
 };
 
 const byte MINUS = 0b01000000;
@@ -57,11 +57,35 @@ const byte ERROR_DATA[] = {
   0b01111001, // E
   0b01010000, // r
   0b01010000, // r
+  0,
+  0,
+  0,
   0b01011100, // o
   0b01010000, // r
+};
+
+// definition for Clean
+const byte CLEAN_DATA[] = {
+  0b00111001, // (67)	C
+  0b00111000, // (76)	L
+  0b01111001, // (69)	E
   0,
   0,
-  0
+  0,
+  0b01110111, // (65)	A
+  0b01010100, //(110)	n
+};
+
+// definition for Clean
+const byte PCF_ERROR[] = {
+  0b01110011, // (80)	P
+  0b00111001, // (67)	C
+  0b01110001, // (70)	F
+  0,
+  0,
+  0,
+  0b01111001, // (69)	E
+  0b01010000, // r
 };
 
 // definition for the displayable ASCII chars
