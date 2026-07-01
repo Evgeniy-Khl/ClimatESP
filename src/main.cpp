@@ -354,26 +354,10 @@ bool recoverI2C() {
 }
 
 void enterI2cCriticalError() {
-  logEvent("КРИТИЧНА ПОМИЛКА I2C: Робота зупинена! Очікування перезапуску...");
-  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: Rebooting in 5 seconds...");
+  logEvent("КРИТИЧНА ПОМИЛКА I2C: Перезапуск!");
+  MYDEBUG_PRINTLN("\n!!! CRITICAL I2C ERROR: Hardware WDT reset now...");
 
-  // Сигнализируем ошибкой (~5 сек), затем перезагружаем
-  for (uint8_t n = 0; n < 5; n++) {
-    digitalWrite(BEEP_PIN, LOW);
-    module.setDisplay(PCF_ERROR, 8);
-    delay(500);
-    digitalWrite(BEEP_PIN, HIGH);
-    for (uint8_t i = 0; i < 8; i++) { data[i] = 0; }
-    module.setDisplay(data, 8);
-    delay(500);
-  }
-
-  // Перед перезапуском явно освобождаем I2C шину через STOP-условие.
-  // ESP.restart() — программный сброс: он НЕ сбрасывает периферию на шине.
-  // Если PCF8574/DS3231/AT24C32 удерживает SDA в LOW (незавершённая транзакция),
-  // после рестарта Wire.begin() снова не найдёт устройства → бесконечный цикл.
-  // Явный STOP гарантирует что slave отпустит шину до перезагрузки.
-  // Wire.end() не поддерживается ESP8266 — просто перехватываем пины напрямую.
+  // Освобождаем I2C шину через STOP-условие перед сбросом
   const uint8_t sda = 4;
   const uint8_t scl = 5;
   pinMode(scl, OUTPUT); digitalWrite(scl, HIGH);
@@ -383,13 +367,14 @@ void enterI2cCriticalError() {
   delayMicroseconds(100);
   digitalWrite(sda, HIGH); // SDA LOW→HIGH при SCL HIGH = STOP condition
   delayMicroseconds(100);
-  // Возвращаем пины в INPUT_PULLUP — шина свободна
   pinMode(sda, INPUT_PULLUP);
   pinMode(scl, INPUT_PULLUP);
-  delay(10);
-  MYDEBUG_PRINTLN("I2C STOP sent. Rebooting...");
 
-  ESP.restart();
+  // Аппаратный сброс через Hardware WDT (rst cause:4) — полный сброс чипа,
+  // аналогичный нажатию RESET. Без yield/delay WDT срабатывает через ~8 сек.
+  MYDEBUG_PRINTLN("Waiting for Hardware WDT...");
+  ESP.wdtDisable();
+  while (true) { }
 }
 
 static uint8_t i2c_error_count = 0;        // Счётчик последовательных ошибок I2C
