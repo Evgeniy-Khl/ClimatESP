@@ -139,7 +139,6 @@
       <pre id="log-output">Завантаження логів...</pre>
 
       <div class="actions">
-        <button id="clear-btn" class="btn-danger">Очистити журнал</button>
         <a href="/" id="back-link" class="btn-link btn-back">Назад на головну</a>
       </div>
     </div>
@@ -152,7 +151,6 @@
       
       const pageTitle = document.getElementById('page-title');
       const logOutput = document.getElementById('log-output');
-      const clearBtn = document.getElementById('clear-btn');
       const backLink = document.getElementById('back-link');
 
       // Формируем URL для запроса логов
@@ -163,9 +161,6 @@
         // Преобразуем формат даты из DD_MM в DD.MM для заголовка
         const formattedDate = day.replace('_', '.');
         pageTitle.innerText = 'Журнал подій за ' + formattedDate;
-        
-        // Скрываем кнопку очистки для архивных логов
-        clearBtn.style.display = 'none';
         
         // Настраиваем возврат в архив
         if (backLink) {
@@ -192,23 +187,6 @@
             logOutput.innerText = 'Помилка завантаження логов: ' + err.message;
           });
       }
-
-      // Обработчик кнопки очистки логов
-      clearBtn.addEventListener('click', () => {
-        if (confirm('Ви впевнені, что хочете очистити цей журнал подій?')) {
-          let clearUrl = '/clear_logs';
-          if (day) {
-            clearUrl += '?date=' + day;
-          }
-          fetch(clearUrl, { method: 'GET' })
-            .then(() => {
-              logOutput.innerText = 'Журнал очищено.';
-            })
-            .catch(err => {
-              alert('Помилка очищення: ' + err.message);
-            });
-        }
-      });
 
       // Первая загрузка
       loadLogs();
