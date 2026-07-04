@@ -2,11 +2,16 @@
 #define _SAVEDAILYDATA_H
 #include "main.h"
 
+struct ArchiveDay {
+    int day;
+    int month;
+};
+
 void saveDailyDataToFile(int day);
 void clearIncubationData();
-String findOldestDate();
-void deleteFilesForDate(const String& dateStr);
-void checkAndManageSpace();
+ArchiveDay findOldestDay();
+void deleteFilesForDay(int day, int month);
+void checkAndManageSpace(long requiredSpace = 11411);
 void startIncubation();
 void restoreIncubationStatus();
 void listFilesAndSizes();

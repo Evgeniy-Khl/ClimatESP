@@ -145,50 +145,17 @@ void clearIncubationData() {
   }
 }
 
-// Вспомогательная функция для расчета расстояния в днях от текущей даты
-int32_t getFileDistance(const String& fileName) {
-  // fileName пример: "day_21_06_stats.json"
-  int start = fileName.indexOf('_');
-  if (start == -1) return -1;
-  int mid = fileName.indexOf('_', start + 1);
-  if (mid == -1) return -1;
-  int end = fileName.indexOf('_', mid + 1);
-  if (end == -1) {
-    end = fileName.indexOf('.', mid + 1);
-  }
-  if (end == -1) return -1;
-  
-  int day = fileName.substring(start + 1, mid).toInt();
-  int month = fileName.substring(mid + 1, end).toInt();
-  
-  int year = now.year();
-  // Если текущий месяц в начале года, а у файла в конце - значит файл из прошлого года
-  if (now.month() <= 2 && month >= 10) {
-    year -= 1;
-  }
-  
-  DateTime fileDate(year, month, day, 0, 0, 0);
-  
-  int32_t distance = 0;
-  if (now >= fileDate) {
-    TimeSpan diff = now - fileDate;
-    distance = diff.days();
-  } else {
-    // В случае сбитых часов
-    TimeSpan diff = fileDate - now;
-    distance = -diff.days();
-  }
-  return distance;
-}
-
 /**
  * @brief Находит в файловой системе самый "старый" день инкубации.
- * @return Дата самого старого дня в формате DD_MM.
+ * @return Структура ArchiveDay с датой самого старого дня.
  */
-String findOldestDate() {
+ArchiveDay findOldestDay() {
   Dir dir = LittleFS.openDir("/");
-  String oldestDateStr = "";
   int32_t maxDistance = -999999;
+  ArchiveDay oldest = {-1, -1};
+  
+  // Получаем текущую дату напрямую из RTC
+  DateTime nowTime = rtc.now();
 
   while (dir.next()) {
     String fileName = dir.fileName();
@@ -197,24 +164,50 @@ String findOldestDate() {
       int start = 4; // индекс после "day_"
       int end = fileName.indexOf("_stats.json");
       if (end > start) {
-        String dateStr = fileName.substring(start, end);
-        int32_t distance = getFileDistance(fileName);
-        if (distance > maxDistance) {
-          maxDistance = distance;
-          oldestDateStr = dateStr;
+        // Парсим день и месяц из имени файла: day_DD_MM_stats.json
+        int day = fileName.substring(4, 6).toInt();
+        int month = fileName.substring(7, 9).toInt();
+        if (day > 0 && month > 0) {
+          int year = nowTime.year();
+          // Если текущий месяц в начале года, а у файла в конце - значит файл из прошлого года
+          if (nowTime.month() <= 2 && month >= 10) {
+            year -= 1;
+          }
+          
+          DateTime fileDate(year, month, day, 0, 0, 0);
+          int32_t distance = 0;
+          if (nowTime >= fileDate) {
+            TimeSpan diff = nowTime - fileDate;
+            distance = diff.days();
+          } else {
+            // В случае сбитых часов
+            TimeSpan diff = fileDate - nowTime;
+            distance = -diff.days();
+          }
+
+          if (distance > maxDistance) {
+            maxDistance = distance;
+            oldest.day = day;
+            oldest.month = month;
+          }
         }
       }
     }
   }
-  return oldestDateStr;
+  return oldest;
 }
 
 /**
- * @brief Удаляет файлы данных (_graph.json, _stats.json и _log.txt) для указанной даты.
- * @param dateStr Строка даты в формате DD_MM.
+ * @brief Удаляет файлы данных (_graph.json, _stats.json и _log.txt) для указанного дня.
+ * @param day День.
+ * @param month Месяц.
  */
-void deleteFilesForDate(const String& dateStr) {
-  if (dateStr.length() == 0) return;
+void deleteFilesForDay(int day, int month) {
+  if (day <= 0 || month <= 0) return;
+
+  char buf[24];
+  snprintf(buf, sizeof(buf), "%02d_%02d", day, month);
+  String dateStr(buf);
 
   DEBUG_PRINTF("Удаление файлов для даты %s...\n", dateStr.c_str());
   String graphFilename = "/day_" + dateStr + "_graph.json";
@@ -234,32 +227,36 @@ void deleteFilesForDate(const String& dateStr) {
 
 /**
  * @brief Проверяет наличие свободного места и удаляет старые файлы, если необходимо.
+ * @param requiredSpace Требуемое свободное место в байтах.
  */
-void checkAndManageSpace() {
-  const long REQUIRED_SPACE = 11411; 
-
+void checkAndManageSpace(long requiredSpace) {
   FSInfo fs_info;
-  LittleFS.info(fs_info);
+  if (!LittleFS.info(fs_info)) {
+    MYDEBUG_PRINTLN("Ошибка: не удалось получить информацию о файловой системе LittleFS!");
+    return;
+  }
+
   long freeSpace = fs_info.totalBytes - fs_info.usedBytes;
 
-  DEBUG_PRINTF("Проверка свободного места: доступно %ld байт. Необходимо: %ld байт.\n", freeSpace, REQUIRED_SPACE);
-
   // Запускаем цикл, который будет удалять старые файлы, пока не освободится достаточно места
-  while (freeSpace < REQUIRED_SPACE) {
-    MYDEBUG_PRINTLN("Недостаточно места!");
-    String oldestDate = findOldestDate();
+  while (freeSpace < requiredSpace) {
+    MYDEBUG_PRINTLN("Недостаточно места в FS! Освобождение пространства...");
+    ArchiveDay oldestDay = findOldestDay();
 
-    if (oldestDate.length() == 0) {
-      MYDEBUG_PRINTLN("Ошибка: нет старых файлов для удаления, но место закончилось!");
+    if (oldestDay.day == -1) {
+      MYDEBUG_PRINTLN("Ошибка: нет файлов для удаления, но свободное место исчерпано!");
       break; // Выходим, чтобы избежать бесконечного цикла
     }
     
-    deleteFilesForDate(oldestDate);
+    deleteFilesForDay(oldestDay.day, oldestDay.month);
 
     // Обновляем информацию о свободном месте
-    LittleFS.info(fs_info);
+    if (!LittleFS.info(fs_info)) {
+      MYDEBUG_PRINTLN("Ошибка: потерян доступ к LittleFS при обновлении информации!");
+      break;
+    }
     freeSpace = fs_info.totalBytes - fs_info.usedBytes;
-    DEBUG_PRINTF("Теперь доступно: %ld байт\n", freeSpace);
+    DEBUG_PRINTF("Доступно после удаления: %ld байт\n", freeSpace);
   }
 }
 
