@@ -1,0 +1,663 @@
+#include "main.h"
+
+#define UNALTERED   2 // неизменный
+
+void beeperOn(uint8_t val){
+  beepOn = val;
+  digitalWrite(BEEP_PIN, LOW); // Включаем бипер
+}
+
+void PID_Init(PIDController *pid, uint16_t Kp, uint16_t Ki) {
+    pid->Kp = (float)Kp/5;
+    pid->Ki = (float)Ki/10000;
+}
+
+int16_t UpdatePID(uint8_t cn){
+  int16_t error, max = TRIACON * 2, min = -max;         // 255 * 2 = 510 -> 200 %
+  // float output;
+  if(settings.sp_structs[0].mode == 4 && cn == 1){      // 4-импульсный режим для канала №2
+    max = settings.sp_structs[1].pulse * TRIACON / 2;   // 255 * 10 = 2550 -> 10 секунд
+    min = -max;
+  }
+  // Получение ошибки из уже вычисленного значения
+  error = ds[cn].pvErr;         // error > 0 -> холодно
+  // Пропорциональная составляющая
+  pid[cn].pPart = (float)error * pid[cn].Kp;
+  
+  // Интегральная составляющая с защитой от насыщения (Anti-Windup Clamping)
+  float potentialIPart = pid[cn].iPart + (float)error * pid[cn].Ki;
+  float totalOutput = pid[cn].pPart + potentialIPart;
+
+  // Обновляем интеграл только если выход не в насыщении 
+  // или если изменение интеграла выводит выход из насыщения
+  if (totalOutput >= min && totalOutput <= max) {
+    pid[cn].iPart = potentialIPart;
+  } else if (totalOutput > max && error < 0) {
+    pid[cn].iPart = potentialIPart; // Разрешаем уменьшение интеграла при перегреве
+  } else if (totalOutput < min && error > 0) {
+    pid[cn].iPart = potentialIPart; // Разрешаем увеличение интеграла при недогреве
+  }
+
+  // Суммарное управляющее воздействие
+  pid[cn].output = pid[cn].pPart + pid[cn].iPart;
+  if(pid[cn].output < 0) pid[cn].output = 0;
+  if(pid[cn].output > max) pid[cn].output = max; // Ограничение сверху
+  
+  error = (int16_t)pid[cn].output;
+  return error;
+}
+//------------- симистричный таймер -------------------
+void rotate_trays(void){
+  if(!TURN){
+    if(--pvTimer == 0){
+      pvTimer = settings.sp_structs[0].timer; 
+      TURN = PCF_OFF;
+      // MYDEBUG_PRINTLN("TURN = PCF_OFF");
+    }
+  } else {
+    if(--pvTimer == 0){
+      if(settings.sp_structs[1].timer) pvTimer = settings.sp_structs[1].timer;
+      else pvTimer = settings.sp_structs[0].timer;
+      TURN = PCF_ON;
+      // MYDEBUG_PRINTLN("TURN = PCF_ON");
+    }
+  }
+}
+
+
+uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал № 1 или 2
+  uint8_t x=UNALTERED;
+  int16_t err = ds[cn].pvErr;        // err > 0 -> холодно
+  if(err >= hysteresis) x = ON;    // включить
+  if(err <= 0) x = OFF;            // отключить
+  return x;
+}
+
+uint8_t RelayNeg(uint8_t cn, uint8_t on, uint8_t off){	// [n] канал № 1 или 2
+  uint8_t x=UNALTERED;
+  int16_t err = ds[cn].pvErr;        // err > 0 -> холодно
+  if ((err+on) <= 0) x = ON;        // включить
+  if ((err+off) >= 0) x = OFF;      // отключить
+  return x;
+}
+
+void OutPulse(void){
+  int16_t err = ds[1].pvErr;                     // err > 0 -> холодно
+  uint16_t maxPulse = settings.sp_structs[1].pulse * TRIACON / 2;// длительность впрыска не должна превышать пол периода
+  if(err == 0){pvPulse = 0; return;};
+  if(ds[0].pvErr >= settings.sp_structs[0].alarm){pvPulse = 0; return;};          // отключение впрыска по 2 каналу если идет разогрев
+  pvPulse = UpdatePID(1);                       // определение длительности ВКЛ. состояния
+  if(pvPulse < settings.sp_structs[0].pulse) pvPulse = settings.sp_structs[0].pulse;
+  else if(pvPulse > maxPulse) pvPulse = maxPulse;   // длит. впрыска не должна превыщать длит.переода
+  if(ds[1].pvErr < 0) pvPulse = 0;                  // отключение впрыска по 2 каналу если перелив
+}
+
+//-- для HTML страницы --
+void OutStatusLed(void){
+    for(uint8_t i = 0; i < 5; i++){
+      uint8_t numBit = 1 << i;
+      dataLed[i] = portOut.value & numBit;                          // если 1 -> OFF
+      if(pctHeater <= 5) dataLed[1] = 1; else dataLed[1] = 0;      // НАГРЕВАТЕЛЬ
+      if(pctHimidifier <= 5) dataLed[2] = 1; else dataLed[2] = 0;  // УВЛАЖНИТЕЛЬ
+      if(errorsFlag.value) dataLed[5] = 0; else dataLed[5] = 1;     // если 1 -> OFF
+    }
+}
+
+void checkModeDevice(){
+  if(RUNAWAY) {
+    heaterValue = TRIACOFF;
+    return;
+  }
+  //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
+  switch (settings.sp_structs[0].mode) {
+    uint8_t val;
+    case 0:
+      heaterValue = UpdatePID(0);            // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      humidiValue = UpdatePID(1);            // ПИД увлажнитель
+      // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 1:
+      val = RelayPos(0,2);
+      switch (val){
+          case ON:  heaterValue = TRIACON;  break;
+          case OFF: heaterValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      humidiValue = UpdatePID(1);            // ПИД увлажнитель
+      // MYDEBUG_PRINT("ПИД увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 2:
+      heaterValue = UpdatePID(0);            // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      val = RelayPos(1,3);
+      switch (val){
+          case ON:  humidiValue = TRIACON;  break;
+          case OFF: humidiValue = TRIACOFF; break;
+      }
+      if((settings.sp_structs[1].mode&2) == 2) {  // используется как УВЛАЖНИТЕЛЬ
+        switch (val){
+          case ON:  EXTRA2 = PCF_ON;  break;
+          case OFF: EXTRA2 = PCF_OFF; break;
+        }
+      }
+      // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 3:
+      val = RelayPos(0,2);
+      switch (val){
+          case ON:  heaterValue = TRIACON;  break;
+          case OFF: heaterValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      val = RelayPos(1,3);
+      switch (val){
+          case ON:  humidiValue = TRIACON;  break;
+          case OFF: humidiValue = TRIACOFF; break;
+      }
+      // MYDEBUG_PRINT("РЕЛЕ увлажнитель:"); MYDEBUG_PRINTLN(humidiValue);
+      break;
+    case 4:
+      heaterValue = UpdatePID(0);           // ПИД нагреватель
+      // MYDEBUG_PRINT("ПИД нагреватель:"); MYDEBUG_PRINTLN(heaterValue);
+      OutPulse();                           // импульсное управление увлажнителем
+      if (pvPeriod) --pvPeriod;
+      else {
+        pvPeriod = settings.sp_structs[1].pulse;  // начало нового периода
+        if(pvPulse) humidiValue = TRIACON;        // включить канал 2 (импульсный режим)
+      };
+      // MYDEBUG_PRINT("ИМПУЛЬС увлажнитель pvPulse:"); MYDEBUG_PRINTLN(pvPulse);
+      break;
+    // default: MYDEBUG_PRINTLN("НЕТ нагреватель НЕТ увлажнитель"); break;
+  }
+}
+
+uint8_t checkSetpoint(void){
+  uint8_t err = 0;
+  //--------- Загрузка конфигурации --------------------------------------------
+  if(LittleFS.exists("/setpoint.json")){
+      if(!loadSetpoint()){
+        saveSetpoint();  // значения по умолчанию
+        err = 1; MYDEBUG_PRINTLN("Конфігурація не завантажена!");
+      }
+  } else {
+      saveSetpoint();  // значения по умолчанию
+      err = 2; MYDEBUG_PRINTLN("Конфігурація за замовчуванням!");
+  }
+  #ifdef DEBUG
+    MYDEBUG_PRINTLN("\n>> Итоговые значения после загрузки из FS:");
+    // printConfig();
+  #endif
+  return err;
+}
+
+uint8_t checkConfig(void){
+  uint8_t err = 0;
+  if(LittleFS.exists("/config.json")){
+    //file exists, reading and loading
+    MYDEBUG_PRINTLN("reading config file");
+    File configFile = LittleFS.open("/config.json", "r");
+    if(configFile){
+      MYDEBUG_PRINTLN("opened config file");
+      size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      std::unique_ptr<char[]> buf(new char[size]);
+      configFile.readBytes(buf.get(), size);
+      JsonDocument json;
+      auto deserializeError = deserializeJson(json, buf.get());
+      serializeJson(json, Serial);
+      if( ! deserializeError ){
+        const char* token = json["botToken"];
+        if (token) {
+            strncpy(botToken, token, sizeof(botToken) - 1);
+            botToken[sizeof(botToken) - 1] = '\0';
+        }
+        const char* chat = json["chatID"];
+        if (chat) {
+            strncpy(chatID, chat, sizeof(chatID) - 1);
+            chatID[sizeof(chatID) - 1] = '\0';
+        }
+      } else {
+        err = 3; MYDEBUG_PRINTLN("failed to load json config");
+      }
+      configFile.close();
+    } else {
+      err = 2; MYDEBUG_PRINTLN("failed to open config file");
+    }
+  } else {
+    err = 1; MYDEBUG_PRINTLN("/config.json not found");
+  }
+  return err;
+}
+
+//-------- Функция для печати текущих значений структуры в Serial порт --------
+#ifdef DEBUG
+void printConfig() {
+    MYDEBUG_PRINTLN("--------------------");
+    for (int i = 0; i < 2; i++) {
+        DEBUG_PRINTF("Элемент settings.sp_structs[%d]:\n", i);
+        DEBUG_PRINTF("  spT: %d\n", settings.sp_structs[i].spT);
+        DEBUG_PRINTF("  spRH: %d\n", settings.sp_structs[i].spRH);
+        DEBUG_PRINTF("  alarm: %d\n", settings.sp_structs[i].alarm);
+        DEBUG_PRINTF("  coolOn: %d\n", settings.sp_structs[i].coolOn);
+        DEBUG_PRINTF("  coolOff: %d\n", settings.sp_structs[i].coolOff);
+        DEBUG_PRINTF("  timer: %d\n", settings.sp_structs[i].timer);
+        DEBUG_PRINTF("  aeration: %d\n", settings.sp_structs[i].aeration);
+        DEBUG_PRINTF("  auxiliary: %d\n", settings.sp_structs[i].auxiliary);
+        DEBUG_PRINTF("  flapLimit: %d\n", settings.sp_structs[i].flapLimit);
+        DEBUG_PRINTF("  state: %d\n", settings.sp_structs[i].state);
+        DEBUG_PRINTF("  pulse: %d\n", settings.sp_structs[i].pulse);
+        DEBUG_PRINTF("  mode: %d\n", settings.sp_structs[i].mode);
+        DEBUG_PRINTF("  extendMode: %d\n", settings.sp_structs[i].extendMode);
+        DEBUG_PRINTF("  Kp: %d\n", settings.sp_structs[i].Kp);
+        DEBUG_PRINTF("  Ki: %d\n", settings.sp_structs[i].Ki);
+        DEBUG_PRINTF("  special: %d\n", settings.sp_structs[i].special);
+    }
+    MYDEBUG_PRINTLN("--------------------");
+}
+#endif
+
+//----------- Функция сохранения конфигурации в JSON файл ----------------
+void saveSetpoint() {
+    MYDEBUG_PRINTLN("Сохранение конфигурации...");
+
+    // Создаем JSON документ. Размер 512 байт более чем достаточен.
+    JsonDocument doc;
+
+    // Создаем корневой JSON массив
+    JsonArray jsonArray = doc.to<JsonArray>();
+
+    // Проходим по массиву структур и добавляем данные в JSON
+    for (int i = 0; i < 2; i++) {
+        JsonObject obj = jsonArray.add<JsonObject>();
+        obj["spT"] = settings.sp_structs[i].spT;
+        obj["spRH"] = settings.sp_structs[i].spRH;
+        obj["alarm"] = settings.sp_structs[i].alarm;
+        obj["coolOn"] = settings.sp_structs[i].coolOn;
+        obj["coolOff"] = settings.sp_structs[i].coolOff;
+        obj["timer"] = settings.sp_structs[i].timer;
+        obj["aeration"] = settings.sp_structs[i].aeration;
+        obj["auxiliary"] = settings.sp_structs[i].auxiliary;
+        obj["flapLimit"] = settings.sp_structs[i].flapLimit;
+        obj["state"] = settings.sp_structs[i].state;
+        obj["pulse"] = settings.sp_structs[i].pulse;
+        obj["mode"] = settings.sp_structs[i].mode;
+        obj["extendMode"] = settings.sp_structs[i].extendMode;
+        obj["Kp"] = settings.sp_structs[i].Kp;
+        obj["Ki"] = settings.sp_structs[i].Ki;
+        obj["special"] = settings.sp_structs[i].special;
+    }
+
+    // Открываем файл для записи
+    File configFile = LittleFS.open("/setpoint.json", "w");
+    if (!configFile) {
+        MYDEBUG_PRINTLN("Не удалось открыть файл для записи");
+        return;
+    }
+
+    // Сериализуем JSON в файл
+    if (serializeJson(doc, configFile) == 0) {
+        MYDEBUG_PRINTLN("Ошибка записи в файл");
+    } else {
+        MYDEBUG_PRINTLN("Конфигурация успешно сохранена.");
+    }
+    
+    configFile.close();
+}
+
+//------------ Функция загрузки конфигурации из JSON файла -------------
+bool loadSetpoint() {
+    MYDEBUG_PRINTLN("Загрузка конфигурации...");
+
+    // Открываем файл для чтения
+    File configFile = LittleFS.open("/setpoint.json", "r");
+    if (!configFile) {
+        MYDEBUG_PRINTLN("Не удалось открыть файл для чтения. Используются значения по умолчанию.");
+        return false;
+    }
+
+    // Создаем JSON документ для десериализации
+    JsonDocument doc;
+
+    // Десериализуем JSON из файла
+    DeserializationError error = deserializeJson(doc, configFile);
+    if (error) {
+        MYDEBUG_PRINT("Ошибка десериализации JSON: ");
+        MYDEBUG_PRINTLN(error.c_str());
+        configFile.close();
+        return false;
+    }
+// Закрываем файл после чтения
+    configFile.close();
+
+    // Получаем корневой JSON массив
+    JsonArray jsonArray = doc.as<JsonArray>();
+
+// spT spRH timer alarm coolOn coolOff aeration flapLimit state service pulse mode extendMode Kp Ki Kd
+    // Проходим по JSON массиву и заполняем структуру
+    int i = 0;
+    for (JsonObject obj : jsonArray) {
+        if (i < 2) {
+            settings.sp_structs[i].spT = obj["spT"];
+            settings.sp_structs[i].spRH = obj["spRH"];
+            settings.sp_structs[i].alarm = obj["alarm"];
+            settings.sp_structs[i].coolOn = obj["coolOn"];
+            settings.sp_structs[i].coolOff = obj["coolOff"];
+            settings.sp_structs[i].timer = obj["timer"];
+            settings.sp_structs[i].aeration = obj["aeration"];
+            settings.sp_structs[i].auxiliary = obj["auxiliary"];
+            settings.sp_structs[i].flapLimit = obj["flapLimit"];
+            settings.sp_structs[i].state = obj["state"];
+            settings.sp_structs[i].pulse = obj["pulse"];
+            settings.sp_structs[i].mode = obj["mode"];
+            settings.sp_structs[i].extendMode = obj["extendMode"];
+            settings.sp_structs[i].Kp = obj["Kp"];
+            settings.sp_structs[i].Ki = obj["Ki"];
+            settings.sp_structs[i].special = obj["special"];
+            i++;
+        }
+    }
+    MYDEBUG_PRINTLN("Конфигурация успешно загружена.");
+    return true;
+}
+
+#ifdef DEBUG
+// Вспомогательная функция для вывода адреса датчика
+void printAddress(DeviceAddress deviceAddress) {
+  for (uint8_t i = 0; i < 8; i++) {
+    if (deviceAddress[i] < 16) MYDEBUG_PRINT("0");
+    MYDEBUG_PRINT(deviceAddress[i], HEX);
+    if (i < 7) MYDEBUG_PRINT(":");
+  }
+}
+#endif
+
+uint8_t tableRH(int16_t maxT, int16_t minT){
+  int16_t dT = 255;
+  if (maxT>199 && maxT<410){ // maxT> 19.9 и maxT< 41.0
+     dT = (maxT-minT)*16/10;
+     if (dT<0) dT = 240;        // задаем число при котором dT >>=3; выполняется -> dT>20
+     maxT /=10;
+     dT >>=3;
+     if (dT>20) dT = 255;
+     else if (dT==0) dT = 100;
+     else {maxT -= 20; maxT *= 20; maxT += (dT-1); dT = tabRH[maxT];};
+  }
+  return dT;
+}
+
+/*
+errors = 0x01   // ОШИБКА ДАТЧИКА 0  SENSOR_ERROR_VAL; SENSOR_FROZEN_VAL [E01]
+errors = 0x02   // ОШИБКА ДАТЧИКА 1  SENSOR_ERROR_VAL; SENSOR_FROZEN_VAL [E02]
+errors = 0x04   // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
+errors = 0x08   // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
+errors = 0x10   // отказ одного из двух датчиков температуры
+errors = 0x20   // отказ вспомогательного датчика температуры
+errors = 0x40   // ПЕРЕГРЕВ СИМИСТОРА ! [ПГ]
+*/
+uint8_t alarm(void){
+  uint8_t cn;
+  int16_t err, above, lower;
+  for (cn=0; cn<2; cn++){
+    lower = settings.sp_structs[cn].alarm;          // ниже
+    above = lower;                                  // выше
+    // above += sp[cn].offSet;                      // если режим ОХЛАЖДЕНИЕ или ОСУШЕНИЕ
+    err = ds[cn].pvErr;
+    if(abs(err) < lower) ds[cn].deviation = 1;      // вышли на заданную температуру
+    if(ds[0].deviation == 0) ds[1].deviation = 0;   // отключение тревоги по 2 каналу
+    if(ds[cn].deviation){
+      if (err > lower){                             // ПЕРЕОХЛАЖДЕНИЕ
+          ds[cn].deviation = 2;                     // мигают цифры
+          errorsFlag.value |= ((cn+1)<<2);          // включить сигнал АВАРИЯ
+      }
+    };
+    if (err < -above){                              // ПЕРЕГРЕВ
+        ds[cn].deviation = 3;                       // мигают цифры
+        errorsFlag.value |= ((cn+1)<<2);            // включить сигнал АВАРИЯ
+    };
+  };
+  cn = OFF;   
+  if(errorsFlag.value){
+    if(errorsFlag.value & 0x03) lower = 100;
+    else lower = 50;
+    if(disableBeep==0) {beeperOn(lower); cn = ON;};// длительность звукового сигнала и включить канал 4 (6 А)
+  }
+  else disableBeep = 0;
+  return cn;
+}
+
+// Вспомогательная функция для печати байта в двоичном формате
+// void printBinary(byte inByte) {
+//   for (int b = 5; b >= 0; b--) {
+//     switch (b) {
+//     case 5: MYDEBUG_PRINT("E3="); break;
+//     case 4: MYDEBUG_PRINT("E2="); break;
+//     case 3: MYDEBUG_PRINT("E1="); break;
+//     case 0: MYDEBUG_PRINT("TU="); break;
+//     }
+//     MYDEBUG_PRINT(bitRead(inByte, b)? "OF" : "ON");
+//     MYDEBUG_PRINTLN();
+//   }
+// }
+
+void reset(void){
+  settings.sp_structs[0].spT = SPT_0;
+  settings.sp_structs[0].spRH = SPRH_0;
+  settings.sp_structs[0].alarm = ALARM_0;
+  settings.sp_structs[0].coolOn = COOLON_0;
+  settings.sp_structs[0].coolOff = COOLOFF_0;
+  settings.sp_structs[0].timer = TIMER_0;
+  settings.sp_structs[0].aeration = AERATION_0;
+  settings.sp_structs[0].auxiliary = AUXILIARY_0;
+  settings.sp_structs[0].flapLimit = FLPCLOSE;
+  settings.sp_structs[0].state = STATE_0;
+  settings.sp_structs[0].pulse = PULSE_0;
+  settings.sp_structs[0].mode = MODE_0;
+  settings.sp_structs[0].extendMode = EXTMODE_0;
+  settings.sp_structs[0].Kp = KP_0_1;
+  settings.sp_structs[0].Ki = KI_0_1;
+  settings.sp_structs[0].special = SPECIAL0;
+
+  settings.sp_structs[1].spT = SPT_1;
+  settings.sp_structs[1].spRH = SPRH_1;
+  settings.sp_structs[1].alarm = ALARM_1;
+  settings.sp_structs[1].coolOn = COOLON_1;
+  settings.sp_structs[1].coolOff = COOLOFF_1;
+  settings.sp_structs[1].timer = TIMER_1;
+  settings.sp_structs[1].aeration = AERATION_1;
+  settings.sp_structs[1].auxiliary = AUXILIARY_1;
+  settings.sp_structs[1].flapLimit = FLPOPEN;
+  settings.sp_structs[1].state = STATE_1;
+  settings.sp_structs[1].pulse = PULSE_1;
+  settings.sp_structs[1].mode = MODE_1;
+  settings.sp_structs[1].extendMode = EXTMODE_1;
+  settings.sp_structs[1].Kp = KP_0_1;
+  settings.sp_structs[1].Ki = KI_0_1;
+  settings.sp_structs[1].special = SPECIAL1;
+
+  for (uint8_t i = 0; i < 8; i++) { data[i] = TOP;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  beeperOn(50);
+  delay(500);
+  for (uint8_t i = 0; i < 8; i++) { data[i] = DEF;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  beeperOn(50);
+  delay(500);
+  for (uint8_t i = 0; i < 8; i++) { data[i] = BOT;}
+  module.setDisplay(data, 8); // Вывод на дисплей "--- --- --"
+  saveSetpoint();
+  beeperOn(100);
+  delay(3000);
+}
+
+void newSecond(){
+  now = rtc.now();
+  errorsFlag.value = 0; 
+
+  // Первоначальная синхронизация RTC после подключения к WiFi
+  static bool firstSyncDone = false;
+  if (!firstSyncDone && WIFIENABLE) {
+    time_t now_ntp = time(nullptr);
+    if (now_ntp > 1704067200L) { // Если время получено
+      syncNTP();
+      firstSyncDone = true;
+    }
+  }
+
+  #ifndef SIMULATION  
+    sensorCheck();                                                  // Опрос датчиков должен быть всегда
+  #else
+    // В режиме отладки можно оставить симуляцию, если датчики не подключены
+      dpv0 += pctHeater/50 + pid[0].iPart/10;
+      ds[0].pvT = dpv0;
+      dpv1 += pctHimidifier/50 + pid[1].iPart/10; 
+      ds[1].pvT = dpv1;
+
+      uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH то ...
+      if(valTable == 255) pvRH = valTable;
+      else if(valTable > 100) pvRH = 100;
+      else pvRH = valTable;
+  #endif
+
+  // Вычисляем ошибки PV один раз после обновления датчиков
+  checkPV(0);
+  checkPV(1);
+
+  // Запуск логики автоматики менеджером
+  IncubationManager::tick();
+}
+
+void syncNTP(void) {
+  if (WIFIENABLE) {
+    time_t now_ntp = time(nullptr);
+    if (now_ntp > 1704067200L) { // Проверка, что время получено (больше 1 января 2024 года)
+      struct tm *timeinfo = localtime(&now_ntp);
+      rtc.adjust(DateTime(timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, 
+                          timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec));
+      MYDEBUG_PRINT("RTC синхронизирован по NTP: ");
+      DEBUG_PRINTF("%02d:%02d:%02d\n", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    }
+  }
+}
+
+bool updateIncubationTime() {
+  uint8_t start_data[7];
+  
+  // Попробуем прочитать несколько раз при ошибке I2C
+  uint8_t retries = 3;
+  uint16_t readLen = 0;
+  while(retries-- > 0) {
+    readLen = eepromReadBuffer(INCUBATION_DATA_ADRES, start_data, 7);
+    if (readLen == 7) break;
+    delay(5);
+  }
+
+  if (readLen == 7) {
+    if (start_data[0] > 0) {
+      // Базовая проверка на валидность даты
+      if (start_data[2] > 0 && start_data[2] <= 12 && start_data[3] > 0 && start_data[3] <= 31) {
+        DateTime start(start_data[1] + 2000, start_data[2], start_data[3], start_data[4], start_data[5], start_data[6]);
+        DateTime startMidnight(start.year(), start.month(), start.day(), 0, 0, 0);
+        DateTime nowMidnight(now.year(), now.month(), now.day(), 0, 0, 0);
+        if (nowMidnight >= startMidnight) {
+          TimeSpan diff = nowMidnight - startMidnight;
+          uint16_t currentDays = diff.days();
+          
+          if (currentDays >= 31) {
+            countDays = 30; // Останавливаемся на последнем (31-м) дне программы (индекс 30)
+          } else {
+            countDays = (uint8_t)currentDays;
+          }
+          countHours = now.hour();
+          countMinutes = now.minute();
+          countSeconds = now.second();
+          return true;
+        } else {
+          // Если RTC время сбилось
+          countDays = 0;
+          countHours = now.hour();
+          countMinutes = now.minute();
+          countSeconds = now.second();
+          return true; 
+        }
+      }
+    } else {
+      // Инкубация официально остановлена (data[0] == 0)
+      countDays = 0;
+      countHours = now.hour();
+      countMinutes = now.minute();
+      countSeconds = now.second();
+      return true;
+    }
+  } else {
+    MYDEBUG_PRINTLN("ERROR: Failed to read incubation data from EEPROM!");
+  }
+  return false;
+}
+
+void newMinute(){
+  //---------------------------- ЗАЩИТА ОТ РАЗНОСА -------------------------
+  if(pctHeater == 100){
+    // Если текущая температура не выше той, что была минуту назад
+    if(ds[0].pvT <= lastMinuteT){
+       if(++stagnationTimer > 5){ // 5 минут нет роста при 100% мощности
+          stagnationTimer = 5;
+          // Если мы все еще далеко от уставки (ошибка больше аварийного порога)
+          if(ds[0].pvErr > settings.sp_structs[0].alarm) {
+             RUNAWAY = 1;
+             heaterValue = TRIACOFF; // Принудительно выключаем нагрев для безопасности
+             MYDEBUG_PRINTLN("!!! WARNING: Runaway protection triggered (stagnation) !!!");
+          }
+       }
+    } else {
+       stagnationTimer = 0; // Есть рост - сбрасываем счетчик
+       RUNAWAY = 0;
+    }
+  } else {
+    stagnationTimer = 0;
+    RUNAWAY = 0;
+  }
+  lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
+  //------------------------------------------------------------------------
+  uint8_t prevDay = countDays;
+  if (updateIncubationTime()) {
+    if (settings.sp_structs[1].state > 0 && countDays != prevDay) {
+      applyDailyProgram(); // Автоматически загружаем и применяем программу для нового дня
+    }
+  }
+
+  // Синхронизация с NTP раз в сутки в полночь (00:00)
+  static uint8_t lastSyncDay = 255;
+  if (now.hour() == 0 && now.minute() == 0 && lastSyncDay != now.day()) {
+    syncNTP();
+    lastSyncDay = now.day();
+  }
+
+  if(disableBeep) disableBeep--;
+  //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
+  if(settings.sp_structs[0].timer) rotate_trays();
+  //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
+  if (settings.sp_structs[0].aeration && settings.sp_structs[1].aeration && !AERATION) {
+    if (--pvAeration <= 0) {
+      pvVenting = settings.sp_structs[1].aeration; // Задаем время работы в секундах
+      AERATION = 1;
+    }
+  }
+  //------------------------ СОХРАНЕНИЕ ТЕМПЕРАТУРЫ ------------------------
+  if((countMinutes % 5) == 0){
+    // DEBUG_PRINTF("============ RTC month:%02u day:%02u  %02u:%02u:%02u\n",now.month(),now.day(),now.hour(),now.minute(),now.second());
+    // DEBUG_PRINTF("=== НОВАЯ ЗАПИСЬ month:%02u day:%02u  %02u:%02u:00\n",now.month(),countDays,countHours,countMinutes);
+    int period_of_day = (countHours * 60 + countMinutes) / 5; // Вычисляем номер 5-минутного периода в сутках (от 0 до 287)
+    int address = DAILY_DATA_START + period_of_day * DAILY_DATA_REC_SIZE; // Вычисляем адрес на основе этого периода
+    // Записываем в EEPROM
+    if (countDays != lastDayProcessed && countDays <= 31) {
+      saveDailyDataToFile(lastDayProcessed);
+      clearEEPROM(true); // Очищаем EEPROM для нового дня в фоновом режиме (тихо)
+      lastDayProcessed = countDays;
+    } 
+    eepromWriteInt16(address, ds[0].pvT);
+    eepromWriteInt16(address + 2, ds[1].pvT);
+    eepromWriteInt16(address + 4, (int16_t)pvRH); // Сохраняем влажность (Вариант Б)
+    // DEBUG_PRINTF("PerOfDay=%03u; Addr=0x%04x; t0=%6.1f; t1=%6.1f; rh=%u;",period_of_day,address,(float)ds[0].pvT/10, (float)ds[1].pvT/10, pvRH);
+  }
+}
