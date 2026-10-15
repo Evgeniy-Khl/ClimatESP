@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang='uk'>
+<head>
+<meta name='format-detection' content='telephone=no'>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no'/>
+<title>WiFiManager - Українська локалізація (Клімат-5.25)</title>
+<style>
+.c,body{text-align:center;font-family:verdana;background:#f5f5f5;margin:0;padding:20px 10px;}
+div,input,select{padding:5px;font-size:1em;margin:5px 0;box-sizing:border-box}
+input,button,select,.msg{border-radius:.3rem;width:100%}
+input[type=radio],input[type=checkbox]{width:auto}
+button,input[type='button'],input[type='submit']{cursor:pointer;border:0;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;font-weight:bold;}
+button.D{background-color:#dc3630;}
+input[type='file']{border:1px solid #1fa3ec}
+.wrap{text-align:left;display:inline-block;min-width:280px;max-width:420px;background:#fff;padding:25px;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin:15px;}
+a{color:#000;font-weight:700;text-decoration:none}
+a:hover{color:#1fa3ec;text-decoration:underline}
+.q{height:16px;margin:0;padding:0 5px;text-align:right;min-width:38px;float:right}
+.msg{padding:15px;margin:15px 0;border:1px solid #eee;border-left-width:5px;border-left-color:#777;font-size:0.9em;}
+.msg.S{border-left-color:#5cb85c;background:#f9fff9;}
+.msg.P{border-left-color:#1fa3ec;background:#f4faff;}
+.wifi-item{padding:10px 8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.wifi-item:hover{background:#f0f8ff;}
+.wifi-name{font-weight:bold;color:#333;}
+.wifi-signal{font-size:0.85em;color:#666;}
+.tab-container{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+.tab-btn{width:auto;padding:8px 16px;background:#e0e0e0;color:#333;font-size:1rem;line-height:1.5rem;border-radius:4px;}
+.tab-btn.active{background:#1fa3ec;color:#fff;}
+</style>
+<script>
+function selectSsid(name) {
+  document.getElementById('s').value = name;
+  document.getElementById('p').focus();
+}
+function togglePassword() {
+  var x = document.getElementById('p');
+  x.type = (x.type === 'password') ? 'text' : 'password';
+}
+function showTab(id) {
+  document.getElementById('view-root').style.display = (id === 'root') ? 'inline-block' : 'none';
+  document.getElementById('view-wifi').style.display = (id === 'wifi') ? 'inline-block' : 'none';
+  document.getElementById('tab-root').classList.toggle('active', id === 'root');
+  document.getElementById('tab-wifi').classList.toggle('active', id === 'wifi');
+}
+</script>
+</head>
+<body>
+
+  <div class="tab-container">
+    <button class="tab-btn active" id="tab-root" onclick="showTab('root')">1. Головне меню порталу</button>
+    <button class="tab-btn" id="tab-wifi" onclick="showTab('wifi')">2. Налаштування Wi-Fi</button>
+  </div>
+
+  <!-- ЕКРАН 1: Головне меню WiFiManager -->
+  <div class="wrap" id="view-root">
+    <h1>Клімат-5.25</h1>
+    <h3>ClimatAP</h3>
+    <form onsubmit="showTab('wifi'); return false;"><button type="submit">Налаштування Wi-Fi</button></form><br/>
+    <form onsubmit="alert('Ручне введення SSID без сканування'); return false;"><button type="submit">Налаштування Wi-Fi (без пошуку)</button></form><br/>
+    <form onsubmit="alert('Системна інформація:\nЧип: ESP8266\nПам\'ять: 4MB\nВільна пам\'ять: 28 КБ'); return false;"><button type="submit">Інформація про систему</button></form><br/>
+    <form onsubmit="alert('Скидання налаштувань мережі'); return false;"><button type="submit" class="D">Скинути Wi-Fi</button></form><br/>
+    <form onsubmit="alert('Вихід з режиму налаштування'); return false;"><button type="submit">Вийти</button></form><br/>
+  </div>
+
+  <!-- ЕКРАН 2: Меню підключення до мережі -->
+  <div class="wrap" id="view-wifi" style="display:none;">
+    <h2>Налаштування Wi-Fi</h2>
+    <div style="margin-bottom:15px; border:1px solid #ddd; border-radius:4px; max-height:180px; overflow-y:auto;">
+      <div class="wifi-item" onclick="selectSsid('Домашній_Роутер_2.4G')">
+        <span class="wifi-name">🔒 Домашній_Роутер_2.4G</span>
+        <span class="wifi-signal">95% (Сильний)</span>
+      </div>
+      <div class="wifi-item" onclick="selectSsid('TP-Link_Guest')">
+        <span class="wifi-name">TP-Link_Guest</span>
+        <span class="wifi-signal">78%</span>
+      </div>
+      <div class="wifi-item" onclick="selectSsid('Сусідський_WiFi')">
+        <span class="wifi-name">🔒 Сусідський_WiFi</span>
+        <span class="wifi-signal">40% (Слабкий)</span>
+      </div>
+    </div>
+
+    <form onsubmit="alert('Збереження налаштувань. Підключення до обраної Wi-Fi мережі: ' + document.getElementById('s').value); return false;">
+      <label for='s' style="font-weight:bold;display:block;margin-top:10px;">Ім'я мережі (SSID):</label>
+      <input id='s' name='s' maxlength='32' placeholder='Натисніть на мережу зі списку або введіть'>
+      
+      <label for='p' style="font-weight:bold;display:block;margin-top:10px;">Пароль:</label>
+      <input id='p' name='p' maxlength='64' type='password' placeholder='Введіть пароль від Wi-Fi'>
+      
+      <div style="text-align:left;margin:8px 0;">
+        <input type='checkbox' id='showpass' onclick='togglePassword()'>
+        <label for='showpass' style="cursor:pointer;">Показати пароль</label>
+      </div>
+
+      <br/>
+      <button type='submit'>Зберегти</button>
+    </form>
+
+    <br/>
+    <button style="background:#888;" onclick="showTab('root')">Назад до меню</button>
+  </div>
+
+</body>
+</html>
