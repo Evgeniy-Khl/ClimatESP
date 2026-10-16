@@ -340,6 +340,7 @@
                             document.getElementById('checkDry').value = data.checkDry;
                             document.getElementById('rotate0').value = data.rotate0;
                             document.getElementById('rotate1').value = data.rotate1;
+                            updateRotateLabels();
                             document.getElementById('alarm0').value = (data.alarm0 / 10).toFixed(1);
                             document.getElementById('alarm1').value = (data.alarm1 / 10).toFixed(1);
                             document.getElementById('coolOn0').value = (data.coolOn0 / 10).toFixed(1);
@@ -449,7 +450,26 @@
             spT0.addEventListener('input', runValidation);
             spT1.addEventListener('input', runValidation);
 
+            function updateRotateLabels() {
+                const r0Input = document.getElementById('rotate0');
+                const r1Label = document.getElementById('label-rotate1');
+                if (!r0Input || !r1Label) return;
+                const r0Val = parseInt(r0Input.value, 10);
+                if (r0Val === 0) {
+                    r1Label.textContent = 'Поворот "режим-1" (від 0 до 250 годин):';
+                } else {
+                    r1Label.textContent = 'Поворот "режим-1" (від 0 до 250 секунд):';
+                }
+            }
+
+            const r0Field = document.getElementById('rotate0');
+            if (r0Field) {
+                r0Field.addEventListener('input', updateRotateLabels);
+                r0Field.addEventListener('change', updateRotateLabels);
+            }
+
             fetchData();
+
         });
 
         function updateDisplay() {
@@ -594,14 +614,15 @@
             <!-- Tab 3: Вент / Поворот -->
             <div id="tab-vent" class="tab-pane">
                 <div class="form-group">
-                    <label for="rotate0">Поворот "режим-0" (від 0 до 999 хв., 0 = одноразовий/вимк.):</label>
+                    <label for="rotate0" id="label-rotate0">Поворот "режим-0" (від 0 до 999 хвилин):</label>
                     <input type="number" name="rotate0" id="rotate0" min="0" max="999" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="rotate1">Поворот "режим-1" (від 0 до 250 сек., або годин якщо режим-0 = 0):</label>
+                    <label for="rotate1" id="label-rotate1">Поворот "режим-1" (від 0 до 250 секунд):</label>
                     <input type="number" name="rotate1" id="rotate1" min="0" max="250" required>
                 </div>
+
 
 
                 <div class="form-group">
