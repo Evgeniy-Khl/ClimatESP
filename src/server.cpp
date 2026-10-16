@@ -104,8 +104,19 @@ void respondsValues() {
     data["checkDry"] = str;
     
     char rotation[32];
-    snprintf_P(rotation, sizeof(rotation), PSTR("%d %s"), pvTimer, TURNSECOND ? "сек." : "хвл.");
+    if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+      if (TURN == PCF_ON) {
+        snprintf_P(rotation, sizeof(rotation), PSTR("%d год."), pvTimer);
+      } else {
+        snprintf_P(rotation, sizeof(rotation), PSTR("вимкн. (1-раз.)"));
+      }
+    } else if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer == 0) {
+      snprintf_P(rotation, sizeof(rotation), PSTR("вимкнено"));
+    } else {
+      snprintf_P(rotation, sizeof(rotation), PSTR("%d %s"), pvTimer, TURNSECOND ? "сек." : "хвл.");
+    }
     data["rotation"] = rotation;
+
 
     char power[16];
     snprintf_P(power, sizeof(power), PSTR("%d%%"), pctHeater);

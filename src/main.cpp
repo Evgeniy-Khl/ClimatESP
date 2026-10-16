@@ -136,12 +136,22 @@ void setup(){
   pvFlap = settings.sp_structs[0].flapLimit;  // полностью закрыта 
   incubatorServo.write(pvFlap);
   
-  pvTimer = settings.sp_structs[0].timer;                   // инициализация времени выключенного состояния таймера
+  TURN = PCF_OFF;
+  TURNSECOND = OFF;
+  oneShotMinutes = 0;
+  if (settings.sp_structs[0].timer == 0) {
+    pvTimer = 0;
+  } else {
+    pvTimer = settings.sp_structs[0].timer;                 // инициализация времени выключенного состояния таймера
+  }
+
   pvAeration = settings.sp_structs[0].aeration;             // инициализация ПАУЗы ПРОВЕТРИВАНИЯ (минут)
   heaterPwm.write(heaterValue);
   humidiPwm.write(humidiValue);
   portOut.value = 0xFF;
+  writePCF8574(portOut.value);
   delay(3000);
+
   IncubationManager::init();
   previousHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти
   DEBUG_PRINTF("Free heap size: %d\n", previousHeapSize);

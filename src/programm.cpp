@@ -42,6 +42,15 @@ void applyDailyProgram() {
         // Переинициализация рабочих таймеров, чтобы изменения вступили в силу немедленно
         pvTimer = settings.sp_structs[0].timer; 
         pvAeration = settings.sp_structs[0].aeration;
+        if (settings.sp_structs[0].timer == 0) {
+            TURN = PCF_OFF;
+            TURNSECOND = OFF;
+            oneShotMinutes = 0;
+            pvTimer = 0;
+            writePCF8574(portOut.value);
+        }
+
+
 
         // MYDEBUG_PRINTLN("-----------------------------------------");
         // DEBUG_PRINTF("applyDailyProgram: ЗАГРУЖЕНА Программа %d, День %d (Адрес: 0x%04X)\n", prg, day, address);

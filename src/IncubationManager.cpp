@@ -103,14 +103,28 @@ void IncubationManager::processVentilation() {
 }
 
 void IncubationManager::processRotation() {
-    if (settings.sp_structs[1].timer && TURN) { // Асимметричный режим
+    if (settings.sp_structs[0].timer == 0) {
+        if (settings.sp_structs[1].timer == 0 && TURN == PCF_ON) {
+            TURN = PCF_OFF;
+            writePCF8574(portOut.value);
+            logEvent("Лотки: вимкнено (таймер вимкнено)");
+        }
+        // В одноразовом режиме (rotate0 == 0 && rotate1 > 0) посекундный таймер не вмешивается
+        TURNSECOND = OFF;
+        return;
+    }
+
+
+    if (TURN == PCF_ON && settings.sp_structs[1].timer > 0) {
         TURNSECOND = ON;
         if (--pvTimer == 0) {
-            pvTimer = settings.sp_structs[0].timer; 
-            TURN = PCF_OFF; 
+            TURN = PCF_OFF;
+            pvTimer = settings.sp_structs[0].timer;
             TURNSECOND = OFF;
+            writePCF8574(portOut.value);
+            logEvent("Лотки: автоматичне вимкнення (час вийшов)");
         }
-    } else {
+    } else if (TURN == PCF_OFF || settings.sp_structs[1].timer == 0) {
         TURNSECOND = OFF;
     }
 }

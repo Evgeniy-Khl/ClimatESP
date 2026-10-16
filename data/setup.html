@@ -594,14 +594,15 @@
             <!-- Tab 3: Вент / Поворот -->
             <div id="tab-vent" class="tab-pane">
                 <div class="form-group">
-                    <label for="rotate0">Поворот "режим-0" (від 1 до 999 хвилин):</label>
-                    <input type="number" name="rotate0" id="rotate0" min="1" max="999" required>
+                    <label for="rotate0">Поворот "режим-0" (від 0 до 999 хв., 0 = одноразовий/вимк.):</label>
+                    <input type="number" name="rotate0" id="rotate0" min="0" max="999" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="rotate1">Поворот "режим-1" (від 0 до 250 секунд):</label>
+                    <label for="rotate1">Поворот "режим-1" (від 0 до 250 сек., або годин якщо режим-0 = 0):</label>
                     <input type="number" name="rotate1" id="rotate1" min="0" max="250" required>
                 </div>
+
 
                 <div class="form-group">
                     <label for="ventMode">Режим роботи вентиляції:</label>

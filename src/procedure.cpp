@@ -1,4 +1,5 @@
 #include "main.h"
+#include "logger.h"
 
 #define UNALTERED   2 // неизменный
 
@@ -46,23 +47,66 @@ int16_t UpdatePID(uint8_t cn){
   error = (int16_t)pid[cn].output;
   return error;
 }
-//------------- симистричный таймер -------------------
+//------------- таймер поворота лотков (вызывается каждую минуту) -------------------
 void rotate_trays(void){
-  if(!TURN){
-    if(--pvTimer == 0){
-      pvTimer = settings.sp_structs[0].timer; 
-      TURN = PCF_OFF;
-      // MYDEBUG_PRINTLN("TURN = PCF_OFF");
+  // Режим 3: Одноразовый (rotate0 == 0 && rotate1 > 0)
+  if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+    TURNSECOND = OFF;
+    if (TURN == PCF_ON) {
+      // Реле включено кнопкой - отсчитываем часы (60 минут = 1 час)
+      if (++oneShotMinutes >= 60) {
+        oneShotMinutes = 0;
+        if (--pvTimer == 0) {
+          TURN = PCF_OFF;
+          writePCF8574(portOut.value);
+          logEvent("Лотки: одноразовий таймер завершено");
+        }
+      }
+    } else {
+      // Реле выключено - находится в выключенном состоянии бесконечно долго
+      oneShotMinutes = 0;
     }
-  } else {
-    if(--pvTimer == 0){
-      if(settings.sp_structs[1].timer) pvTimer = settings.sp_structs[1].timer;
-      else pvTimer = settings.sp_structs[0].timer;
+    return;
+  }
+
+  if (settings.sp_structs[0].timer == 0) {
+    if (TURN == PCF_ON) {
+      TURN = PCF_OFF;
+      writePCF8574(portOut.value);
+    }
+    TURNSECOND = OFF;
+    return;
+  }
+
+
+  if (TURN == PCF_OFF) {
+    if (--pvTimer == 0) {
       TURN = PCF_ON;
-      // MYDEBUG_PRINTLN("TURN = PCF_ON");
+      if (settings.sp_structs[1].timer > 0) {
+        // Асимметричный режим: длительность работы в секундах
+        pvTimer = settings.sp_structs[1].timer;
+        TURNSECOND = ON;
+      } else {
+        // Симметричный режим: длительность работы в минутах
+        pvTimer = settings.sp_structs[0].timer;
+        TURNSECOND = OFF;
+      }
+      writePCF8574(portOut.value);
+      logEvent("Лотки: автоматичне увімкнення");
+    }
+  } else if (settings.sp_structs[1].timer == 0) {
+    // Симметричный режим: отсчет времени работы в минутах
+    TURNSECOND = OFF;
+    if (--pvTimer == 0) {
+      TURN = PCF_OFF;
+      pvTimer = settings.sp_structs[0].timer;
+      TURNSECOND = OFF;
+      writePCF8574(portOut.value);
+      logEvent("Лотки: автоматичне вимкнення (час вийшов)");
     }
   }
 }
+
 
 
 uint8_t RelayPos(unsigned char cn, unsigned char hysteresis){	// [n] канал № 1 или 2
@@ -644,7 +688,7 @@ void newMinute(){
 
   if(disableBeep) disableBeep--;
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
-  if(settings.sp_structs[0].timer) rotate_trays();
+  rotate_trays();
   //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
   if (settings.sp_structs[0].aeration && settings.sp_structs[1].aeration && !AERATION) {
     if (--pvAeration <= 0) {

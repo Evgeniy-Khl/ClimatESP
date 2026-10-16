@@ -286,7 +286,8 @@ extern uint8_t
         countMinutes,       // счетчик минут
         countHours,         // счетчик часов
         countDays,          // счетчик дней
-        stagnationTimer;    // счетчик минут отсутствия роста температуры
+        stagnationTimer,    // счетчик минут отсутствия роста температуры
+        oneShotMinutes;     // счетчик минут для одноразового режима лотков
 extern int16_t lastMinuteT; // температура минуту назад
 
 extern int16_t 

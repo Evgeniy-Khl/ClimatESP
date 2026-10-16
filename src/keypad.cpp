@@ -1,4 +1,5 @@
 #include "keypad.h"
+#include "logger.h"
 
 void checkkey(uint8_t key){
   // uint8_t topUser=31, topOwner=15, botUser=16;
@@ -93,7 +94,7 @@ void checkkey(uint8_t key){
                     switch (numSetup){
                       case 1:   if(editBuff <  10) editBuff =  10;  break;
                       case 2:   if(editBuff <  10) editBuff =  10;  break;
-                      case 3:   if(editBuff <   1) editBuff =   1;  break;
+                      case 3:   if(editBuff <   0) editBuff =   0;  break;
                       case 4:   if(editBuff <   0) editBuff =   0;  break;
                       case 5:   if(editBuff <   1) editBuff =   1;  break;
                       case 6:   if(editBuff <   0) editBuff =   0;  break;
@@ -148,20 +149,50 @@ void checkkey(uint8_t key){
         // Вход в режим Установок
         case KEY_1: numSetup = 1; editBuff = settings.sp_structs[0].spT; resetDispl = RESETDISPLAY; break;
         // TURN = ON
-        case KEY_2: if(settings.sp_structs[1].timer) {pvTimer=settings.sp_structs[1].timer;} 
-                    else {pvTimer=settings.sp_structs[0].timer;} 
-                    TURN = PCF_ON;
-                    writePCF8574(portOut.value);
+        case KEY_2: 
+            TURN = PCF_ON;
+            if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+                // Режим 3: Одноразовый (почасовой отсчет)
+                pvTimer = settings.sp_structs[1].timer;
+                oneShotMinutes = 0;
+                TURNSECOND = OFF;
+                writePCF8574(portOut.value);
+                logEvent("Лотки: одноразовий запуск на %d год.", pvTimer);
+            } else if (settings.sp_structs[1].timer > 0) {
+                // Режим 2: Асимметричный (секунды)
+                pvTimer = settings.sp_structs[1].timer;
+                TURNSECOND = ON;
+                writePCF8574(portOut.value);
+                logEvent("Лотки: увімкнено кнопкою");
+            } else {
+                // Режим 1: Симметричный (минуты)
+                pvTimer = settings.sp_structs[0].timer;
+                TURNSECOND = OFF;
+                writePCF8574(portOut.value);
+                logEvent("Лотки: увімкнено кнопкою");
+            }
             break;
         // Переключение дисплеев "F1","F2","F3","F4","F5"->IP0;IP1;	"F6"->IP2;IP3;
         case KEY_3: if(++displNum > 6) displNum = 0;
                     resetDispl = RESETDISPLAY;
             break;
         // TURN = OFF
-        case KEY_4: pvTimer=settings.sp_structs[0].timer; 
-                    TURN = PCF_OFF;
-                    writePCF8574(portOut.value);
+        case KEY_4: 
+            TURN = PCF_OFF;
+            oneShotMinutes = 0;
+            if (settings.sp_structs[0].timer == 0) {
+                pvTimer = 0;
+                TURNSECOND = OFF;
+                writePCF8574(portOut.value);
+                logEvent("Лотки: вимкнено кнопкою (одноразовий)");
+            } else {
+                pvTimer = settings.sp_structs[0].timer;
+                TURNSECOND = OFF;
+                writePCF8574(portOut.value);
+                logEvent("Лотки: вимкнено кнопкою");
+            }
             break;
+
         case KEY_5: break;
         case KEY_6: break;
         case KEY_7: break;
@@ -182,10 +213,33 @@ void saveset(void){
                  settings.sp_structs[1].spRH = editBuff;          // У2 уставка канал 2 (0.1 - 99.9 %)
               else settings.sp_structs[1].spT = editBuff;         // У2 уставка канал 2 (0.1 - 99.9 °C)
         break;
-      case 3: settings.sp_structs[0].timer = editBuff;            // У3 время отключенного состояния (1 - 999 мин.)
-              pvTimer = editBuff; 
-        break;  // длительность выключенного состояния таймера
-      case 4: settings.sp_structs[1].timer = editBuff; break;     // У4 время включенного состояния (0 - 999 сек.)
+      case 3: 
+        settings.sp_structs[0].timer = editBuff;
+        if (TURN == PCF_OFF) {
+            pvTimer = (editBuff == 0) ? 0 : editBuff;
+            TURNSECOND = OFF;
+        }
+        if (editBuff == 0 && TURN == PCF_ON && settings.sp_structs[1].timer == 0) {
+            TURN = PCF_OFF;
+            TURNSECOND = OFF;
+            writePCF8574(portOut.value);
+        }
+        break;
+      case 4: 
+        settings.sp_structs[1].timer = editBuff;
+        if (TURN == PCF_ON) {
+            if (settings.sp_structs[0].timer == 0 && editBuff > 0) {
+                pvTimer = editBuff;
+                oneShotMinutes = 0;
+                TURNSECOND = OFF;
+            } else if (settings.sp_structs[0].timer > 0 && editBuff > 0) {
+                pvTimer = editBuff;
+                TURNSECOND = ON;
+            }
+        }
+        break;
+
+
       case 5: settings.sp_structs[0].aeration = editBuff; break;  // У5 ПАУЗА ПРОВЕТРИВАНИЯ (1 - 999 мин.)
       case 6: settings.sp_structs[1].aeration = editBuff;         // У6 ДЛИТЕЛЬНОСТЬ ПРОВЕТРИВАНИЯ (0 - 999 сек.)
               if(editBuff){pvVenting = editBuff; pvAeration = 0; AERATION=1;} 
