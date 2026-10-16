@@ -361,6 +361,8 @@
                             document.getElementById('identif').value = data.identif;
                             document.getElementById('botToken').value = data.botToken || '';
                             document.getElementById('chatID').value = data.chatID || '';
+                            document.getElementById('wifiSsid').value = data.wifiSsid || '';
+                            document.getElementById('wifiPass').value = data.wifiPass || '';
                             
                             // Запуск валидации после автозаполнения
                             runValidation();
@@ -467,6 +469,7 @@
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Повор</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-pid')">ПІД-рег</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-wifi')">Wi-Fi</button>
             </div>
 
             <!-- Tab 1: Основні -->
@@ -685,6 +688,27 @@
                 <div class="form-group">
                     <label for="chatID">Telegram Chat ID (ID чату):</label>
                     <input type="text" name="chatID" id="chatID" maxlength="14" placeholder="Введіть ID чату">
+                </div>
+            </div>
+
+            <!-- Tab 6: Wi-Fi -->
+            <div id="tab-wifi" class="tab-pane">
+                <div class="form-group">
+                    <label for="wifiSsid">Назва домашньої Wi-Fi мережі (SSID):</label>
+                    <input type="text" name="wifiSsid" id="wifiSsid" maxlength="32" placeholder="Залиште порожнім для автономної роботи">
+                </div>
+
+                <div class="form-group">
+                    <label for="wifiPass">Пароль від Wi-Fi мережі:</label>
+                    <input type="password" name="wifiPass" id="wifiPass" maxlength="64" placeholder="Введіть пароль від роутера">
+                    <div style="margin-top:6px; font-size:0.8rem; color:var(--text-muted);">
+                        <input type="checkbox" id="showWifiPass" onclick="var p=document.getElementById('wifiPass'); p.type = p.type==='password'?'text':'password';">
+                        <label for="showWifiPass" style="cursor:pointer; display:inline;">Показати пароль</label>
+                    </div>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.4; margin-top:8px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid var(--card-border);">
+                    💡 <strong>Автономна робота без роутера:</strong><br>
+                    Якщо у вас немає Wi-Fi роутера, залиште поле SSID порожнім. Прилад працюватиме як власна точка доступу <strong>Climat-5.25-AP</strong> (IP: 192.168.4.1), забезпечуючи повний контроль, графіки та журнали безпосередньо у браузері.
                 </div>
             </div>
 

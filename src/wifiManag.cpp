@@ -1,9 +1,16 @@
 #include "main.h"
 #include "server.h"
 
+char wifiSsid[33] = "";
+char wifiPass[65] = "";
+bool apActive = false;
+bool shouldReboot = false;
+uint32_t rebootTimer = 0;
+
 static bool serverStarted = false;
 bool botStarted = false;
 static unsigned long lastReconnectAttempt = 0;
+static DNSServer dnsServer;
 
 void setupWebServerRoutes() {
     server.on("/", HTTP_GET, []() {
@@ -21,7 +28,6 @@ void setupWebServerRoutes() {
       }
     });
     server.on("/setup", HTTP_GET, []() {
-    //   DEBUG_PRINTF("/setup ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
       File file = LittleFS.open("/setup.html", "r");
       if (!file) {
           server.send(404, "text/plain", "File Not Found");
@@ -31,7 +37,6 @@ void setupWebServerRoutes() {
       file.close();
     });
     server.on("/table", HTTP_GET, []() {
-    //   DEBUG_PRINTF("/table ----- EEPROM size: %d;  time: %d,%ld\n", EEPROM_SIZE,seconds,millis()-lastSendTime);
       File file = LittleFS.open("/table.html", "r");
       if (!file) {
           server.send(404, "text/plain", "File Not Found");
@@ -61,7 +66,7 @@ void setupServices() {
         static IPAddress lastIP;
         if (!WIFIENABLE || WiFi.localIP() != lastIP) {
             lastIP = WiFi.localIP();
-            MYDEBUG_PRINT("Wi-Fi подключен! IP:");
+            MYDEBUG_PRINT("Wi-Fi подключен! IP: ");
             MYDEBUG_PRINTLN(lastIP);
             logEvent("Wi-Fi підключено! IP: " + lastIP.toString());
 
@@ -72,12 +77,6 @@ void setupServices() {
             client.setBufferSizes(1024, 512); 
             client.setInsecure();
             WIFIENABLE = 1;
-        }
-
-        if (!serverStarted) {
-            server.begin();
-            serverStarted = true;
-            MYDEBUG_PRINTLN("HTTP server started");
         }
 
         if (!botStarted && strlen(botToken) > 40) {
@@ -91,68 +90,171 @@ void setupServices() {
             MYDEBUG_PRINTLN("Telegram bot started");
         }
     }
-}
 
-void initWiFiManag(void){
-    WiFiManager wifiManager;
-
-    if(settings.sp_structs[0].special & 0x08){
-      settings.sp_structs[0].special &= 0xF7;
-      saveSetpoint();
-      MYDEBUG_PRINTLN("Сброс настроек WiFi!");
-      wifiManager.resetSettings();
-    } 
-
-    uint8_t tt = (settings.sp_structs[0].special & 0x03) * 60;
-    if (tt == 0 && (settings.sp_structs[0].special & 0x03)) tt = 60; 
-
-    MYDEBUG_PRINT("Устанавливаем таймаут для портала конфигурации: "); MYDEBUG_PRINTLN(tt);
-    
-    data[0] = 0b00111001; // C
-    data[1] = 0b01011100; // o
-    data[2] = 0b01010100; // n
-    if(tt/100) data[3] = NUMBER_FONT[tt/100]; else data[3] = DEF;
-    data[4] = NUMBER_FONT[(tt/10)%10];
-    data[5] = NUMBER_FONT[tt%10];
-    data[6] = 0b00111110; // U
-    data[7] = 0b01110001; // F
-    module.setDisplay(data, 8);
-    
-    wifiManager.setConfigPortalTimeout(tt);    
-    
-    setupWebServerRoutes(); // Регистрируем маршруты всегда
-
-    if (!wifiManager.autoConnect("ClimatAP")) {
-      MYDEBUG_PRINTLN("Не удалось подключиться (истек таймаут). Продолжаем работу в оффлайн-режиме.");
-      data[3] = DEF; data[4] = DEF; data[5] = DEF;
-      module.setDisplay(data, 8);
-      delay(1000);
-    } else {
-        setupServices();
-
-        data[3] = GR; data[4] = GR; data[5] = GR;
-        module.setDisplay(data, 8);
-        delay(1000);
+    if (!serverStarted) {
+        server.begin();
+        serverStarted = true;
+        MYDEBUG_PRINTLN("HTTP server started");
     }
 }
 
-void handleWiFi(void) {
-    if (WiFi.status() != WL_CONNECTED) {
-        if (WIFIENABLE) {
-            MYDEBUG_PRINTLN("Wi-Fi связь потеряна!");
-            logEvent("Wi-Fi зв'язок втрачено!");
-            WIFIENABLE = 0;
-            BOTENABLE = 0;
-            botStarted = false;
+void startAccessPoint(void) {
+    WiFi.mode(WIFI_AP);
+    IPAddress apIP(192, 168, 4, 1);
+    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    WiFi.softAP("Climat-5.25-AP");
+
+    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+    dnsServer.start(53, "*", apIP);
+    apActive = true;
+
+    if (!serverStarted) {
+        server.begin();
+        serverStarted = true;
+        MYDEBUG_PRINTLN("HTTP server started in AP mode");
+    }
+
+    MYDEBUG_PRINT("Точка доступа запущена. IP: ");
+    MYDEBUG_PRINTLN(WiFi.softAPIP());
+    logEvent("Точка доступу Climat-5.25-AP активна. IP: " + WiFi.softAPIP().toString());
+
+    // Индикация на 7-сегментнике: "A P   O n"
+    data[0] = 0b01110111; // A
+    data[1] = 0b01110011; // P
+    data[2] = DEF;
+    data[3] = DEF;
+    data[4] = DEF;
+    data[5] = 0b01011100; // o
+    data[6] = 0b01010100; // n
+    data[7] = DEF;
+    module.setDisplay(data, 8);
+    delay(1000);
+}
+
+void initWiFiManag(void) {
+    setupWebServerRoutes();
+
+    if (settings.sp_structs[0].special & 0x08) {
+        settings.sp_structs[0].special &= 0xF7;
+        saveSetpoint();
+        MYDEBUG_PRINTLN("Сброс настроек WiFi!");
+        wifiSsid[0] = '\0';
+        wifiPass[0] = '\0';
+        if (LittleFS.exists("/config.json")) {
+            File f = LittleFS.open("/config.json", "r");
+            JsonDocument j;
+            if (f) {
+                deserializeJson(j, f);
+                f.close();
+            }
+            j["ssid"] = "";
+            j["pass"] = "";
+            File fw = LittleFS.open("/config.json", "w");
+            if (fw) {
+                serializeJson(j, fw);
+                fw.close();
+            }
         }
-        
-        // Попытка переподключения каждые 2 минуты (быстрее чем 5)
-        if (millis() - lastReconnectAttempt > 120000 || lastReconnectAttempt == 0) {
-            lastReconnectAttempt = millis();
-            MYDEBUG_PRINTLN("Попытка переподключения к Wi-Fi...");
-            WiFi.begin(); 
+    }
+
+    if (strlen(wifiSsid) > 0) {
+        MYDEBUG_PRINT("Подключение к Wi-Fi сети: ");
+        MYDEBUG_PRINTLN(wifiSsid);
+        logEvent("Спроба підключення до Wi-Fi: " + String(wifiSsid));
+
+        // Индикация на 7-сегментнике: "C o n"
+        data[0] = 0b00111001; // C
+        data[1] = 0b01011100; // o
+        data[2] = 0b01010100; // n
+        data[3] = DEF; data[4] = DEF; data[5] = DEF;
+        data[6] = 0b00111110; // U
+        data[7] = 0b01110001; // F
+        module.setDisplay(data, 8);
+
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(wifiSsid, wifiPass);
+
+        int attempts = 0;
+        while (WiFi.status() != WL_CONNECTED && attempts < 24) {
+            delay(500);
+            ESP.wdtFeed();
+            attempts++;
+            if (attempts % 2 == 0) {
+                data[4] = NUMBER_FONT[(attempts / 2) % 10];
+                module.setDisplay(data, 8);
+            }
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+            apActive = false;
+            MYDEBUG_PRINTLN("Wi-Fi подключен к роутеру!");
+            setupServices();
+
+            data[3] = GR; data[4] = GR; data[5] = GR;
+            module.setDisplay(data, 8);
+            delay(1000);
+            return;
+        } else {
+            MYDEBUG_PRINTLN("Не удалось подключиться к роутеру. Запуск автономной AP.");
+            logEvent("Не вдалося підключитися до роутера. Перехід в режим автономної точки доступу.");
         }
     } else {
-        setupServices(); // Если подключено, убеждаемся что всё запущено
+        MYDEBUG_PRINTLN("Настройки Wi-Fi отсутствуют. Запуск автономной AP.");
+        logEvent("Wi-Fi не налаштовано. Запуск автономної точки доступу.");
+    }
+
+    startAccessPoint();
+}
+
+void handleWiFi(void) {
+    if (shouldReboot && (millis() - rebootTimer >= 1500)) {
+        ESP.restart();
+    }
+
+    if (apActive) {
+        dnsServer.processNextRequest();
+
+        // Фоновая попытка подключиться к роутеру, если SSID задан
+        if (strlen(wifiSsid) > 0) {
+            if (millis() - lastReconnectAttempt > 120000 || lastReconnectAttempt == 0) {
+                lastReconnectAttempt = millis();
+                WiFi.mode(WIFI_AP_STA);
+                WiFi.begin(wifiSsid, wifiPass);
+            }
+            if (WiFi.status() == WL_CONNECTED) {
+                MYDEBUG_PRINTLN("Фоновое переподключение к роутеру успешно!");
+                logEvent("Wi-Fi зв'язок з роутером відновлено!");
+                dnsServer.stop();
+                WiFi.softAPdisconnect(true);
+                WiFi.mode(WIFI_STA);
+                apActive = false;
+                setupServices();
+            }
+        }
+    } else {
+        if (WiFi.status() != WL_CONNECTED) {
+            if (WIFIENABLE) {
+                MYDEBUG_PRINTLN("Wi-Fi связь потеряна!");
+                logEvent("Wi-Fi зв'язок втрачено!");
+                WIFIENABLE = 0;
+                BOTENABLE = 0;
+                botStarted = false;
+            }
+
+            if (millis() - lastReconnectAttempt > 30000 || lastReconnectAttempt == 0) {
+                lastReconnectAttempt = millis();
+                MYDEBUG_PRINTLN("Попытка переподключения к Wi-Fi...");
+                WiFi.begin(); 
+            }
+
+            static unsigned long disconnectStart = 0;
+            if (disconnectStart == 0) disconnectStart = millis();
+            if (millis() - disconnectStart > 120000 && !apActive) {
+                MYDEBUG_PRINTLN("Роутер не отвечает более 2 минут. Активация резервной точки доступа.");
+                startAccessPoint();
+            }
+        } else {
+            setupServices();
+        }
     }
 }

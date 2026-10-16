@@ -6,6 +6,11 @@ extern long lastSendTime;
 extern int tableData[32][4], tmrTelegramOff;
 
 void notFoundHandler() {
+  if (apActive && server.hostHeader() != "192.168.4.1") {
+    server.sendHeader("Location", "http://192.168.4.1/", true);
+    server.send(302, "text/plain", "");
+    return;
+  }
   server.send(404, "text/plain", "Not found");
 }
 
@@ -184,6 +189,8 @@ void respondsEeprom(){
         doc["identif"] = settings.sp_structs[1].special;
         doc["botToken"] = botToken;
         doc["chatID"] = chatID;
+        doc["wifiSsid"] = wifiSsid;
+        doc["wifiPass"] = wifiPass;
         doc["status"] = 1;
 
         server.setContentLength(measureJson(doc));
@@ -196,6 +203,7 @@ void respondsEeprom(){
 
 void acceptEeprom() {
   bool configChanged = false;
+  bool wifiChanged = false;
 
   // Запоминаем текущие значения до применения новых
   int16_t old_spT0   = settings.sp_structs[0].spT;
@@ -268,6 +276,22 @@ void acceptEeprom() {
               configChanged = true;
           }
       }
+      else if (paramName == "wifiSsid") {
+          if (paramValue != wifiSsid) {
+              strncpy(wifiSsid, paramValue.c_str(), sizeof(wifiSsid) - 1);
+              wifiSsid[sizeof(wifiSsid) - 1] = '\0';
+              configChanged = true;
+              wifiChanged = true;
+          }
+      }
+      else if (paramName == "wifiPass") {
+          if (paramValue != wifiPass) {
+              strncpy(wifiPass, paramValue.c_str(), sizeof(wifiPass) - 1);
+              wifiPass[sizeof(wifiPass) - 1] = '\0';
+              configChanged = true;
+              wifiChanged = true;
+          }
+      }
   }
 
   server.send(200);
@@ -314,17 +338,25 @@ void acceptEeprom() {
 
   if (configChanged) {
       JsonDocument json;
+      json["ssid"] = wifiSsid;
+      json["pass"] = wifiPass;
       json["botToken"] = botToken;
       json["chatID"] = chatID;
       File configFile = LittleFS.open("/config.json", "w");
       if (configFile) {
           serializeJson(json, configFile);
           configFile.close();
-          MYDEBUG_PRINTLN("Saved new Telegram config to /config.json");
+          MYDEBUG_PRINTLN("Saved new config to /config.json");
       }
       botStarted = false;
       BOTENABLE = 0;
       bot.updateToken(botToken);
+
+      if (wifiChanged) {
+          logEvent("Wi-Fi налаштування змінено. Перезавантаження...");
+          shouldReboot = true;
+          rebootTimer = millis();
+      }
   }
 }
 

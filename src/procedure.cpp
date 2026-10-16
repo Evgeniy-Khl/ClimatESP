@@ -205,8 +205,17 @@ uint8_t checkConfig(void){
       configFile.readBytes(buf.get(), size);
       JsonDocument json;
       auto deserializeError = deserializeJson(json, buf.get());
-      serializeJson(json, Serial);
-      if( ! deserializeError ){
+      if (!deserializeError) {
+        const char* ssid = json["ssid"];
+        if (ssid) {
+            strncpy(wifiSsid, ssid, sizeof(wifiSsid) - 1);
+            wifiSsid[sizeof(wifiSsid) - 1] = '\0';
+        }
+        const char* pass = json["pass"];
+        if (pass) {
+            strncpy(wifiPass, pass, sizeof(wifiPass) - 1);
+            wifiPass[sizeof(wifiPass) - 1] = '\0';
+        }
         const char* token = json["botToken"];
         if (token) {
             strncpy(botToken, token, sizeof(botToken) - 1);

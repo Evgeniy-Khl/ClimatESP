@@ -4,10 +4,9 @@
 #define LED_DISPLAY
 
 #include <Arduino.h>
-#include <time.h>           // Библиотека для работы с системным временем
-#include <MyTelegramBot.h>  // Universal Telegram Bot Library written by Brian Lough: 
-#include <WiFiManager.h>    //https://github.com/tzapu/WiFiManager
+#include <MyTelegramBot.h>
 #include <ArduinoJson.h>
+#include <DNSServer.h>
 #include <FS.h>
 #include <LittleFS.h>
 #define FlashFS LittleFS
@@ -234,6 +233,11 @@ extern char displStr[200];
 extern float dpv0, dpv1;
 extern char botToken[80];
 extern char chatID [25];
+extern char wifiSsid[33];
+extern char wifiPass[65];
+extern bool apActive;
+extern bool shouldReboot;
+extern uint32_t rebootTimer;
 extern MyTelegramBot bot;
 extern WiFiClientSecure client;
 extern bool shouldSaveConfig;
@@ -305,6 +309,7 @@ extern uint8_t dataLed[6];
 byte writePCF8574(byte data);
 byte readPCF8574();
 void initWiFiManag(void);
+void startAccessPoint(void);
 void handleWiFi(void);
 void syncNTP(void);
 

@@ -94,13 +94,10 @@ void setup(){
     logEvent("ПОМИЛКА: Не вдалося змонтувати файлову систему LittleFS!");
     dataLed[4] = 1;
   }
-  //---------------------------- инициализация WiFiManager -----------------------------------
-  if(settings.sp_structs[0].special & 0x03) {
-    ESP.wdtDisable();
-    initWiFiManag();
-    ESP.wdtEnable(5000);
-  }
-  else MYDEBUG_PRINTLN("Запрет на подключение к WiFi! Продолжаем работу в оффлайн-режиме.");
+  //---------------------------- инициализация Wi-Fi -----------------------------------
+  ESP.wdtDisable();
+  initWiFiManag();
+  ESP.wdtEnable(5000);
   //------------------------------------------------------------------------------
   PID_Init(&pid[0], settings.sp_structs[0].Kp, settings.sp_structs[0].Ki);
   PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
