@@ -22,9 +22,9 @@ void logEvent(const String& message) {
     if (RTCENABLE) {
         curr = rtc.now();
         hasTime = true;
-        char timeStr[25];
-        snprintf(timeStr, sizeof(timeStr), "%02d.%02d.%04d %02d:%02d:%02d", 
-                 curr.day(), curr.month(), curr.year(), curr.hour(), curr.minute(), curr.second());
+        char timeStr[20];
+        snprintf(timeStr, sizeof(timeStr), "%02d.%02d.%02d %02d:%02d", 
+                 curr.day(), curr.month(), curr.year() % 100, curr.hour(), curr.minute());
         logLine += "[" + String(timeStr) + "] ";
     } else {
         logLine += "[" + String(millis() / 1000) + "s] ";

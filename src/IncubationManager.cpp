@@ -3,7 +3,6 @@
 #include "logger.h"
 
 void IncubationManager::init() {
-    logEvent("Менеджер інкубації ініціалізовано.");
 }
 
 void IncubationManager::tick() {
@@ -37,31 +36,32 @@ void IncubationManager::tick() {
     pctHimidifier = constrain(humidiValue, 0, 255);
     pctHimidifier = map(pctHimidifier, 0, 255, 0, 100);
 
-    // 7. Автоматическое циклическое логирование статусов ошибок при изменении
-    // static byte last_errors_val = 0;
-    // if (errorsFlag.value != last_errors_val) {
-    //     byte changed = errorsFlag.value ^ last_errors_val;
-    //     for (int i = 0; i < 8; i++) {
-    //         if (changed & (1 << i)) {
-    //             bool isSet = (errorsFlag.value & (1 << i));
-    //             const char* errName = "";
-    //             switch(i) {
-    //                 case 0: errName = "Помилка датчика №1 (відключений/завис)"; break;
-    //                 case 1: errName = "Помилка датчика №2 (відключений/завис)"; break;
-    //                 case 2: errName = "Відхилення по каналу №1"; break;
-    //                 case 3: errName = "Відхилення по каналу №2"; break;
-    //                 case 4: errName = "Захист від розносу температури"; break;
-    //                 case 5: errName = "Зависання датчика"; break;
-    //                 case 6: errName = "Резерв"; break;
-    //                 case 7: errName = "Перегрів симістора"; break;
-    //             }
-    //             if (errName[0] != '\0' && i != 6) { // Пропускаем резервный бит
-    //                 logEvent("Статус [%s] -> %s", errName, isSet ? "АКТИВОВАНО" : "СКАСОВАНО");
-    //             }
-    //         }
-    //     }
-    //     last_errors_val = errorsFlag.value;
-    // }
+    // 7. Автоматическое циклическое логирование статусов аварий при возникновении
+    static byte last_errors_val = 0;
+    if (errorsFlag.value != last_errors_val) {
+        byte changed = errorsFlag.value ^ last_errors_val;
+        for (int i = 0; i < 8; i++) {
+            if (changed & (1 << i)) {
+                bool isSet = (errorsFlag.value & (1 << i));
+                if (isSet && i != 6) { // Логируем только возникновение аварии (НЕУСПЕШНО)
+                    const char* errName = "";
+                    switch(i) {
+                        case 0: errName = "Помилка датчика №1 (відключений/завис)"; break;
+                        case 1: errName = "Помилка датчика №2 (відключений/завис)"; break;
+                        case 2: errName = "Аварійне відхилення T/H по каналу №1"; break;
+                        case 3: errName = "Аварійне відхилення T/H по каналу №2"; break;
+                        case 4: errName = "Захист від розносу температури"; break;
+                        case 5: errName = "Зависання датчика"; break;
+                        case 7: errName = "Перегрів симістора"; break;
+                    }
+                    if (errName[0] != '\0') {
+                        logEvent("АВАРІЯ: %s", errName);
+                    }
+                }
+            }
+        }
+        last_errors_val = errorsFlag.value;
+    }
 }
 
 void IncubationManager::processPID() {
@@ -107,7 +107,6 @@ void IncubationManager::processRotation() {
         if (settings.sp_structs[1].timer == 0 && TURN == PCF_ON) {
             TURN = PCF_OFF;
             writePCF8574(portOut.value);
-            logEvent("Лотки: вимкнено (таймер вимкнено)");
         }
         // В одноразовом режиме (rotate0 == 0 && rotate1 > 0) посекундный таймер не вмешивается
         TURNSECOND = OFF;
@@ -122,7 +121,6 @@ void IncubationManager::processRotation() {
             pvTimer = settings.sp_structs[0].timer;
             TURNSECOND = OFF;
             writePCF8574(portOut.value);
-            logEvent("Лотки: автоматичне вимкнення (час вийшов)");
         }
     } else if (TURN == PCF_OFF || settings.sp_structs[1].timer == 0) {
         TURNSECOND = OFF;

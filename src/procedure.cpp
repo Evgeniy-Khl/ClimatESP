@@ -59,7 +59,6 @@ void rotate_trays(void){
         if (--pvTimer == 0) {
           TURN = PCF_OFF;
           writePCF8574(portOut.value);
-          logEvent("Лотки: одноразовий таймер завершено");
         }
       }
     } else {
@@ -92,7 +91,6 @@ void rotate_trays(void){
         TURNSECOND = OFF;
       }
       writePCF8574(portOut.value);
-      logEvent("Лотки: автоматичне увімкнення");
     }
   } else if (settings.sp_structs[1].timer == 0) {
     // Симметричный режим: отсчет времени работы в минутах
@@ -102,7 +100,6 @@ void rotate_trays(void){
       pvTimer = settings.sp_structs[0].timer;
       TURNSECOND = OFF;
       writePCF8574(portOut.value);
-      logEvent("Лотки: автоматичне вимкнення (час вийшов)");
     }
   }
 }

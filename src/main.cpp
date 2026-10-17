@@ -26,7 +26,6 @@ InvertedServo incubatorServo; // Создаем объект управлени�
 void ledSet(void);
 
 void setup(){
-  logEvent("Система запускається...");
   #ifdef DEBUG
     Serial.begin(115200);               // Инициализация последовательного порта для отладки
   #endif
@@ -48,7 +47,6 @@ void setup(){
         char buf[48];
         snprintf(buf, sizeof(buf), "I2C found: 0x%02X", addr);
         MYDEBUG_PRINTLN(buf);
-        logEvent(buf);
         found++;
       }
       ESP.wdtFeed();
@@ -83,12 +81,17 @@ void setup(){
   if(lFS) {
     fsMounted = true;
     MYDEBUG_PRINTLN("mounted file system");
-    logEvent("Файлова система LittleFS змонтована успішно.");
     listFilesAndSizes();
     
     //--------------------- checkSetpoint ----------------------------------
     dataLed[2] = checkSetpoint();
+    if (dataLed[2] == 1) {
+      logEvent("ПОМИЛКА: Не вдалося завантажити /setpoint.json!");
+    }
     dataLed[3] = checkConfig();
+    if (dataLed[3] != 0) {
+      logEvent("ПОМИЛКА: Не вдалося завантажити /config.json!");
+    }
   } else {
     MYDEBUG_PRINTLN("failed to mount FS");
     logEvent("ПОМИЛКА: Не вдалося змонтувати файлову систему LittleFS!");
@@ -103,7 +106,6 @@ void setup(){
   PID_Init(&pid[1], settings.sp_structs[1].Kp, settings.sp_structs[1].Ki);
   //---------- Инициализация DS3231 ----------------------------------------
   if(RTCENABLE){
-    logEvent("Годинник RTC DS3231 ініціалізовано успішно.");
     if(rtc.lostPower()) {                     // у RTC села батарейка
         logEvent("Увага: RTC втратив живлення! Час обнулено.");
         MYDEBUG_PRINTLN("RTC lost power! Текущая программа обнулена!");
@@ -409,7 +411,6 @@ static void waitForPCF8574OrReboot(uint8_t maxRetries = 2,
     DEBUG_PRINTF("PCF8574: recovery attempt %d / %d\n", attempt, maxRetries);
     if (recoverI2C()) {
       MYDEBUG_PRINTLN("PCF8574: recovered successfully!");
-      logEvent("PCF8574 відновлено. Продовжуємо роботу.");
       i2c_error_count = 0;
       recovery_fail_count = 0;
       return; // восстановились — выходим

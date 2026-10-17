@@ -68,11 +68,9 @@ void setupServices() {
             lastIP = WiFi.localIP();
             MYDEBUG_PRINT("Wi-Fi подключен! IP: ");
             MYDEBUG_PRINTLN(lastIP);
-            logEvent("Wi-Fi підключено! IP: " + lastIP.toString());
 
             // Настройка NTP для Киева
             configTime(TZ_INFO, "pool.ntp.org", "time.nist.gov", "time.google.com");
-            logEvent("NTP час налаштовано.");
 
             client.setBufferSizes(1024, 512); 
             client.setInsecure();
@@ -102,7 +100,7 @@ void startAccessPoint(void) {
     WiFi.mode(WIFI_AP);
     IPAddress apIP(192, 168, 4, 1);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("Climat-5.25-AP");
+    WiFi.softAP("Climat-AP");
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", apIP);
@@ -116,7 +114,6 @@ void startAccessPoint(void) {
 
     MYDEBUG_PRINT("Точка доступа запущена. IP: ");
     MYDEBUG_PRINTLN(WiFi.softAPIP());
-    logEvent("Точка доступу Climat-5.25-AP активна. IP: " + WiFi.softAPIP().toString());
 
     // Индикация на 7-сегментнике: "A P   O n"
     data[0] = 0b01110111; // A
@@ -160,7 +157,6 @@ void initWiFiManag(void) {
     if (strlen(wifiSsid) > 0) {
         MYDEBUG_PRINT("Подключение к Wi-Fi сети: ");
         MYDEBUG_PRINTLN(wifiSsid);
-        logEvent("Спроба підключення до Wi-Fi: " + String(wifiSsid));
 
         // Индикация на 7-сегментнике: "C o n"
         data[0] = 0b00111001; // C
@@ -200,7 +196,6 @@ void initWiFiManag(void) {
         }
     } else {
         MYDEBUG_PRINTLN("Настройки Wi-Fi отсутствуют. Запуск автономной AP.");
-        logEvent("Wi-Fi не налаштовано. Запуск автономної точки доступу.");
     }
 
     startAccessPoint();
@@ -223,7 +218,6 @@ void handleWiFi(void) {
             }
             if (WiFi.status() == WL_CONNECTED) {
                 MYDEBUG_PRINTLN("Фоновое переподключение к роутеру успешно!");
-                logEvent("Wi-Fi зв'язок з роутером відновлено!");
                 dnsServer.stop();
                 WiFi.softAPdisconnect(true);
                 WiFi.mode(WIFI_STA);

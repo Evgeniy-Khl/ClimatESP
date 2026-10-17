@@ -157,19 +157,16 @@ void checkkey(uint8_t key){
                 oneShotMinutes = 0;
                 TURNSECOND = OFF;
                 writePCF8574(portOut.value);
-                logEvent("Лотки: одноразовий запуск на %d год.", pvTimer);
             } else if (settings.sp_structs[1].timer > 0) {
                 // Режим 2: Асимметричный (секунды)
                 pvTimer = settings.sp_structs[1].timer;
                 TURNSECOND = ON;
                 writePCF8574(portOut.value);
-                logEvent("Лотки: увімкнено кнопкою");
             } else {
                 // Режим 1: Симметричный (минуты)
                 pvTimer = settings.sp_structs[0].timer;
                 TURNSECOND = OFF;
                 writePCF8574(portOut.value);
-                logEvent("Лотки: увімкнено кнопкою");
             }
             break;
         // Переключение дисплеев "F1","F2","F3","F4","F5"->IP0;IP1;	"F6"->IP2;IP3;
@@ -184,12 +181,10 @@ void checkkey(uint8_t key){
                 pvTimer = 0;
                 TURNSECOND = OFF;
                 writePCF8574(portOut.value);
-                logEvent("Лотки: вимкнено кнопкою (одноразовий)");
             } else {
                 pvTimer = settings.sp_structs[0].timer;
                 TURNSECOND = OFF;
                 writePCF8574(portOut.value);
-                logEvent("Лотки: вимкнено кнопкою");
             }
             break;
 

@@ -488,8 +488,8 @@
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-alarm')">Аварія/Охол</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Повор</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-pid')">ПІД-рег</button>
-                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-wifi')">Wi-Fi</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
             </div>
 
             <!-- Tab 1: Основні -->
@@ -700,20 +700,7 @@
                 </div>
             </div>
 
-            <!-- Tab 5: Telegram -->
-            <div id="tab-telegram" class="tab-pane">
-                <div class="form-group">
-                    <label for="botToken">Telegram Bot Token (від BotFather):</label>
-                    <input type="text" name="botToken" id="botToken" maxlength="50" placeholder="Введіть токен бота">
-                </div>
-
-                <div class="form-group">
-                    <label for="chatID">Telegram Chat ID (ID чату):</label>
-                    <input type="text" name="chatID" id="chatID" maxlength="14" placeholder="Введіть ID чату">
-                </div>
-            </div>
-
-            <!-- Tab 6: Wi-Fi -->
+            <!-- Tab 5: Wi-Fi -->
             <div id="tab-wifi" class="tab-pane">
                 <div class="form-group">
                     <label for="wifiSsid">Назва домашньої Wi-Fi мережі (SSID):</label>
@@ -730,7 +717,20 @@
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.4; margin-top:8px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid var(--card-border);">
                     💡 <strong>Автономна робота без роутера:</strong><br>
-                    Якщо у вас немає Wi-Fi роутера, залиште поле SSID порожнім. Прилад працюватиме як власна точка доступу <strong>Climat-5.25-AP</strong> (IP: 192.168.4.1), забезпечуючи повний контроль, графіки та журнали безпосередньо у браузері.
+                    Якщо у вас немає Wi-Fi роутера, залиште поле SSID порожнім. Прилад працюватиме як власна точка доступу <strong>Climat-AP</strong> (IP: 192.168.4.1), забезпечуючи повний контроль, графіки та журнали безпосередньо у браузері.
+                </div>
+            </div>
+
+            <!-- Tab 6: Telegram -->
+            <div id="tab-telegram" class="tab-pane">
+                <div class="form-group">
+                    <label for="botToken">Telegram Bot Token (від BotFather):</label>
+                    <input type="text" name="botToken" id="botToken" maxlength="50" placeholder="Введіть токен бота">
+                </div>
+
+                <div class="form-group">
+                    <label for="chatID">Telegram Chat ID (ID чату):</label>
+                    <input type="text" name="chatID" id="chatID" maxlength="14" placeholder="Введіть ID чату">
                 </div>
             </div>
 

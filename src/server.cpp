@@ -36,7 +36,7 @@ void respondsValues() {
     data["settemp0"] = t0s;
     
     // Инициализируем значениями по умолчанию во избежание undefined на веб-интерфейсе
-    data["humidity"] = "--";
+    data["humidity"] = "**";
     data["sethum"] = " ";
     
     if(detectedSensor == SENSOR_DS18B20){
@@ -49,7 +49,7 @@ void respondsValues() {
         
         if (HIH5030 || numberOfDevices > 1) {
             if(pvRH == 255) {
-                data["humidity"] = "не визначено"; 
+                data["humidity"] = "**"; 
                 data["sethum"] = " ";
             } else {
                 snprintf(hum, sizeof(hum), "%d", pvRH);
@@ -344,8 +344,9 @@ void acceptEeprom() {
   #undef LOG_CHANGED_F
   #undef LOG_CHANGED_D
 
-  if (anyChanged) logEvent(logStr.c_str());
-//   DEBUG_PRINTF("The SERVER has accepted settings.sp_structs[]: %d, %ld\n", seconds, millis() - lastSendTime);
+  #ifdef DEBUG
+  if (anyChanged) Serial.println(logStr);
+  #endif
 
   if (configChanged) {
       JsonDocument json;
@@ -364,7 +365,6 @@ void acceptEeprom() {
       bot.updateToken(botToken);
 
       if (wifiChanged) {
-          logEvent("Wi-Fi налаштування змінено. Перезавантаження...");
           shouldReboot = true;
           rebootTimer = millis();
       }
@@ -788,7 +788,6 @@ void handleClearLogs() {
     }
     String logFilename = "/day_" + dateStr + "_log.txt";
     LittleFS.remove(logFilename);
-    logEvent("Файл логу %s очищено.", logFilename.c_str());
     
     // Перенаправляем обратно в зависимости от того, какой параметр был передан
     server.sendHeader("Location", "/view_logs?day=" + dateStr);

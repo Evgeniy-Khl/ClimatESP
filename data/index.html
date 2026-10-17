@@ -51,22 +51,6 @@
       margin-bottom: 8px;
     }
 
-    .glory {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #ffd700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .glory img {
-      border-radius: 2px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-
     h1#model {
       font-size: 1.8rem;
       font-weight: 700;
@@ -256,7 +240,13 @@
       height: 240px;
       width: 100%;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
+
 
     /* Action Buttons */
     .buttons-container {
@@ -323,10 +313,6 @@
 <body>
   <div class="app-container">
     <header>
-      <div class="glory">
-        <span>Слава Україні!</span>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" alt="Прапор України" width="24">
-      </div>
       <h1 id="model">Клімат-5.25</h1>
     </header>
 
@@ -354,11 +340,12 @@
     <div class="sensor-card" id="rcorners2">
       <span class="sensor-labels">Вологість</span>
       <div class="sensor-values-wrapper">
-        <span class="sensor-value" id="humidity">--</span>
+        <span class="sensor-value" id="humidity">**</span>
         <span class="sensor-setpoint" id="sethum">[--]</span>
         <span class="sensor-unit">%</span>
       </div>
     </div>
+
 
     <!-- Alarm Banner -->
     <div id="alarmBanner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; border-radius: 16px; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; align-items: flex-start; gap: 10px; justify-content: flex-start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); width: 100%; box-sizing: border-box;">
@@ -446,8 +433,16 @@
 
     <!-- Chart Container -->
     <div class="chart-container">
-      <canvas id="mainChart"></canvas>
+      <div id="chartPlaceholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; gap: 10px; color: #94a3b8; text-align: center; padding: 12px; box-sizing: border-box;">
+        <svg viewBox="0 0 24 24" style="width: 36px; height: 36px; fill: none; stroke: #64748b; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;">
+          <path d="M3 3v18h18" />
+          <path d="M19 9l-5 5-4-4-3 3" />
+        </svg>
+        <span id="chartPlaceholderText" style="font-size: 0.9rem; line-height: 1.4; max-width: 260px;">Завантаження графіка...</span>
+      </div>
+      <canvas id="mainChart" style="display: none;"></canvas>
     </div>
+
 
     <!-- Action Buttons -->
     <div class="buttons-container">
@@ -574,11 +569,37 @@
     let mainChart;
 
     async function fetchGraphData() {
+      const placeholder = document.getElementById('chartPlaceholder');
+      const placeholderText = document.getElementById('chartPlaceholderText');
+      const canvas = document.getElementById('mainChart');
+
+      if (typeof Chart === 'undefined') {
+        if (placeholder && placeholderText) {
+          placeholder.style.display = 'flex';
+          placeholderText.textContent = 'Графік недоступний в автономному режимі точки доступу';
+        }
+        if (canvas) canvas.style.display = 'none';
+        return;
+      }
+
       try {
         const r = await fetch('/get_current_graph');
         if (!r.ok) throw new Error('Помилка завантаження графіка');
         const json = await r.json();
-        const data = json.points;
+        const data = json.points || [];
+
+        if (!data || data.length === 0) {
+          if (placeholder && placeholderText) {
+            placeholder.style.display = 'flex';
+            placeholderText.textContent = 'Накопичення даних для графіка...';
+          }
+          if (canvas) canvas.style.display = 'none';
+          return;
+        }
+
+        if (placeholder) placeholder.style.display = 'none';
+        if (canvas) canvas.style.display = 'block';
+
         const sh = json.sh || 0;
         const sm = json.sm || 0;
         const labels = data.map(p => {
@@ -598,7 +619,7 @@
           mainChart.data.datasets[2].data = rh;
           mainChart.update('none');
         } else {
-          const ctx = document.getElementById('mainChart').getContext('2d');
+          const ctx = canvas.getContext('2d');
           
           Chart.defaults.color = '#94a3b8';
           Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
@@ -657,8 +678,14 @@
         }
       } catch (err) {
         console.error("Помилка завантаження графіка:", err);
+        if (placeholder && placeholderText) {
+          placeholder.style.display = 'flex';
+          placeholderText.textContent = 'Помилка завантаження даних графіка';
+        }
+        if (canvas) canvas.style.display = 'none';
       }
     }
+
 
     window.onload = function() {
       fetchData();

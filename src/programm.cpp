@@ -73,9 +73,12 @@ void applyDailyProgram() {
             unBuf.spDay.aeration0, unBuf.spDay.aeration1,
             unBuf.spDay.flap
         );
-        logEvent(String(logBuffer));
+        #ifdef DEBUG
+        MYDEBUG_PRINTLN(logBuffer);
+        #endif
     } else {
         MYDEBUG_PRINTLN("applyDailyProgram: ОШИБКА чтения из EEPROM!");
+        logEvent("ПОМИЛКА: Не вдалося прочитати програму дня з EEPROM!");
     }
 }
 
