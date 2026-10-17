@@ -473,6 +473,7 @@ void sendPageHeader(String title) {
     server.sendContent(F("a.btn-graph:hover{background:linear-gradient(135deg,#60a5fa 0%,#2563eb 100%);box-shadow:0 4px 12px rgba(59,130,246,0.25)}"));
     server.sendContent(F("a.btn-logs{background:linear-gradient(135deg,#10b981 0%,#047857 100%)}"));
     server.sendContent(F("a.btn-logs:hover{background:linear-gradient(135deg,#34d399 0%,#10b981 100%);box-shadow:0 4px 12px rgba(16,185,129,0.25)}"));
+    server.sendContent(F(".offline-banner{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#fbbf24;padding:12px 16px;border-radius:12px;font-size:0.9rem;line-height:1.4;margin-bottom:20px;text-align:center}"));
     server.sendContent(F("</style></head><body>"));
 }
 
@@ -532,6 +533,12 @@ void handleArchiveList() {
     sendPageHeader("Інкубатор - Архів");
 
     server.sendContent(F("<div class='container'><h1>Виберіть дату для перегляду</h1>"));
+    server.sendContent(F("<div id='offlineNotice' class='offline-banner' style='display:none;'><span>💡 Графік недоступний в автономному режимі точки доступу</span></div>"));
+    if (apActive || WiFi.status() != WL_CONNECTED) {
+        server.sendContent(F("<script>document.getElementById('offlineNotice').style.display='flex';</script>"));
+    } else {
+        server.sendContent(F("<script>if(typeof Chart==='undefined'){document.getElementById('offlineNotice').style.display='flex';}</script>"));
+    }
     server.sendContent(F("<a href='/current' class='live' style='margin-bottom:20px;'>Перегляд ПОТОЧНОЇ доби</a>"));
     server.sendContent(F("<ul>"));
     
@@ -609,50 +616,58 @@ void handleShowData() {
     server.sendContent(F("<div class='container'><h1 style='text-align:center;'>Дані інкубації за "));
     server.sendContent(day); 
     server.sendContent(F("</h1>"));
-    server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<div class='chart-container'>"
+                         "<div id='chartPlaceholder' style='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;gap:10px;color:#94a3b8;text-align:center;padding:12px;box-sizing:border-box;'>"
+                         "<svg viewBox='0 0 24 24' style='width:36px;height:36px;fill:none;stroke:#64748b;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;'><path d='M3 3v18h18'/><path d='M19 9l-5 5-4-4-3 3'/></svg>"
+                         "<span style='font-size:0.9rem;line-height:1.4;'>Графік недоступний в автономному режимі точки доступу</span></div>"
+                         "<canvas id='tempChart' style='display:none;'></canvas></div>"));
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     server.sendContent(F("<script>"));
     server.sendContent("const dayNum = \"" + day + "\";");
     server.sendContent("const sh = 0;");
     server.sendContent("const sm = 0;");
     server.sendContent(F(R"raw(
-    fetch('/get_graph?day=' + dayNum)
-      .then(r => r.json())
-      .then(data => {
-        const labels = data.map(p => {
-            let total = (sh * 60 + sm + p.p * 5) % 1440;
-            return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
-        });
-        const t1 = data.map(p => p.t1);
-        const t2 = data.map(p => p.t2);
-        const rh = data.map(p => p.rh);
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
-        new Chart(document.getElementById('tempChart'), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
-              { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
-              { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2, yAxisID: 'y1' }
-            ]
-          },
-          options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
-              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
-              x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+    if (typeof Chart !== 'undefined') {
+      var p = document.getElementById('chartPlaceholder'); if (p) p.style.display = 'none';
+      var c = document.getElementById('tempChart'); if (c) c.style.display = 'block';
+      fetch('/get_graph?day=' + dayNum)
+        .then(r => r.json())
+        .then(data => {
+          const labels = data.map(p => {
+              let total = (sh * 60 + sm + p.p * 5) % 1440;
+              return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
+          });
+          const t1 = data.map(p => p.t1);
+          const t2 = data.map(p => p.t2);
+          const rh = data.map(p => p.rh);
+          Chart.defaults.color = '#94a3b8';
+          Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+          new Chart(document.getElementById('tempChart'), {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                { label: 'T1 (°C)', data: t1, borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
+                { label: 'T2 (°C)', data: t2, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 },
+                { label: 'Вологість (%)', data: rh, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2, yAxisID: 'y1' }
+              ]
             },
-            interaction: { intersect: false, mode: 'index' },
-            plugins: {
-              legend: { labels: { color: '#f8fafc' } }
-            }
-          } 
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false, 
+              scales: { 
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
+                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+              },
+              interaction: { intersect: false, mode: 'index' },
+              plugins: {
+                legend: { labels: { color: '#f8fafc' } }
+              }
+            } 
+          });
         });
-      });
+    }
     )raw"));
     server.sendContent(F("</script>"));
     server.sendContent(F("<table><tr><th>Час</th><th>T1 (°C)</th><th>T2 (°C)</th><th>Вологість (%)</th></tr>"));
@@ -696,48 +711,56 @@ void handleCurrentData() {
     server.send(200, "text/html", "");
     sendPageHeader("Інкубатор - Поточна доба");
     server.sendContent(F("<div class='container'><h1>Дані за поточну добу</h1>"));
-    server.sendContent(F("<div class='chart-container'><canvas id='tempChart'></canvas></div>"));
+    server.sendContent(F("<div class='chart-container'>"
+                         "<div id='chartPlaceholder' style='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;gap:10px;color:#94a3b8;text-align:center;padding:12px;box-sizing:border-box;'>"
+                         "<svg viewBox='0 0 24 24' style='width:36px;height:36px;fill:none;stroke:#64748b;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;'><path d='M3 3v18h18'/><path d='M19 9l-5 5-4-4-3 3'/></svg>"
+                         "<span style='font-size:0.9rem;line-height:1.4;'>Графік недоступний в автономному режимі точки доступу</span></div>"
+                         "<canvas id='tempChart' style='display:none;'></canvas></div>"));
     server.sendContent(F("<div style='text-align:center;'><a href='/archive' class='back'>Назад до списку</a></div>"));
     
     server.sendContent(F("<script>"));
     server.sendContent("const sh = 0;");
     server.sendContent("const sm = 0;");
     server.sendContent(F(R"raw(
-    fetch('/get_current_graph')
-      .then(r=>r.json())
-      .then(json=>{
-        const data = json.points;
-        const labels = data.map(p => {
-            let total = (sh * 60 + sm + p.p * 5) % 1440;
-            return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
-        });
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
-        new Chart(document.getElementById('tempChart'), {
-          type:'line',
-          data:{
-            labels:labels,
-            datasets:[
-              {label:'T1 (°C)', data:data.map(p=>p.t1), borderColor:'#ef4444', backgroundColor:'#ef4444', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2},
-              {label:'T2 (°C)', data:data.map(p=>p.t2), borderColor:'#10b981', backgroundColor:'#10b981', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2},
-              {label:'Вологість (%)', data:data.map(p=>p.rh), borderColor:'#3b82f6', backgroundColor:'#3b82f6', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2, yAxisID:'y1'}
-            ]
-          },
-          options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            scales: { 
-              y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
-              y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
-              x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+    if (typeof Chart !== 'undefined') {
+      var p = document.getElementById('chartPlaceholder'); if (p) p.style.display = 'none';
+      var c = document.getElementById('tempChart'); if (c) c.style.display = 'block';
+      fetch('/get_current_graph')
+        .then(r=>r.json())
+        .then(json=>{
+          const data = json.points;
+          const labels = data.map(p => {
+              let total = (sh * 60 + sm + p.p * 5) % 1440;
+              return Math.floor(total / 60).toString().padStart(2, '0') + ':' + (total % 60).toString().padStart(2, '0');
+          });
+          Chart.defaults.color = '#94a3b8';
+          Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+          new Chart(document.getElementById('tempChart'), {
+            type:'line',
+            data:{
+              labels:labels,
+              datasets:[
+                {label:'T1 (°C)', data:data.map(p=>p.t1), borderColor:'#ef4444', backgroundColor:'#ef4444', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2},
+                {label:'T2 (°C)', data:data.map(p=>p.t2), borderColor:'#10b981', backgroundColor:'#10b981', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2},
+                {label:'Вологість (%)', data:data.map(p=>p.rh), borderColor:'#3b82f6', backgroundColor:'#3b82f6', tension:0.3, pointRadius:0, pointHoverRadius:4, borderWidth:2, yAxisID:'y1'}
+              ]
             },
-            interaction: { intersect: false, mode: 'index' },
-            plugins: {
-              legend: { labels: { color: '#f8fafc' } }
-            }
-          } 
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false, 
+              scales: { 
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Темп. (°C)', color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', callback: function(value){return value.toFixed(1);} } },
+                y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: 'Волог. (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8' } }
+              },
+              interaction: { intersect: false, mode: 'index' },
+              plugins: {
+                legend: { labels: { color: '#f8fafc' } }
+              }
+            } 
+          });
         });
-      });
+    }
     )raw"));
     server.sendContent(F("</script>"));
 
