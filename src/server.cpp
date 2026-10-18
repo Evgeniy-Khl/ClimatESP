@@ -232,6 +232,7 @@ void acceptEeprom() {
   int16_t old_coolOff1= settings.sp_structs[1].coolOff;
   int16_t old_air0    = settings.sp_structs[0].aeration;
   int16_t old_air1    = settings.sp_structs[1].aeration;
+  int16_t requestedProg = -1;
 
   for (uint8_t i = 0; i < server.args(); i++) {
       String paramName = server.argName(i);
@@ -269,11 +270,7 @@ void acceptEeprom() {
         }
       }
       else if (paramName == "program") {
-        int16_t newProg = paramValue.toInt();
-        if (settings.sp_structs[1].state != newProg) {
-          settings.sp_structs[1].state = newProg;
-          startIncubation();
-        }
+        requestedProg = paramValue.toInt();
       }
       else if (paramName == "alarm0") settings.sp_structs[0].alarm = paramValue.toInt();
       else if (paramName == "alarm1") settings.sp_structs[1].alarm = paramValue.toInt();
@@ -325,6 +322,18 @@ void acceptEeprom() {
               wifiChanged = true;
           }
       }
+  }
+
+  // Защита: в разовом режиме таймера (rotate0 == 0 && rotate1 > 0) программы инкубации (1..4) запрещены
+  if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+    if (settings.sp_structs[1].state != 0 || requestedProg > 0) {
+      settings.sp_structs[1].state = 0;
+      startIncubation();
+      logEvent("Програму інкубації скасовано (активний разовий таймер)");
+    }
+  } else if (requestedProg != -1 && settings.sp_structs[1].state != requestedProg) {
+    settings.sp_structs[1].state = requestedProg;
+    startIncubation();
   }
 
   server.send(200);

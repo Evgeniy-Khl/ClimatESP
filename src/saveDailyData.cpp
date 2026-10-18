@@ -268,6 +268,9 @@ void checkAndManageSpace(long requiredSpace) {
 }
 
 void startIncubation() {
+  if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+    settings.sp_structs[1].state = 0; // В разовому режимі програми інкубації заборонені
+  }
   int16_t currentState = settings.sp_structs[1].state;
   DateTime nowTime = rtc.now();
   

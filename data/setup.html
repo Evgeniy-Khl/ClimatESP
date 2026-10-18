@@ -469,6 +469,10 @@
                     }
                 });
 
+                if (parseInt(formData.get('rotate0'), 10) === 0 && parseInt(formData.get('rotate1'), 10) > 0) {
+                    formData.set('program', '0');
+                }
+
                 const searchParams = new URLSearchParams(formData);
                 fetch('/seteeprom', {
                     method: 'POST',
@@ -525,20 +529,43 @@
 
             function updateRotateLabels() {
                 const r0Input = document.getElementById('rotate0');
+                const r1Input = document.getElementById('rotate1');
                 const r1Label = document.getElementById('label-rotate1');
+                const prgSelect = document.getElementById('program');
+                const prgHint = document.getElementById('prg-hint');
                 if (!r0Input || !r1Label) return;
                 const r0Val = parseInt(r0Input.value, 10);
+                const r1Val = r1Input ? parseInt(r1Input.value, 10) : 0;
+                const isOneShot = (r0Val === 0 && r1Val > 0);
+
                 if (r0Val === 0) {
-                    r1Label.textContent = 'Поворот "режим-1" (від 0 до 250 годин):';
+                    r1Label.textContent = 'Таймер "режим-1" (від 0 до 250 годин):';
                 } else {
-                    r1Label.textContent = 'Поворот "режим-1" (від 0 до 250 секунд):';
+                    r1Label.textContent = 'Таймер "режим-1" (від 0 до 250 секунд):';
+                }
+
+                if (prgSelect) {
+                    if (isOneShot) {
+                        prgSelect.value = "0";
+                    }
+                    for (let i = 1; i < prgSelect.options.length; i++) {
+                        prgSelect.options[i].disabled = isOneShot;
+                    }
+                }
+                if (prgHint) {
+                    prgHint.style.display = isOneShot ? 'block' : 'none';
                 }
             }
 
             const r0Field = document.getElementById('rotate0');
+            const r1Field = document.getElementById('rotate1');
             if (r0Field) {
                 r0Field.addEventListener('input', updateRotateLabels);
                 r0Field.addEventListener('change', updateRotateLabels);
+            }
+            if (r1Field) {
+                r1Field.addEventListener('input', updateRotateLabels);
+                r1Field.addEventListener('change', updateRotateLabels);
             }
 
             fetchData();
@@ -559,7 +586,7 @@
             <div class="tabs-header">
                 <button type="button" class="tab-btn active" onclick="switchTab(event, 'tab-main')">Основні</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-alarm')">Аварія/Охол</button>
-                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Повор</button>
+                <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-vent')">Вент/Таймер</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-pid')">ПІД-рег</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-wifi')">Wi-Fi</button>
                 <button type="button" class="tab-btn" onclick="switchTab(event, 'tab-telegram')">Telegram</button>
@@ -599,6 +626,7 @@
                         <option value="4">Програма №4</option>
                         <option value="5">Старт вручну</option>
                     </select>
+                    <small id="prg-hint" style="display:none; color:var(--color-warning, #f59e0b); font-size:0.75rem; margin-top:4px;">Програми інкубації недоступні в разовому режимі таймера</small>
                 </div>
 
                 <div class="form-group">
@@ -684,15 +712,15 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Вент / Поворот -->
+            <!-- Tab 3: Вент / Таймер -->
             <div id="tab-vent" class="tab-pane">
                 <div class="form-group">
-                    <label for="rotate0" id="label-rotate0">Поворот "режим-0" (від 0 до 999 хвилин):</label>
+                    <label for="rotate0" id="label-rotate0">Таймер "режим-0" (від 0 до 999 хвилин):</label>
                     <input type="number" name="rotate0" id="rotate0" min="0" max="999" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="rotate1" id="label-rotate1">Поворот "режим-1" (від 0 до 250 секунд):</label>
+                    <label for="rotate1" id="label-rotate1">Таймер "режим-1" (від 0 до 250 секунд):</label>
                     <input type="number" name="rotate1" id="rotate1" min="0" max="250" required>
                 </div>
 

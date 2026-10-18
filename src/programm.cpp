@@ -14,6 +14,10 @@ uint16_t eepromMemoryAddressForDay(uint8_t prg, uint8_t day){
 }
 
 void applyDailyProgram() {
+    if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+        settings.sp_structs[1].state = 0; // В разовому режимі програми інкубації заборонені
+        return;
+    }
     uint8_t prg = settings.sp_structs[1].state;
     if (prg == 0) return; // Если программа не запущена, ничего не делаем
 
@@ -64,7 +68,7 @@ void applyDailyProgram() {
         // Запись загрузки программы в системный лог
         char logBuffer[256];
         snprintf_P(logBuffer, sizeof(logBuffer),
-            PSTR("ЗАГРУЖЕНА Программа №%d, День %d\nУставки T1: %d,%d, T2: %d,%d, Вологість: %d%%\nТаймеры(лотков): %d/%d, Провітрювання: %d/%d, Заслінка: %d%%"),
+            PSTR("ЗАГРУЖЕНА Программа №%d, День %d\nУставки T1: %d,%d, T2: %d,%d, Вологість: %d%%\nТаймер: %d/%d, Провітрювання: %d/%d, Заслінка: %d%%"),
             prg, day,
             unBuf.spDay.spT0 / 10, unBuf.spDay.spT0 % 10,
             unBuf.spDay.spT1 / 10, unBuf.spDay.spT1 % 10,

@@ -62,7 +62,7 @@ void rotate_trays(void){
           clearOneShotEndTime();
           ds[0].deviation = 0;
           ds[1].deviation = 0;
-          logEvent("Поворот лотків: вимкнено (час вийшов)");
+          logEvent("Таймер: вимкнено (час вийшов)");
         }
       }
     } else {
@@ -835,7 +835,7 @@ void restoreOneShotState() {
       ds[0].deviation = 0;
       ds[1].deviation = 0;
       writePCF8574(portOut.value);
-      logEvent("Поворот лотків: цикл завершився під час відсутності живлення");
+      logEvent("Таймер: цикл завершився під час відсутності живлення");
     } else {
       uint32_t remainingSec = endTime - currentSec;
       uint32_t remainingMin = (remainingSec + 59UL) / 60UL;
@@ -846,7 +846,7 @@ void restoreOneShotState() {
       TURN = PCF_ON;
       TURNSECOND = OFF;
       writePCF8574(portOut.value);
-      logEvent("Поворот лотків: відновлено після збою (залишилось %u хв)", remainingMin);
+      logEvent("Таймер: відновлено після збою (залишилось %u хв)", remainingMin);
     }
   }
 }

@@ -6,15 +6,14 @@ void checkkey(uint8_t key){
 
   //==== Сервисные комбинации кнопок (доступны в любом режиме) ====
   switch (key) {
-    case KEY_5_4_1: ESP.restart(); return;       
-    // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
-    case KEY_5_4_2: clearEEPROM(false); return;  // с анимацией и звуком
-    // Удаляем только файлы графиков и статистики (безопасная очистка)
+    case KEY_5_4_1: ESP.restart(); return;
+    // Очистка данных инкубации (файлы архивов LittleFS + суточный буфер EEPROM AT24C32)
+    case KEY_5_4_2:
     case KEY_5_4_3: 
       beeperOn(50); 
       module.setDisplay(CLEAN_DATA, 8); 
       clearIncubationData(); 
-      clearEEPROM(true); // фоновая очистка EEPROM без затирания надписи CLEAN_DATA
+      clearEEPROM(false); // очищаем суточные графики в EEPROM с индикацией
       countDays = 0;     // сбрасываем день инкубации
       delay(1000); 
       return;
@@ -71,7 +70,10 @@ void checkkey(uint8_t key){
                       case 12: if(editBuff > 400) editBuff = 400;  break;
                       case 13: if(editBuff > 400) editBuff = 400;  break;
                       case 14: if(editBuff > 400) editBuff = 400;  break;
-                      case 15: if(editBuff >   4) editBuff =   4;  break;
+                      case 15: 
+                        if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) editBuff = 0;
+                        else if(editBuff >   4) editBuff =   4;  
+                        break;
                       case 16: if(editBuff > 100) editBuff = 100;  break;
                       case 17: if(editBuff >   4) editBuff =   4;  break;
                       case 18: if(editBuff >   3) editBuff =   3;  break;
@@ -168,7 +170,7 @@ void checkkey(uint8_t key){
                 writePCF8574(portOut.value);
                 uint32_t currentSec = (RTCENABLE) ? rtc.now().unixtime() : now.unixtime();
                 saveOneShotEndTime(currentSec + (uint32_t)pvTimer * 3600UL);
-                logEvent("Поворот лотків: увімкнено на %d год.", pvTimer);
+                logEvent("Таймер: увімкнено на %d год.", pvTimer);
             } else if (settings.sp_structs[1].timer > 0) {
                 // Режим 2: Асимметричный (секунды)
                 pvTimer = settings.sp_structs[1].timer;
@@ -189,7 +191,7 @@ void checkkey(uint8_t key){
         case KEY_4: 
             if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
                 if (TURN == PCF_ON) {
-                    logEvent("Поворот лотків: вимкнено користувачем");
+                    logEvent("Таймер: вимкнено користувачем");
                 }
                 clearOneShotEndTime();
                 ds[0].deviation = 0;
@@ -249,6 +251,13 @@ void saveset(void){
         if (editBuff > 0) {
             clearOneShotEndTime();
         }
+        if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+            if (settings.sp_structs[1].state > 0) {
+                settings.sp_structs[1].state = 0;
+                startIncubation();
+                logEvent("Програму інкубації скасовано (активний разовий таймер)");
+            }
+        }
         break;
       case 4: 
         settings.sp_structs[1].timer = editBuff;
@@ -271,6 +280,13 @@ void saveset(void){
                 TURNSECOND = ON;
             }
         }
+        if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+            if (settings.sp_structs[1].state > 0) {
+                settings.sp_structs[1].state = 0;
+                startIncubation();
+                logEvent("Програму інкубації скасовано (активний разовий таймер)");
+            }
+        }
         break;
 
 
@@ -287,6 +303,9 @@ void saveset(void){
       case 13: settings.sp_structs[0].auxiliary = editBuff; break;  // У13 включение вспомогательного канала (0,5 - 40,0 °C)
       case 14: settings.sp_structs[1].auxiliary = editBuff; break;  // У14 выключение вспомогательного канала (0,5 - 40,0 °C)
       case 15: 
+          if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+            editBuff = 0; // В разовому режимі програми інкубації заборонені
+          }
           if ((settings.sp_structs[1].state != editBuff) && WIFIENABLE) {// если нет WiFi установка программы невозможна
             settings.sp_structs[1].state = editBuff;
             startIncubation();
