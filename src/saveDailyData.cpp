@@ -1,4 +1,5 @@
 #include "saveDailyData.h"
+#include <vector>
 
 /**
  * @brief Читает 288 пятиминутных записей из EEPROM и сохраняет их в файлы.
@@ -122,19 +123,24 @@ void saveDailyDataToFile(int day) {
 void clearIncubationData() {
   MYDEBUG_PRINTLN("Очистка данных предыдущей инкубации...");
 
+  std::vector<String> filesToDelete;
   Dir dir = LittleFS.openDir("/");
-  int filesRemoved = 0;
 
   while (dir.next()) {
-    String fileName = dir.fileName();
-    // Проверяем, что имя файла соответствует нашему шаблону
-    if (fileName.startsWith("day_") && (fileName.endsWith(".json") || fileName.endsWith("_log.txt"))) {
-      if (LittleFS.remove(fileName)) {
-        DEBUG_PRINTF("Файл удален: %s\n", fileName.c_str());
-        filesRemoved++;
-      } else {
-        DEBUG_PRINTF("Ошибка удаления файла: %s\n", fileName.c_str());
-      }
+    String fn = dir.fileName();
+    String cleanName = fn.startsWith("/") ? fn.substring(1) : fn;
+    if (cleanName.startsWith("day_") && (cleanName.endsWith(".json") || cleanName.endsWith("_log.txt"))) {
+      filesToDelete.push_back(fn.startsWith("/") ? fn : ("/" + fn));
+    }
+  }
+
+  int filesRemoved = 0;
+  for (const String& fullPath : filesToDelete) {
+    if (LittleFS.remove(fullPath)) {
+      DEBUG_PRINTF("Файл удален: %s\n", fullPath.c_str());
+      filesRemoved++;
+    } else {
+      DEBUG_PRINTF("Ошибка удаления файла: %s\n", fullPath.c_str());
     }
   }
   
@@ -142,6 +148,7 @@ void clearIncubationData() {
     MYDEBUG_PRINTLN("Файлы для очистки не найдены.");
   } else {
     DEBUG_PRINTF("Очистка завершена. Удалено файлов: %d\n", filesRemoved);
+    logEvent("Очищення архівів LittleFS: видалено %d файлів", filesRemoved);
   }
 }
 

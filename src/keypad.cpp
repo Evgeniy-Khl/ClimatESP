@@ -2,8 +2,32 @@
 #include "logger.h"
 
 void checkkey(uint8_t key){
-  // uint8_t topUser=31, topOwner=15, botUser=16;
   beeperOn(5);     // Включаем бипер
+
+  //==== Сервисные комбинации кнопок (доступны в любом режиме) ====
+  switch (key) {
+    case KEY_5_4_1: ESP.restart(); return;       
+    // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
+    case KEY_5_4_2: clearEEPROM(false); return;  // с анимацией и звуком
+    // Удаляем только файлы графиков и статистики (безопасная очистка)
+    case KEY_5_4_3: 
+      beeperOn(50); 
+      module.setDisplay(CLEAN_DATA, 8); 
+      clearIncubationData(); 
+      clearEEPROM(true); // фоновая очистка EEPROM без затирания надписи CLEAN_DATA
+      countDays = 0;     // сбрасываем день инкубации
+      delay(1000); 
+      return;
+    // Запись программы инкубации по умолчанию
+    case KEY_7_1: prepareProg1(); beeperOn(100); return;
+    case KEY_7_2: prepareProg2(); beeperOn(100); return;
+    case KEY_7_3: prepareProg3(); beeperOn(100); return;
+    case KEY_7_4: prepareProg4(); beeperOn(100); return;
+    case KEY_7_5: reset(); return;               // Сброс установок к значениям по умолчанию
+    // WiFi Reset Settings
+    case KEY_7_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); return;
+  }
+
   if(numSetup){     //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
     resetDispl = RESETDISPLAY; // удерживаем режим установок 10 сек.
     switch (key){
@@ -124,21 +148,6 @@ void checkkey(uint8_t key){
                       case 30:  if(editBuff <   0) editBuff =   0;  break;
                       case 31:  if(editBuff <   1) editBuff =   1;  break;
                     }
-          break;
-        //==== режим РЕДАКТИРОВАНИЯ УСТАВОК И ПАРАМЕТРОВ ======
-        case KEY_5_4_1: ESP.restart(); break;       
-        // Очищает область памяти в AT24C32, используемую для хранения суточных данных. Заполняет нулями 288 записей (t1 и t2).
-        case KEY_5_4_2: clearEEPROM(false); break;  // с анимацией и звуком
-        // Удаляем только файлы графиков и статистики (безопасная очистка)
-        case KEY_5_4_3: beeperOn(50); module.setDisplay(CLEAN_DATA, 8); clearIncubationData(); delay(1000); break;
-        // Запись программы инкубации по умолчанию
-        case KEY_7_1: prepareProg1(); beeperOn(100); break;
-        case KEY_7_2: prepareProg2(); beeperOn(100); break;
-        case KEY_7_3: prepareProg3(); beeperOn(100); break;
-        case KEY_7_4: prepareProg4(); beeperOn(100); break;
-        case KEY_7_5: reset(); break;               // Сброс установок к значениям по умолчанию
-        // WiFi Reset Settings
-        case KEY_7_6: beeperOn(50); settings.sp_structs[0].special |= 0x08; saveSetpoint(); ESP.restart(); break;
         case KEY_8:   saveset(); break;
         default:    waitCheckKeyPad = WAITCHECKKEYPAD;
       }; 
