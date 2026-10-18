@@ -1,5 +1,7 @@
 #include "main.h"
 #include "server.h"
+#include <vector>
+#include <algorithm>
 
 char wifiSsid[33] = "";
 char wifiPass[65] = "";
@@ -12,7 +14,50 @@ bool botStarted = false;
 static unsigned long lastReconnectAttempt = 0;
 static DNSServer dnsServer;
 
+void handleScanWifi() {
+    ESP.wdtFeed();
+    int8_t n = WiFi.scanNetworks();
+    ESP.wdtFeed();
+
+    JsonDocument doc;
+    JsonArray array = doc.to<JsonArray>();
+
+    if (n > 0) {
+        std::vector<int> indices(n);
+        for (int i = 0; i < n; i++) indices[i] = i;
+        std::sort(indices.begin(), indices.end(), [](int a, int b) {
+            return WiFi.RSSI(a) > WiFi.RSSI(b);
+        });
+
+        std::vector<String> seenSSIDs;
+        for (int i = 0; i < n; i++) {
+            int idx = indices[i];
+            String ssid = WiFi.SSID(idx);
+            if (ssid.length() == 0) continue; // пропускаем скрытые
+
+            // Дедупликация одинаковых SSID (оставляем с лучшим сигналом)
+            bool duplicate = false;
+            for (const String& s : seenSSIDs) {
+                if (s == ssid) { duplicate = true; break; }
+            }
+            if (duplicate) continue;
+            seenSSIDs.push_back(ssid);
+
+            JsonObject item = array.add<JsonObject>();
+            item["ssid"] = ssid;
+            item["rssi"] = WiFi.RSSI(idx);
+            item["enc"] = (WiFi.encryptionType(idx) != ENC_TYPE_NONE);
+        }
+    }
+    WiFi.scanDelete();
+
+    String response;
+    serializeJson(doc, response);
+    server.send(200, "application/json", response);
+}
+
 void setupWebServerRoutes() {
+    server.on("/scan_wifi", HTTP_GET, handleScanWifi);
     server.on("/", HTTP_GET, []() {
       mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 300;
       if (!LittleFS.exists("/index.html")) {

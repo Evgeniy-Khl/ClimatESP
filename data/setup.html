@@ -125,6 +125,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -297,12 +302,80 @@
             }
 
             // Tabs Switcher
+            let wifiScannedOnce = false;
             window.switchTab = function(event, tabId) {
                 document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                 document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
 
                 event.currentTarget.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
+
+                if (tabId === 'tab-wifi' && !wifiScannedOnce) {
+                    wifiScannedOnce = true;
+                    scanWifi();
+                }
+            };
+
+            window.onWifiSelect = function(sel) {
+                if (sel.value) {
+                    const ssidInput = document.getElementById('wifiSsid');
+                    if (ssidInput) ssidInput.value = sel.value;
+                    const passInput = document.getElementById('wifiPass');
+                    if (passInput) passInput.focus();
+                }
+            };
+
+            window.scanWifi = async function() {
+                const btn = document.getElementById('btnScan');
+                const btnText = document.getElementById('scanBtnText');
+                const icon = document.getElementById('scanIcon');
+                const sel = document.getElementById('wifiSelect');
+
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+                if (btnText) btnText.innerText = 'Пошук...';
+                if (icon) { icon.style.display = 'inline-block'; icon.style.animation = 'spin 1s linear infinite'; }
+                if (sel) sel.innerHTML = '<option value="">Пошук доступних мереж...</option>';
+
+                try {
+                    const res = await fetch('/scan_wifi');
+                    if (!res.ok) throw new Error('Помилка сканування');
+                    const list = await res.json();
+                    
+                    if (!sel) return;
+                    sel.innerHTML = '';
+                    if (!list || list.length === 0) {
+                        sel.innerHTML = '<option value="">Мереж не знайдено (натисніть «Оновити»)</option>';
+                    } else {
+                        const defaultOpt = document.createElement('option');
+                        defaultOpt.value = '';
+                        defaultOpt.textContent = `-- Оберіть мережу (${list.length} знайдено) --`;
+                        sel.appendChild(defaultOpt);
+
+                        list.forEach(net => {
+                            const opt = document.createElement('option');
+                            opt.value = net.ssid;
+                            
+                            let signal = ' 📶 (слабкий)';
+                            if (net.rssi >= -65) signal = ' 📶 (відмінний)';
+                            else if (net.rssi >= -78) signal = ' 📶 (добрий)';
+                            
+                            const lock = net.enc ? ' 🔒' : ' 🔓';
+                            opt.textContent = `${net.ssid}${signal}${lock}`;
+                            sel.appendChild(opt);
+                        });
+
+                        const currentSsid = document.getElementById('wifiSsid') ? document.getElementById('wifiSsid').value : '';
+                        if (currentSsid) {
+                            sel.value = currentSsid;
+                        }
+                    }
+                } catch (e) {
+                    if (sel) sel.innerHTML = '<option value="">Помилка пошуку мереж</option>';
+                } finally {
+                    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                    if (btnText) btnText.innerText = 'Оновити';
+                    if (icon) icon.style.animation = 'none';
+                }
             };
 
             function fetchData(retries = 5) {
@@ -702,6 +775,18 @@
 
             <!-- Tab 5: Wi-Fi -->
             <div id="tab-wifi" class="tab-pane">
+                <div class="form-group" id="scanGroup">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label for="wifiSelect" style="margin:0; font-weight:600;">Доступні Wi-Fi мережі:</label>
+                        <button type="button" id="btnScan" onclick="scanWifi()" style="padding:4px 10px; font-size:0.8rem; font-weight:600; background:rgba(59, 130, 246, 0.15); border:1px solid rgba(59, 130, 246, 0.35); border-radius:6px; color:#60a5fa; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s;">
+                            <span id="scanIcon" style="display:inline-block;">🔄</span> <span id="scanBtnText">Пошук мереж</span>
+                        </button>
+                    </div>
+                    <select id="wifiSelect" onchange="onWifiSelect(this)">
+                        <option value="">-- Натисніть «Пошук мереж» для сканування --</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="wifiSsid">Назва домашньої Wi-Fi мережі (SSID):</label>
                     <input type="text" name="wifiSsid" id="wifiSsid" maxlength="32" placeholder="Залиште порожнім для автономної роботи">
