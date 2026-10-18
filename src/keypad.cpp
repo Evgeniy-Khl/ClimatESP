@@ -192,6 +192,8 @@ void checkkey(uint8_t key){
                     logEvent("Поворот лотків: вимкнено користувачем");
                 }
                 clearOneShotEndTime();
+                ds[0].deviation = 0;
+                ds[1].deviation = 0;
             }
             TURN = PCF_OFF;
             oneShotMinutes = 0;

@@ -130,6 +130,11 @@ void IncubationManager::processRotation() {
 
 void IncubationManager::processAlarm() {
     if (numSetup == 0) {
+        bool isOneShotWait = (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0 && TURN == PCF_OFF);
+        if (isOneShotWait) {
+            EXTRA3 = PCF_OFF;
+            return;
+        }
         uint8_t res = alarm();
         switch (settings.sp_structs[0].extendMode) {    // 0-СИРЕНА; 1-АВАРИЙНОЕ ОТКЛЮЧЕНИЕ
             case 0: 

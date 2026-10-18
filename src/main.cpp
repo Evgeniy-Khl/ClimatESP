@@ -147,6 +147,8 @@ void setup(){
   TURN = PCF_OFF;
   TURNSECOND = OFF;
   oneShotMinutes = 0;
+  ds[0].deviation = 0;
+  ds[1].deviation = 0;
   if (settings.sp_structs[0].timer == 0) {
     pvTimer = 0;
   } else {

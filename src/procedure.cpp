@@ -60,6 +60,8 @@ void rotate_trays(void){
           TURN = PCF_OFF;
           writePCF8574(portOut.value);
           clearOneShotEndTime();
+          ds[0].deviation = 0;
+          ds[1].deviation = 0;
           logEvent("Поворот лотків: вимкнено (час вийшов)");
         }
       }
@@ -473,12 +475,18 @@ errors = 0x40   // ПЕРЕГРЕВ СИМИСТОРА ! [ПГ]
 uint8_t alarm(void){
   uint8_t cn;
   int16_t err, above, lower;
+  bool isOneShotWait = (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0 && TURN == PCF_OFF);
+
   for (cn=0; cn<2; cn++){
     lower = settings.sp_structs[cn].alarm;          // ниже
     above = lower;                                  // выше
     // above += sp[cn].offSet;                      // если режим ОХЛАЖДЕНИЕ или ОСУШЕНИЕ
     err = ds[cn].pvErr;
-    if(abs(err) < lower) ds[cn].deviation = 1;      // вышли на заданную температуру
+    if (isOneShotWait) {
+      ds[cn].deviation = 0;
+    } else {
+      if(abs(err) < lower) ds[cn].deviation = 1;      // вышли на заданную температуру
+    }
     if(ds[0].deviation == 0) ds[1].deviation = 0;   // отключение тревоги по 2 каналу
     if(ds[cn].deviation){
       if (err > lower){                             // ПЕРЕОХЛАЖДЕНИЕ
@@ -486,7 +494,7 @@ uint8_t alarm(void){
           errorsFlag.value |= ((cn+1)<<2);          // включить сигнал АВАРИЯ
       }
     };
-    if (err < -above){                              // ПЕРЕГРЕВ
+    if (!isOneShotWait && err < -above){            // ПЕРЕГРЕВ
         ds[cn].deviation = 3;                       // мигают цифры
         errorsFlag.value |= ((cn+1)<<2);            // включить сигнал АВАРИЯ
     };
@@ -824,6 +832,8 @@ void restoreOneShotState() {
       TURN = PCF_OFF;
       pvTimer = 0;
       oneShotMinutes = 0;
+      ds[0].deviation = 0;
+      ds[1].deviation = 0;
       writePCF8574(portOut.value);
       logEvent("Поворот лотків: цикл завершився під час відсутності живлення");
     } else {
