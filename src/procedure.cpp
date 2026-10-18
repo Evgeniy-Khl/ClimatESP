@@ -558,11 +558,36 @@ void newSecond(){
     sensorCheck();                                                  // Опрос датчиков должен быть всегда
   #else
     // В режиме отладки можно оставить симуляцию, если датчики не подключены
-      dpv0 += pctHeater/50 + pid[0].iPart/10;
-      ds[0].pvT = dpv0;
-      dpv1 += pctHimidifier/50 + pid[1].iPart/10; 
-      ds[1].pvT = dpv1;
+    const float T_ROOM = 22.0f;
+    const float COOLING_RATE = 0.015f; // Скорость естественного остывания к T_ROOM
 
+    if (dpv0 < 1.0f) dpv0 = T_ROOM;
+    if (dpv1 < 1.0f) dpv1 = T_ROOM;
+
+    // --- Канал 0 (Нагреватель) ---
+    // Релейный режим активен при mode == 1 или mode == 3
+    if (settings.sp_structs[0].mode == 1 || settings.sp_structs[0].mode == 3) {
+      if (heaterValue == TRIACON) dpv0 += 0.4f;
+    } else {
+      // ПИД-режим (mode 0, 2, 4)
+      dpv0 += ((float)pctHeater / 100.0f) * 0.4f;
+    }
+    // Естественные теплопотери в окружающую среду
+    dpv0 -= (dpv0 - T_ROOM) * COOLING_RATE;
+
+    // --- Канал 1 (Увлажнитель / мокрый термометр) ---
+    // Релейный/импульсный режим активен при mode == 2, 3 или 4
+    if (settings.sp_structs[0].mode == 2 || settings.sp_structs[0].mode == 3 || settings.sp_structs[0].mode == 4) {
+      if (humidiValue == TRIACON) dpv1 += 0.3f;
+    } else {
+      // ПИД-режим (mode 0, 1)
+      dpv1 += ((float)pctHimidifier / 100.0f) * 0.3f;
+    }
+    // Естественное высыхание / остывание к базовому уровню
+    dpv1 -= (dpv1 - T_ROOM) * COOLING_RATE;
+
+    ds[0].pvT = dpv0;
+    ds[1].pvT = dpv1;
       uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH то ...
       if(valTable == 255) pvRH = valTable;
       else if(valTable > 100) pvRH = 100;
