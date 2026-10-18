@@ -191,7 +191,14 @@ void checkkey(uint8_t key){
         case KEY_5: break;
         case KEY_6: break;
         case KEY_7: break;
-        case KEY_8: if(errors && disableBeep==0) disableBeep=RESETDISPLAY;
+        case KEY_8: 
+          if(RUNAWAY) {
+            RUNAWAY = 0;
+            stagnationTimer = 0;
+            beeperOn(50);
+          }
+          if(errors && disableBeep==0) disableBeep=RESETDISPLAY;
+          break;
           //  case KEY_4_3_2: pwTriac1=maxRun; CN2 = CN2ON; break;
           //  case KEY_5_2:   pvVenting+=10; DoAeration=1; beepOn=150; waitCheckKeyPad = WAITCHECKKEYPAD; break;               // ПРОВЕТРИВАНИЕ начато 
           //  case KEY_5_4:   pvWait=aeration[0]; DoAeration=0; pvFlap=flpNow; break;                               // ПРОВЕТРИВАНИЕ закончено

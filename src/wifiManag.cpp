@@ -103,6 +103,11 @@ void setupWebServerRoutes() {
     server.on("/seteeprom", HTTP_POST, acceptEeprom);       // the server accepts the edited setup.html from the client
     server.on("/get_table", HTTP_POST, respondsProgram);    // the server responds the completed table.html to the client
     server.on("/save_table", HTTP_GET, acceptProgram);      // the server accepts the edited table.html from the client
+    server.on("/reset_runaway", HTTP_ANY, []() {
+        RUNAWAY = 0;
+        stagnationTimer = 0;
+        server.send(200, "text/plain", "OK");
+    });
     server.onNotFound(notFoundHandler);
 }
 

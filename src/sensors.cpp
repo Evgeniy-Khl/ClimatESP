@@ -119,7 +119,7 @@ void checkDs18b20(void){
     }
     if(check_freeze(i)){
       ds[i].pvT = SENSOR_FROZEN_VAL;    // индикация 66,0 - завис датчик.
-      FROZE = 1;
+      RUNAWAY = 1;
     }
   }
   sensors.requestTemperatures();

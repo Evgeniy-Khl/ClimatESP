@@ -127,6 +127,7 @@ void respondsValues() {
     data["error4"] = (bool)ERROR4;
     data["error8"] = (bool)ERROR8;
     data["overheat"] = (bool)OVERHEAT;
+    data["runaway"] = (bool)RUNAWAY;
     
     char flap[16];
     snprintf_P(flap, sizeof(flap), PSTR("%d%%"), pvFlap);

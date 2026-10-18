@@ -470,6 +470,7 @@
         const error4 = jsonResponse.error4;
         const error8 = jsonResponse.error8;
         const overheat = jsonResponse.overheat;
+        const runaway = jsonResponse.runaway;
 
         // Обробка баннера помилок
         const activeAlarms = [];
@@ -478,11 +479,16 @@
         if (error4 == 1) activeAlarms.push("Відхилення температури від уставки");
         if (error8 == 1) activeAlarms.push("Відхилення вологості від уставки");
         if (overheat == 1) activeAlarms.push("Перегрів симістора!");
+        if (runaway == 1) activeAlarms.push("Аварія нагріву: зависання / немає росту Т (захист від розгону)!");
 
         const alarmBanner = document.getElementById("alarmBanner");
         const alarmBannerText = document.getElementById("alarmBannerText");
         if (activeAlarms.length > 0) {
-          alarmBannerText.innerHTML = "<strong>Увага!</strong><br>" + activeAlarms.join("<br>");
+          let bannerHtml = "<strong>Увага!</strong><br>" + activeAlarms.join("<br>");
+          if (runaway == 1) {
+            bannerHtml += `<div style="margin-top: 10px;"><button onclick="resetRunaway()" style="background:#ef4444; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.85rem; box-shadow:0 2px 8px rgba(0,0,0,0.2);">Скинути аварію</button></div>`;
+          }
+          alarmBannerText.innerHTML = bannerHtml;
           alarmBanner.style.display = "flex";
         } else {
           alarmBanner.style.display = "none";
@@ -492,7 +498,7 @@
         // Т1 Card Status
         const t1Card = document.getElementById("rcorners0");
         t1Card.className = "sensor-card";
-        if (error1 == 1) {
+        if (error1 == 1 || runaway == 1) {
           t1Card.classList.add("error-crit");
         } else if (error4 == 1) {
           t1Card.classList.add("error-warn");
@@ -686,6 +692,15 @@
       }
     }
 
+
+    async function resetRunaway() {
+      try {
+        await fetch('/reset_runaway');
+        fetchData();
+      } catch (e) {
+        console.error("Помилка скидання аварії:", e);
+      }
+    }
 
     window.onload = function() {
       fetchData();

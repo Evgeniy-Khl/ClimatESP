@@ -167,9 +167,9 @@ extern union Byte portFlag;
 #define ERROR2	  errorsFlag.bitfield.a1  // ОШИБКА ДАТЧИКА 1  --- потерян; 66,0-завис [E02]
 #define ERROR4	  errorsFlag.bitfield.a2  // ОТКЛОНЕНИЕ КАНАЛ 0 [E04]
 #define ERROR8	  errorsFlag.bitfield.a3  // ОТКЛОНЕНИЕ КАНАЛ 1 [E08]
-#define RUNAWAY	  errorsFlag.bitfield.a4  // ЗАЩИТА ОТ РАЗНОСА (нагреватель на 100%, а темп. не растет)
-#define FROZE     errorsFlag.bitfield.a5  // завис датчик.
-#define RESERVE   errorsFlag.bitfield.a6  // резерв
+#define RUNAWAY	  errorsFlag.bitfield.a4  // ЗАЩИТА ОТ РАЗНОСА (нагреватель на 100%, а темп. не растет) завис датчик.
+#define RESERVE0  errorsFlag.bitfield.a5  // резерв
+#define RESERVE1  errorsFlag.bitfield.a6  // резерв
 #define OVERHEAT  errorsFlag.bitfield.a7  // перегрев симистора
 
 #define RTCENABLE   portFlag.bitfield.a0  // если установлены RTC

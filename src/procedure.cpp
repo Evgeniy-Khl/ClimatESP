@@ -147,6 +147,13 @@ void OutStatusLed(void){
 void checkModeDevice(){
   if(RUNAWAY) {
     heaterValue = TRIACOFF;
+    humidiValue = TRIACOFF;
+    HEATER = PCF_OFF;
+    HUMIDI = PCF_OFF;
+    if((settings.sp_structs[1].mode & 2) == 2) {
+      EXTRA2 = PCF_OFF;
+    }
+    writePCF8574(portOut.value);
     return;
   }
   //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
@@ -542,7 +549,9 @@ void reset(void){
 
 void newSecond(){
   now = rtc.now();
+  bool runawayState = RUNAWAY;
   errorsFlag.value = 0; 
+  RUNAWAY = runawayState; // Сохраняем статус аварии разгона (сбрасывается логикой в newMinute) 
 
   // Первоначальная синхронизация RTC после подключения к WiFi
   static bool firstSyncDone = false;
@@ -557,20 +566,22 @@ void newSecond(){
   #ifndef SIMULATION  
     sensorCheck();                                                  // Опрос датчиков должен быть всегда
   #else
-    // В режиме отладки можно оставить симуляцию, если датчики не подключены
-    const float T_ROOM = 22.0f;
-    const float COOLING_RATE = 0.015f; // Скорость естественного остывания к T_ROOM
+    // В режиме отладки: симуляция в десятых долях градуса (220 = 22.0°C)
+    const float T_ROOM = 220.0f;       // Базовая комнатная температура сухого датчика (22.0°C)
+    const float T_ROOM_WET = 200.0f;   // Базовая комнатная температура влажного датчика (20.0°C)
+    const float COOLING_RATE = 0.005f; // Скорость теплообмена со средой
 
-    if (dpv0 < 1.0f) dpv0 = T_ROOM;
-    if (dpv1 < 1.0f) dpv1 = T_ROOM;
+    // Инициализация при старте (если переменные не инициализированы или остались в старых единицах)
+    if (dpv0 < 100.0f) dpv0 = T_ROOM;
+    if (dpv1 < 100.0f) dpv1 = T_ROOM_WET;
 
     // --- Канал 0 (Нагреватель) ---
     // Релейный режим активен при mode == 1 или mode == 3
     if (settings.sp_structs[0].mode == 1 || settings.sp_structs[0].mode == 3) {
-      if (heaterValue == TRIACON) dpv0 += 0.4f;
+      if (heaterValue == TRIACON) dpv0 += 1.2f;
     } else {
       // ПИД-режим (mode 0, 2, 4)
-      dpv0 += ((float)pctHeater / 100.0f) * 0.4f;
+      dpv0 += ((float)pctHeater / 100.0f) * 1.2f;
     }
     // Естественные теплопотери в окружающую среду
     dpv0 -= (dpv0 - T_ROOM) * COOLING_RATE;
@@ -578,20 +589,23 @@ void newSecond(){
     // --- Канал 1 (Увлажнитель / мокрый термометр) ---
     // Релейный/импульсный режим активен при mode == 2, 3 или 4
     if (settings.sp_structs[0].mode == 2 || settings.sp_structs[0].mode == 3 || settings.sp_structs[0].mode == 4) {
-      if (humidiValue == TRIACON) dpv1 += 0.3f;
+      if (humidiValue == TRIACON) dpv1 += 0.8f;
     } else {
       // ПИД-режим (mode 0, 1)
-      dpv1 += ((float)pctHimidifier / 100.0f) * 0.3f;
+      dpv1 += ((float)pctHimidifier / 100.0f) * 0.8f;
     }
     // Естественное высыхание / остывание к базовому уровню
-    dpv1 -= (dpv1 - T_ROOM) * COOLING_RATE;
+    dpv1 -= (dpv1 - T_ROOM_WET) * COOLING_RATE;
 
-    ds[0].pvT = dpv0;
-    ds[1].pvT = dpv1;
-      uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH то ...
-      if(valTable == 255) pvRH = valTable;
-      else if(valTable > 100) pvRH = 100;
-      else pvRH = valTable;
+    // Влажный термометр физически не может быть горячее сухого
+    if (dpv1 > dpv0) dpv1 = dpv0;
+
+    ds[0].pvT = (int16_t)dpv0;
+    ds[1].pvT = (int16_t)dpv1;
+    uint8_t valTable = tableRH(ds[0].pvT, ds[1].pvT);               // если отсутствует HIH то ...
+    if(valTable == 255) pvRH = valTable;
+    else if(valTable > 100) pvRH = 100;
+    else pvRH = valTable;
   #endif
 
   // Вычисляем ошибки PV один раз после обновления датчиков
@@ -672,7 +686,17 @@ bool updateIncubationTime() {
 
 void newMinute(){
   //---------------------------- ЗАЩИТА ОТ РАЗНОСА -------------------------
-  if(pctHeater == 100){
+  if(RUNAWAY) {
+    // Авария зафиксирована: удерживаем отключение нагревателя и увлажнителя до ручного сброса
+    heaterValue = TRIACOFF;
+    humidiValue = TRIACOFF;
+    HEATER = PCF_OFF;
+    HUMIDI = PCF_OFF;
+    if((settings.sp_structs[1].mode & 2) == 2) {
+      EXTRA2 = PCF_OFF;
+    }
+    writePCF8574(portOut.value);
+  } else if(pctHeater == 100){
     // Если текущая температура не выше той, что была минуту назад
     if(ds[0].pvT <= lastMinuteT){
        if(++stagnationTimer > 5){ // 5 минут нет роста при 100% мощности
@@ -681,16 +705,21 @@ void newMinute(){
           if(ds[0].pvErr > settings.sp_structs[0].alarm) {
              RUNAWAY = 1;
              heaterValue = TRIACOFF; // Принудительно выключаем нагрев для безопасности
+             humidiValue = TRIACOFF; // Принудительно выключаем увлажнитель для безопасности
+             HEATER = PCF_OFF;
+             HUMIDI = PCF_OFF;
+             if((settings.sp_structs[1].mode & 2) == 2) {
+               EXTRA2 = PCF_OFF;
+             }
+             writePCF8574(portOut.value);
              MYDEBUG_PRINTLN("!!! WARNING: Runaway protection triggered (stagnation) !!!");
           }
        }
     } else {
        stagnationTimer = 0; // Есть рост - сбрасываем счетчик
-       RUNAWAY = 0;
     }
   } else {
     stagnationTimer = 0;
-    RUNAWAY = 0;
   }
   lastMinuteT = ds[0].pvT; // Запоминаем температуру для следующей минуты
   //------------------------------------------------------------------------

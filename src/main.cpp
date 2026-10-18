@@ -275,7 +275,7 @@ void ledSet(void){
     if(!EXTRA1) led |= 8;
     if(!EXTRA2) led |= 0x10;
     if(!EXTRA3) led |= 0x20;
-    if(FROZE)  led |= 0x40;
+    // if(FROZE)  led |= 0x40;
     if(RUNAWAY) led|= 0x80;
     for (uint8_t i = 0; i < 8; i++){
         module.setLED(led&1, i);
