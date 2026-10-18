@@ -10,7 +10,8 @@ void IncubationManager::tick() {
     processPID();
 
     // 2. Управление дополнительным каналом обогрева/увлажнения
-    if (ERROR1 == 0 && (settings.sp_structs[1].mode & 2) == 0 && !RUNAWAY) { 
+    bool isOneShotWait = (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0 && TURN == PCF_OFF);
+    if (ERROR1 == 0 && (settings.sp_structs[1].mode & 2) == 0 && !RUNAWAY && !isOneShotWait) { 
         if (ds[0].pvErr >= settings.sp_structs[0].auxiliary) {
             EXTRA2 = PCF_ON;
         } else if (ds[0].pvErr <= settings.sp_structs[1].auxiliary) {

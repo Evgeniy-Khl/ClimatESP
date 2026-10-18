@@ -32,6 +32,12 @@ void setup(){
 
   ESP.wdtEnable(5000);                  // Включаем аппаратный ватчдог на 5 секунд
 
+  // Зажигаем точки на всех 8 индикаторах на время стабилизации питания
+  for (uint8_t i = 0; i < 8; i++) data[i] = 0x80;
+  module.setDisplay(data, 8);
+  delay(300);                           // Пауза 300 мс для стабилизации питания 5V и шины I2C
+  ESP.wdtFeed();
+
   Wire.begin();                         // Инициализация I2C (SDA, SCL по умолчанию для ESP8266 - GPIO4, GPIO5)
   Wire.setClock(100000);                // Снижаем скорость до 100кГц для стабильности
   Wire.setClockStretchLimit(150000);    // 150мс лимит clock stretch (защита от зависания)
@@ -153,6 +159,8 @@ void setup(){
   portOut.value = 0xFF;
   writePCF8574(portOut.value);
   delay(3000);
+
+  restoreOneShotState();
 
   IncubationManager::init();
   previousHeapSize = ESP.getFreeHeap();    // Проверка доступной памяти

@@ -157,6 +157,9 @@ void checkkey(uint8_t key){
                 oneShotMinutes = 0;
                 TURNSECOND = OFF;
                 writePCF8574(portOut.value);
+                uint32_t currentSec = (RTCENABLE) ? rtc.now().unixtime() : now.unixtime();
+                saveOneShotEndTime(currentSec + (uint32_t)pvTimer * 3600UL);
+                logEvent("Поворот лотків: увімкнено на %d год.", pvTimer);
             } else if (settings.sp_structs[1].timer > 0) {
                 // Режим 2: Асимметричный (секунды)
                 pvTimer = settings.sp_structs[1].timer;
@@ -175,6 +178,12 @@ void checkkey(uint8_t key){
             break;
         // TURN = OFF
         case KEY_4: 
+            if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+                if (TURN == PCF_ON) {
+                    logEvent("Поворот лотків: вимкнено користувачем");
+                }
+                clearOneShotEndTime();
+            }
             TURN = PCF_OFF;
             oneShotMinutes = 0;
             if (settings.sp_structs[0].timer == 0) {
@@ -226,6 +235,9 @@ void saveset(void){
             TURNSECOND = OFF;
             writePCF8574(portOut.value);
         }
+        if (editBuff > 0) {
+            clearOneShotEndTime();
+        }
         break;
       case 4: 
         settings.sp_structs[1].timer = editBuff;
@@ -234,6 +246,15 @@ void saveset(void){
                 pvTimer = editBuff;
                 oneShotMinutes = 0;
                 TURNSECOND = OFF;
+                uint32_t currentSec = (RTCENABLE) ? rtc.now().unixtime() : now.unixtime();
+                saveOneShotEndTime(currentSec + (uint32_t)pvTimer * 3600UL);
+            } else if (settings.sp_structs[0].timer == 0 && editBuff == 0) {
+                TURN = PCF_OFF;
+                pvTimer = 0;
+                oneShotMinutes = 0;
+                TURNSECOND = OFF;
+                writePCF8574(portOut.value);
+                clearOneShotEndTime();
             } else if (settings.sp_structs[0].timer > 0 && editBuff > 0) {
                 pvTimer = editBuff;
                 TURNSECOND = ON;

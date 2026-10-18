@@ -59,6 +59,8 @@ void rotate_trays(void){
         if (--pvTimer == 0) {
           TURN = PCF_OFF;
           writePCF8574(portOut.value);
+          clearOneShotEndTime();
+          logEvent("Поворот лотків: вимкнено (час вийшов)");
         }
       }
     } else {
@@ -156,6 +158,22 @@ void checkModeDevice(){
     writePCF8574(portOut.value);
     return;
   }
+
+  // Блокировка нагрева и увлажнения в одноразовом почасовом режиме до включения реле поворотов кнопкой
+  if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0 && TURN == PCF_OFF) {
+    heaterValue = TRIACOFF;
+    humidiValue = TRIACOFF;
+    HEATER = PCF_OFF;
+    HUMIDI = PCF_OFF;
+    pid[0].iPart = 0;
+    pid[1].iPart = 0;
+    if((settings.sp_structs[1].mode & 2) == 2) {
+      EXTRA2 = PCF_OFF;
+    }
+    writePCF8574(portOut.value);
+    return;
+  }
+
   //--- режим реле = 0-НЕТ; 1->по кан.[0] 2->по кан.[1] 3->по кан.[0]&[1]; 4-импульс ---
   switch (settings.sp_structs[0].mode) {
     uint8_t val;
@@ -741,7 +759,8 @@ void newMinute(){
   //---------------------------- ПОВОРОТ ЛОТКОВ ----------------------------
   rotate_trays();
   //---------------------------- ПРОВЕТРИВАНИЕ !! --------------------------
-  if (settings.sp_structs[0].aeration && settings.sp_structs[1].aeration && !AERATION) {
+  bool isOneShotWait = (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0 && TURN == PCF_OFF);
+  if (!isOneShotWait && settings.sp_structs[0].aeration && settings.sp_structs[1].aeration && !AERATION) {
     if (--pvAeration <= 0) {
       pvVenting = settings.sp_structs[1].aeration; // Задаем время работы в секундах
       AERATION = 1;
@@ -763,5 +782,61 @@ void newMinute(){
     eepromWriteInt16(address + 2, ds[1].pvT);
     eepromWriteInt16(address + 4, (int16_t)pvRH); // Сохраняем влажность (Вариант Б)
     // DEBUG_PRINTF("PerOfDay=%03u; Addr=0x%04x; t0=%6.1f; t1=%6.1f; rh=%u;",period_of_day,address,(float)ds[0].pvT/10, (float)ds[1].pvT/10, pvRH);
+  }
+}
+
+void saveOneShotEndTime(uint32_t endTime) {
+  eepromWriteBuffer(ONESHOT_END_TIME_ADRES, (const uint8_t*)&endTime, sizeof(endTime));
+}
+
+uint32_t loadOneShotEndTime() {
+  uint32_t endTime = 0;
+  if (eepromReadBuffer(ONESHOT_END_TIME_ADRES, (uint8_t*)&endTime, sizeof(endTime)) == sizeof(endTime)) {
+    if (endTime == 0xFFFFFFFF) return 0;
+    return endTime;
+  }
+  return 0;
+}
+
+void clearOneShotEndTime() {
+  uint32_t endTime = 0;
+  eepromWriteBuffer(ONESHOT_END_TIME_ADRES, (const uint8_t*)&endTime, sizeof(endTime));
+}
+
+void restoreOneShotState() {
+  if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
+    uint32_t endTime = loadOneShotEndTime();
+    if (endTime == 0) {
+      TURN = PCF_OFF;
+      pvTimer = 0;
+      oneShotMinutes = 0;
+      return;
+    }
+
+    if (!RTCENABLE) {
+      return;
+    }
+    now = rtc.now();
+    uint32_t currentSec = now.unixtime();
+
+    if (endTime <= currentSec) {
+      clearOneShotEndTime();
+      TURN = PCF_OFF;
+      pvTimer = 0;
+      oneShotMinutes = 0;
+      writePCF8574(portOut.value);
+      logEvent("Поворот лотків: цикл завершився під час відсутності живлення");
+    } else {
+      uint32_t remainingSec = endTime - currentSec;
+      uint32_t remainingMin = (remainingSec + 59UL) / 60UL;
+      if (remainingMin == 0) remainingMin = 1;
+
+      pvTimer = (remainingMin + 59UL) / 60UL;            // оставшиеся часы
+      oneShotMinutes = (60 - (remainingMin % 60)) % 60; // уже прошедшие минуты текущего часа
+      TURN = PCF_ON;
+      TURNSECOND = OFF;
+      writePCF8574(portOut.value);
+      logEvent("Поворот лотків: відновлено після збою (залишилось %u хв)", remainingMin);
+    }
   }
 }

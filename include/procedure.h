@@ -32,5 +32,9 @@ void reset(void);
 void newSecond();
 bool updateIncubationTime();
 void newMinute();
+void saveOneShotEndTime(uint32_t endTime);
+uint32_t loadOneShotEndTime();
+void clearOneShotEndTime();
+void restoreOneShotState();
 
 #endif /* _PROCEDURE_H */

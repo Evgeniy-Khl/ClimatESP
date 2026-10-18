@@ -245,8 +245,29 @@ void acceptEeprom() {
       else if (paramName == "extendMode") settings.sp_structs[0].extendMode = paramValue.toInt();
       else if (paramName == "relayMode") settings.sp_structs[0].mode = paramValue.toInt();
       else if (paramName == "checkDry") settings.sp_structs[1].mode = paramValue.toInt();
-      else if (paramName == "rotate0") settings.sp_structs[0].timer = paramValue.toInt();
-      else if (paramName == "rotate1") settings.sp_structs[1].timer = paramValue.toInt();
+      else if (paramName == "rotate0") {
+        settings.sp_structs[0].timer = paramValue.toInt();
+        if (settings.sp_structs[0].timer > 0) {
+          clearOneShotEndTime();
+        }
+      }
+      else if (paramName == "rotate1") {
+        settings.sp_structs[1].timer = paramValue.toInt();
+        if (settings.sp_structs[0].timer == 0 && TURN == PCF_ON) {
+          if (settings.sp_structs[1].timer > 0) {
+            pvTimer = settings.sp_structs[1].timer;
+            oneShotMinutes = 0;
+            uint32_t currentSec = (RTCENABLE) ? rtc.now().unixtime() : now.unixtime();
+            saveOneShotEndTime(currentSec + (uint32_t)pvTimer * 3600UL);
+          } else {
+            TURN = PCF_OFF;
+            pvTimer = 0;
+            oneShotMinutes = 0;
+            writePCF8574(portOut.value);
+            clearOneShotEndTime();
+          }
+        }
+      }
       else if (paramName == "program") {
         int16_t newProg = paramValue.toInt();
         if (settings.sp_structs[1].state != newProg) {

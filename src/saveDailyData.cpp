@@ -279,6 +279,7 @@ void startIncubation() {
   DEBUG_PRINTF("%02d.%02d.20%02d %02d:%02d:%02d | State: %d\n", data[3], data[2], data[1], data[4], data[5], data[6], data[0]);
 
   if (currentState > 0) {
+    clearOneShotEndTime();
     clearIncubationData();
     clearEEPROM(false); // Очищаем область суточных данных в EEPROM с анимацией и звуком
     countDays = 0;
