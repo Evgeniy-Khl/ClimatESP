@@ -106,9 +106,11 @@ void respondsValues() {
     char rotation[32];
     if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
       if (TURN == PCF_ON) {
-        snprintf_P(rotation, sizeof(rotation), PSTR("%d год."), pvTimer);
+        uint16_t remHours = (oneShotMinutes == 0) ? pvTimer : (pvTimer > 0 ? pvTimer - 1 : 0);
+        uint8_t remMinutes = (oneShotMinutes == 0) ? 0 : (60 - oneShotMinutes);
+        snprintf_P(rotation, sizeof(rotation), PSTR("%d год. %d хв."), remHours, remMinutes);
       } else {
-        snprintf_P(rotation, sizeof(rotation), PSTR("вимкн. (1-раз.)"));
+        snprintf_P(rotation, sizeof(rotation), PSTR("вимкнено"));
       }
     } else if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer == 0) {
       snprintf_P(rotation, sizeof(rotation), PSTR("вимкнено"));

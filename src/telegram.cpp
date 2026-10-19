@@ -77,7 +77,13 @@ void sendStatus(){
     pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("- доба інкубації: %d\n"), countDays + 1);
   }
   if (settings.sp_structs[0].timer == 0 && settings.sp_structs[1].timer > 0) {
-    pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("- таймер: %s (%d год.)\n"), TURN == PCF_ON ? "УВІМК" : "ВИМК", pvTimer);
+    if (TURN == PCF_ON) {
+      uint16_t remHours = (oneShotMinutes == 0) ? pvTimer : (pvTimer > 0 ? pvTimer - 1 : 0);
+      uint8_t remMinutes = (oneShotMinutes == 0) ? 0 : (60 - oneShotMinutes);
+      pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("- таймер: УВІМК (%d год. %d хв.)\n"), remHours, remMinutes);
+    } else {
+      pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, PSTR("- таймер: ВИМК\n"));
+    }
   }
 
   pos += snprintf_P(buffer + pos, sizeof(buffer) - pos, (PGM_P)WORD_MISTAKES);
