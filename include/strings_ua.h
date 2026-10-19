@@ -5,9 +5,9 @@
 #include <Arduino.h>
 
 #define MAIN_MENU           F("[ \
-    {\"command\":\"help\",  \"description\":\"Отримайте допомогу з використанням бота\"}, \
-    {\"command\":\"start\", \"description\":\"Повідомлення яке надсилається, коли ви відкриваєте чат із ботом\"}, \
-    {\"command\":\"status\",\"description\":\"Поточний стан пристрою.\"} \
+    {\"command\":\"start\", \"description\":\"Увімкнути таймер (у разовому режимі)\"}, \
+    {\"command\":\"stop\",  \"description\":\"Вимкнути таймер (у разовому режимі)\"}, \
+    {\"command\":\"status\",\"description\":\"Поточний стан пристрою\"} \
     ]")
 #define GRAVE_ACCENT        F("```")
 #define WORD_TITLE          F("```\n Клімат-5.25")
@@ -23,8 +23,8 @@
 #define WORD_WARNING        F("- попередження: ")
 #define WORD_DAYS           F("діб")
 #define TXT_START           F("/start")
-#define TXT_OPTIONS         F("/options")
 #define TXT_STATUS          F("/status")
+#define TXT_STOP            F("/stop")
 
 #define STR_CONNECTING      F("Підключення до сервера")
 #define STR_DATA_RETRIEVED  F("Дані успішно отримані")

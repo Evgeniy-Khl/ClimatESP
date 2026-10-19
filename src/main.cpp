@@ -173,6 +173,7 @@ void loop(){
   ESP.wdtFeed();
   handleWiFi();          // Фоновое управление WiFi и переподключение
   server.handleClient(); // Обработка входящих запросов
+  checkTelegram();       // Безопасный опрос команд Telegram
   //--------------------------- УПРАВЛЕНИЕ СИМИСТОРОМ 10 mSec. ---------------------------------
   long nowMillis = millis();
   if(nowMillis - counter10 > 10){
@@ -264,7 +265,7 @@ void loop(){
     else if(tableData[0][0]==0 && settings.sp_structs[1].state) {mode = READPROG; interval = INTERVAL_1000; quarter = GET_PROG1;}
     seconds += interval/1000;
     allTime += interval/1000;
-    tmrTelegramOff -= interval/1000;  // if you use HTML telegram does not work (5 min.)
+    if (tmrTelegramOff > 0) tmrTelegramOff -= interval/1000;  // if you use HTML telegram does not work
     
     /* switch (mode){
       case READEEPROM: getData(GET_EEPROM); break;

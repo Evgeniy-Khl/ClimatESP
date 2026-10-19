@@ -21,7 +21,7 @@ void formatFloat(char* buf, size_t size, float val, bool brackets) {
 }
 
 void respondsValues() {
-    tmrTelegramOff = 300;
+    tmrTelegramOff = 20;
     JsonDocument data;
     
     char model[64];

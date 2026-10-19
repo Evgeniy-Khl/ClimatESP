@@ -10,4 +10,5 @@ void sendStatus();
 void sendErrMessages(int err);
 void saveConfigCallback();
 void handleNewMessages(int numNewMessages);
+void checkTelegram();
 #endif /* TELEGRAM_H */

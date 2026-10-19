@@ -5,9 +5,9 @@
 #include <Arduino.h>
 
 #define MAIN_MENU           F("[ \
-    {\"command\":\"help\",  \"description\":\"Получите помощь в использовании бота\"}, \
-    {\"command\":\"start\", \"description\":\"Сообщение отправляется, когда вы открываете чат с ботом\"}, \
-    {\"command\":\"status\",\"description\":\"Текущее состояние устройства.\"} \
+    {\"command\":\"start\", \"description\":\"Включить таймер (в разовом режиме)\"}, \
+    {\"command\":\"stop\",  \"description\":\"Выключить таймер (в разовом режиме)\"}, \
+    {\"command\":\"status\",\"description\":\"Текущее состояние устройства\"} \
     ]")
 #define WORD_TITLE          F("```\n Климат-5.")
 #define ID_TITLE            F("  ID:")
@@ -21,8 +21,8 @@
 #define WORD_WARNING        F("- предупреждения: ")
 #define WORD_DAYS           F("дней")
 #define TXT_START           F("/start")
-#define TXT_OPTIONS         F("/options")
 #define TXT_STATUS          F("/status")
+#define TXT_STOP            F("/stop")
 
 #define STR_CONNECTING      F("Подключение к серверу")
 #define STR_DATA_RETRIEVED  F("Данные успешно получены")

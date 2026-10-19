@@ -59,7 +59,7 @@ void handleScanWifi() {
 void setupWebServerRoutes() {
     server.on("/scan_wifi", HTTP_GET, handleScanWifi);
     server.on("/", HTTP_GET, []() {
-      mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 300;
+      mode = READDEFAULT; interval = INTERVAL_4000; tmrTelegramOff = 20;
       if (!LittleFS.exists("/index.html")) {
         MYDEBUG_PRINTLN("index.html not found");
       } else {

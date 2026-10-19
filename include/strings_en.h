@@ -5,9 +5,9 @@
 #include <Arduino.h>
 
 #define MAIN_MENU           F("[ \
-    {\"command\":\"help\",  \"description\":\"Get help using the bot\"}, \
-    {\"command\":\"start\", \"description\":\"A message is sent when you open a chat with a bot\"}, \
-    {\"command\":\"status\",\"description\":\"Current device status.\"} \
+    {\"command\":\"start\", \"description\":\"Turn on timer (in one-shot mode)\"}, \
+    {\"command\":\"stop\",  \"description\":\"Turn off timer (in one-shot mode)\"}, \
+    {\"command\":\"status\",\"description\":\"Current device status\"} \
     ]")
 #define GRAVE_ACCENT        F("```")
 #define WORD_TITLE          F("```\n Climate-5.25")
@@ -23,8 +23,8 @@
 #define WORD_WARNING        F("- warning: ")
 #define WORD_DAYS           F("days")
 #define TXT_START           F("/start")
-#define TXT_OPTIONS         F("/options")
 #define TXT_STATUS          F("/status")
+#define TXT_STOP            F("/stop")
 
 #define STR_CONNECTING      F("Connecting to server")
 #define STR_DATA_RETRIEVED  F("Data retrieved successfully")

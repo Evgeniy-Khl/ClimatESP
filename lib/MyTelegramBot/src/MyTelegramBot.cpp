@@ -71,6 +71,7 @@ bool MyTelegramBot::readHTTPAnswer(String &body, String &headers) {
   bool responseReceived = false;
 
   while (millis() - nowMillis < longPoll * 1000 + waitForResponse) {
+    ESP.wdtFeed();
     while (client->available()) {
       char c = client->read();
       responseReceived = true;
